@@ -72,7 +72,7 @@
                      <div class="col-md-6">
                          <label for="trade-risk" class="form-label fw-bold">Риск на сделку (%) *</label>
                          <div class="input-group">
-                            <input type="number" class="form-control" id="trade-risk" name="risk_percent" step="0.01" value="1.00" required>
+                            <input type="number" class="form-control" id="trade-risk" name="risk_percent" step="0.01" value="1.00" required placeholder="Введите % риска">
                              <span class="input-group-text">%</span>
                          </div>
                     </div>
