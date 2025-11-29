@@ -187,76 +187,66 @@ h3 {
     box-shadow: 0 0 0 3px rgba(41, 151, 255, 0.4);
 }
 
-/* Основная кнопка (Синяя) */
+/* --- КНОПКИ С ЭФФЕКТОМ СВЕЧЕНИЯ (БЕЗ СДВИГА) --- */
+
+/* Primary (Синяя) */
 .btn-primary {
     background: var(--accent-blue);
     box-shadow: 0 2px 10px rgba(41, 151, 255, 0.2);
 }
-
 .btn-primary:hover {
     background: #1a87f0;
-    /* Убрали transform, оставили только тень */
-    box-shadow: 0 4px 15px rgba(41, 151, 255, 0.4); 
-    transform: none; 
+    box-shadow: 0 0 20px rgba(41, 151, 255, 0.4); /* Усиленное свечение */
+    transform: none; /* Отключен сдвиг */
 }
 
+/* Secondary (Редактировать) */
 .btn-secondary {
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-main);
+    border: 1px solid transparent;
 }
-
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15); /* Белое свечение */
+    transform: none;
 }
 
-.btn-outline {
+/* Outline (Назад, Фильтры) */
+.btn-outline, .btn-outline-secondary {
     background: transparent;
     border: 1px solid var(--glass-border);
     color: var(--text-secondary);
 }
-
-.btn-outline:hover {
+.btn-outline:hover, .btn-outline-secondary:hover {
     background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
+    border-color: var(--text-main);
     color: var(--text-main);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); /* Легкое свечение */
+    transform: none;
 }
 
+/* Danger (Удалить) */
 .btn-danger {
     background-color: var(--accent-red);
     color: white;
 }
 .btn-danger:hover {
     background-color: var(--accent-red-hover);
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.4); /* Красное свечение */
+    transform: none;
 }
 
-/* Исправление кнопок в HEADER (Фильтры и Новая Сделка) */
+/* Специфично для кнопок в хедере (Фильтры, Новая Сделка) */
 .page-header-actions .btn-outline-secondary {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     color: var(--text-main) !important;
-    cursor: pointer;
-    transition: all 0.3s ease;
 }
 .page-header-actions .btn-outline-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: #ffffff !important;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-    transform: none;
-}
-
-.page-header-actions .btn-primary {
-    background: var(--accent-blue);
-    border: none;
-    color: white;
-    box-shadow: 0 4px 6px rgba(41, 151, 255, 0.2);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-.page-header-actions .btn-primary:hover {
-    background: #1a87f0;
-    /* Убрали смещение, усилили тень */
-    box-shadow: 0 0 20px rgba(41, 151, 255, 0.4);
+    border-color: var(--text-main) !important;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
     transform: none;
 }
 
@@ -446,10 +436,10 @@ h3 {
 }
 .trades-table tbody tr:hover {
     background: var(--glass-bg-hover);
-    /* Убран scale, добавлена тень */
-    transform: none;
+    /* Убран scale, добавлена тень и подсветка */
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     border-color: rgba(255,255,255,0.2);
+    transform: none;
 }
 .trades-table td {
     padding: 15px;
@@ -570,10 +560,10 @@ h3 {
 
 .metric-card:hover {
     /* Убран сдвиг, усилена тень */
-    transform: none;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
     border-color: rgba(255, 255, 255, 0.2);
     background: var(--glass-bg-hover);
+    transform: none;
 }
 
 .metric-icon {
@@ -646,7 +636,7 @@ h3 {
     font-size: 40px;
     font-weight: bold;
     transition: 0.3s;
-    cursor: pointer; 
+    cursor: pointer; /* Курсор-рука */
     z-index: 100000;
 }
 
@@ -655,7 +645,7 @@ h3 {
 }
 
 .lightbox-trigger {
-    cursor: zoom-in; 
+    cursor: zoom-in; /* Курсор лупа */
     transition: opacity 0.2s;
 }
 .lightbox-trigger:hover {
@@ -671,7 +661,7 @@ h3 {
     left: 10px;
     z-index: 9999;
     font-size: 24px;
-    cursor: pointer; 
+    cursor: pointer; /* Курсор-рука */
     color: var(--text-main);
     display: none;
     background: rgba(0, 0, 0, 0.5);
