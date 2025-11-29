@@ -123,11 +123,11 @@ $currentTitle = $pageTitles[$view] ?? 'TOS - Trading Operating System';
         </div>
     <?php endif; ?>
 
-    <div id="image-modal" class="modal image-modal" style="display: none; position: fixed; z-index: 2000; padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
-        <span class="modal-close" style="position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer;">&times;</span>
-        <img class="modal-content" id="modal-image" style="margin: auto; display: block; width: 80%; max-width: 1200px; max-height: 80vh; object-fit: contain; animation-name: zoom; animation-duration: 0.6s;">
-        <div id="modal-caption" style="margin: auto; display: block; width: 80%; max-width: 700px; text-align: center; color: #ccc; padding: 10px 0; height: 150px;"></div>
-    </div>
+    <div id="image-modal" class="modal image-modal">
+		<span class="modal-close">&times;</span>
+		<img class="modal-content" id="modal-image">
+		<div id="modal-caption"></div>
+	</div>
 
     <script src="assets/app.js?v=<?php echo time(); ?>"></script>
 
