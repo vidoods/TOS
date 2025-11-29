@@ -487,14 +487,13 @@ function getTradeDetails($pdo) {
 }
 
 // *** ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ СДЕЛКИ ***
+
 function saveTrade($pdo) {
     try {
         $user_id = $_SESSION['user_id'];
         $data = json_decode(file_get_contents('php://input'), true);
 
-        foreach (['pair_id', 'account_id', 'entry_date', 'direction', 'risk_percent'] as $field) {
-            if (empty($data[$field])) throw new Exception("Поле $field обязательно.");
-        }
+        // ... (проверка обязательных полей)
 
         $trade_id = $data['id'] ?? null;
         $is_update = !empty($trade_id);
@@ -526,44 +525,20 @@ function saveTrade($pdo) {
         ];
 
         if ($is_update) {
-            $check = $pdo->prepare("SELECT id FROM trades WHERE id = ? AND user_id = ?");
-            $check->execute([$trade_id, $user_id]);
-            if (!$check->fetch()) throw new Exception('Сделка не найдена или нет прав.');
+            // ... (проверка прав)
 
-            // SQL-запрос для обновления
+            // SQL-запрос для обновления (уже без entry_price, stop_loss_price и т.д.)
             $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, entry_date=?, exit_date=?, direction=?, risk_percent=?, rr_achieved=?, pnl=?, status=?, trade_conclusions=?, key_lessons=?, entry_tf=?, notes=?, tags=?, mistakes_made=?, emotional_state=?, reason_for_entry=? WHERE id=? AND user_id=?";
             
-            // Внимание: order of parameters is CRUCIAL for prepared statements
-            $update_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
-            $update_params[] = $trade_id; // Добавляем ID
-            $update_params[] = $user_id; // Добавляем user_id
-            
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($update_params);
-            
-            $pdo->prepare("DELETE FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 0")->execute([$trade_id]);
-            $message = 'Сделка обновлена!';
+            // ... (выполнение запроса)
         } else {
-            // SQL-запрос для вставки
+            // SQL-запрос для вставки (уже без entry_price, stop_loss_price и т.д.)
             $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, entry_date, exit_date, direction, risk_percent, rr_achieved, pnl, status, trade_conclusions, key_lessons, entry_tf, notes, tags, mistakes_made, emotional_state, reason_for_entry, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             
-            $insert_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
-            $insert_params[] = $user_id; // Добавляем user_id в конец
-
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($insert_params);
-            $trade_id = $pdo->lastInsertId();
-            $message = 'Сделка создана!';
+            // ... (выполнение запроса)
         }
 
-        if (!empty($data['trade_images']) && is_array($data['trade_images'])) {
-            $img_stmt = $pdo->prepare("INSERT INTO trade_analysis_images (trade_id, image_url, notes, title, is_plan_image) VALUES (?, ?, ?, ?, 0)");
-            foreach ($data['trade_images'] as $i => $img) {
-                if (!empty($img['url'])) {
-                    $img_stmt->execute([$trade_id, $img['url'], $img['notes'] ?? null, $img['title'] ?? ('Снимок ' . ($i + 1))]);
-                }
-            }
-        }
+        // ... (обработка изображений)
 
         $pdo->commit();
         echo json_encode(['success' => true, 'message' => $message, 'id' => $trade_id]);
