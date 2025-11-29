@@ -5,6 +5,8 @@
 // ==================================================
 
 let menuOpen = false;
+// Глобальная переменная для хранения данных о счетах (включая баланс)
+let accountData = {}; 
 
 function toggleMenu() {
     menuOpen = !menuOpen;
@@ -78,12 +80,22 @@ async function logout() {
 // ОБЩИЕ ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ И ФОРМ
 // ==================================================
 
+// Загрузка справочников (пар, счетов, стилей и т.д.)
 async function loadLookups() {
     try {
         const response = await fetch('api/api.php?action=get_lookups');
         const result = await response.json();
         if (result.success) {
             const data = result.data;
+            
+            // Сохраняем данные счетов для расчетов (ID -> Balance)
+            accountData = {};
+            if (data.accounts) {
+                data.accounts.forEach(acc => {
+                    accountData[acc.id] = parseFloat(acc.current_equity);
+                });
+            }
+
             populateSelect('plan-pair', data.pairs, 'symbol');
             populateSelect('trade-pair', data.pairs, 'symbol');
             populateSelect('trade-account', data.accounts, 'name');
@@ -92,7 +104,7 @@ async function loadLookups() {
             
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'Все инструменты');
             
-            return data;
+            return data; 
         } else {
             console.error('Ошибка загрузки справочников:', result.message);
             showMessage('Не удалось загрузить справочные данные.', 'error');
@@ -122,6 +134,7 @@ function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedVa
     });
 }
 
+// Общая функция для отправки форм (планы и сделки)
 async function handleFormSubmit(event, action, entityName, redirectView) {
     event.preventDefault();
     const form = event.target;
@@ -423,6 +436,45 @@ async function initTradeForm() {
     } else {
         addTradeImage();
     }
+    // Вызываем настройку расчета RR
+    setupRRCalculation();
+}
+
+// Новая функция для расчета RR
+function setupRRCalculation() {
+    const pnlInput = document.getElementById('trade-pnl');
+    const riskInput = document.getElementById('trade-risk');
+    const accountSelect = document.getElementById('trade-account');
+    const rrInput = document.getElementById('trade-rr-achieved');
+
+    // Функция самого расчета
+    const calculate = () => {
+        const pnl = parseFloat(pnlInput.value);
+        const riskPercent = parseFloat(riskInput.value);
+        const accountId = accountSelect.value;
+
+        // Проверяем, что все данные есть и валидны
+        if (!isNaN(pnl) && !isNaN(riskPercent) && riskPercent !== 0 && accountId && accountData[accountId]) {
+            const accountBalance = accountData[accountId];
+            const riskAmount = (accountBalance * riskPercent) / 100;
+            
+            if (riskAmount !== 0) {
+                const rr = pnl / riskAmount;
+                rrInput.value = rr.toFixed(2);
+            } else {
+                rrInput.value = ''; // Избегаем деления на ноль
+            }
+        } else {
+            // Если данных недостаточно, очищаем поле (или оставляем как есть, если введен вручную)
+            // Можно раскомментировать, если нужно жестко сбрасывать
+            // rrInput.value = ''; 
+        }
+    };
+
+    // Вешаем слушатели на изменение полей
+    if (pnlInput) pnlInput.addEventListener('input', calculate);
+    if (riskInput) riskInput.addEventListener('input', calculate);
+    if (accountSelect) accountSelect.addEventListener('change', calculate);
 }
 
 async function loadTradeDataForEdit(tradeId) {
@@ -459,6 +511,9 @@ async function loadTradeDataForEdit(tradeId) {
                 addTradeImage();
             }
             document.getElementById('form-page-title').textContent = 'Редактировать Сделку';
+            
+            // После загрузки данных вызываем расчет, чтобы актуализировать RR
+            setupRRCalculation();
         } else {
             showMessage('Ошибка загрузки сделки: ' + result.message, 'error');
             window.location.href = 'index.php?view=journal';
