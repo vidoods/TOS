@@ -1,0 +1,900 @@
+// assets/app.js
+
+// ==================================================
+// ОБЩИЕ ФУНКЦИИ ИНТЕРФЕЙСА И УТИЛИТЫ
+// ==================================================
+
+let menuOpen = false;
+
+function toggleMenu() {
+    menuOpen = !menuOpen;
+    const sidebar = document.getElementById('sidebar');
+    const contentArea = document.querySelector('.content-area');
+    if (sidebar && contentArea) {
+        sidebar.classList.toggle('open', menuOpen);
+        contentArea.classList.toggle('menu-open', menuOpen);
+    }
+}
+
+function closeMenu() {
+    if (menuOpen) toggleMenu();
+}
+
+document.addEventListener('click', (event) => {
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    if (menuOpen && sidebar && !sidebar.contains(event.target) && (!mobileMenuToggle || !mobileMenuToggle.contains(event.target))) {
+        closeMenu();
+    }
+});
+
+// Функция для отображения сообщений
+function showMessage(message, type = 'success') {
+    // В будущем можно заменить на красивый toast-компонент
+    alert(message);
+}
+
+// ==================================================
+// ФУНКЦИИ АВТОРИЗАЦИИ
+// ==================================================
+
+async function handleLoginSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    formData.append('action', 'login');
+    const errorDiv = document.getElementById('login-error');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    errorDiv.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Проверка...';
+
+    try {
+        const response = await fetch('api/api.php', { method: 'POST', body: formData });
+        const result = await response.json();
+        if (result.success) {
+            window.location.href = 'index.php?view=dashboard';
+        } else {
+            errorDiv.textContent = result.message || 'Ошибка входа';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Ошибка сети. Попробуйте позже.';
+        console.error('Login error:', error);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+}
+
+async function logout() {
+    if (confirm('Вы уверены, что хотите выйти?')) {
+        try { await fetch('api/api.php?action=logout'); } catch (e) { console.error(e); }
+        window.location.href = 'index.php?view=login';
+    }
+}
+
+// ==================================================
+// ОБЩИЕ ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ И ФОРМ
+// ==================================================
+
+// Загрузка справочников (пар, счетов, стилей и т.д.)
+async function loadLookups() {
+    try {
+        const response = await fetch('api/api.php?action=get_lookups');
+        const result = await response.json();
+        if (result.success) {
+            const data = result.data;
+            // Заполнение селектов на формах создания
+            populateSelect('plan-pair', data.pairs, 'symbol');
+            populateSelect('trade-pair', data.pairs, 'symbol');
+            populateSelect('trade-account', data.accounts, 'name');
+            populateSelect('trade-style', data.styles, 'name');
+            populateSelect('trade-plan', data.plans, 'title');
+            
+            // Заполнение селектов в фильтрах
+            populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'Все инструменты');
+            // populateSelect('filter-account', data.accounts, 'name', 'id', null, 'Все счета'); // Если нужно в будущем
+            
+            return data; // Возвращаем данные для использования в других функциях
+        } else {
+            console.error('Ошибка загрузки справочников:', result.message);
+            showMessage('Не удалось загрузить справочные данные.', 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error('Ошибка сети при загрузке справочников:', error);
+        showMessage('Ошибка сети при загрузке справочников.', 'error');
+        return null;
+    }
+}
+
+function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedValue = null, placeholderText = '--- Выберите ---') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    // Сохраняем первую опцию (плейсхолдер), если она есть
+    const firstOption = select.querySelector('option[value=""]');
+    select.innerHTML = '';
+    if (firstOption) select.appendChild(firstOption);
+    
+    if (!items || items.length === 0) return;
+    items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item[valueKey];
+        option.textContent = item[displayKey];
+        if (selectedValue && item[valueKey] == selectedValue) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+// Общая функция для отправки форм (планы и сделки)
+async function handleFormSubmit(event, action, entityName, redirectView) {
+    event.preventDefault();
+    const form = event.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>⏳</span> Сохранение...';
+
+    try {
+        // Собираем данные для отправки
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            // Обработка массивов (например, timeframes[0][title] -> timeframes: [{title: ...}])
+            if (key.includes('[')) {
+                const [mainKey, index, subKey] = key.match(/(\w+)\[(\d+)\]\[(\w+)\]/).slice(1);
+                if (!data[mainKey]) data[mainKey] = [];
+                if (!data[mainKey][index]) data[mainKey][index] = {};
+                data[mainKey][index][subKey] = value;
+            } else {
+                data[key] = value;
+            }
+        });
+        
+        // Очищаем массивы от пустых элементов
+        ['timeframes', 'trade_images'].forEach(arrKey => {
+             if (data[arrKey]) data[arrKey] = data[arrKey].filter(item => item && (item.url || item.notes || item.title));
+        });
+
+        // Загрузка изображений на сервер
+        const imagePromises = [];
+        const processImages = (containerClass, arrayName, type) => {
+            form.querySelectorAll(`.${containerClass}`).forEach((card, index) => {
+                const fileInput = card.querySelector('input[type="file"]');
+                const urlInput = card.querySelector('input[name*="[url]"]');
+                const hiddenUrlInput = card.querySelector('input[type="hidden"][name*="[url]"]');
+                
+                // Загружаем файл, если он выбран
+                if (fileInput && fileInput.files[0]) {
+                    imagePromises.push(uploadFile(fileInput.files[0], type).then(url => {
+                        if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
+                    }));
+                // Или скачиваем по URL, если он введен и отличается от того, что уже был
+                } else if (urlInput && urlInput.value.trim() && urlInput.value !== hiddenUrlInput.value) {
+                     imagePromises.push(downloadImage(urlInput.value.trim(), type).then(url => {
+                        if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
+                    }));
+                }
+            });
+        };
+        
+        if (entityName === 'plan') processImages('tf-card', 'timeframes', 'plan');
+        if (entityName === 'trade') processImages('trade-img-card', 'trade_images', 'trade');
+
+        // Ждем завершения всех загрузок изображений
+        await Promise.all(imagePromises);
+
+        // Отправка итоговых данных на сервер
+        const response = await fetch(`api/api.php?action=${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            // showMessage(`${entityName === 'plan' ? 'План' : 'Сделка'} успешно сохранен(а)!`); // Убрали алерт
+            window.location.href = `index.php?view=${redirectView}`;
+        } else {
+            showMessage('Ошибка сохранения: ' + result.message, 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка при сохранении:', error);
+        showMessage('Произошла ошибка при сохранении. Проверьте консоль.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+}
+
+async function uploadFile(file, type) {
+    const formData = new FormData();
+    formData.append('action', 'upload_image');
+    formData.append('image', file);
+    formData.append('type', type);
+    const response = await fetch('api/api.php', { method: 'POST', body: formData });
+    const result = await response.json();
+    if (result.success) return result.url;
+    throw new Error(result.message);
+}
+
+async function downloadImage(url, type) {
+    const response = await fetch('api/api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'download_image_from_url', image_url: url, type: type })
+    });
+    const result = await response.json();
+    if (result.success) return result.url;
+    throw new Error(result.message);
+}
+// ==================================================
+// ФУНКЦИИ ДЛЯ ПЛАНОВ
+// ==================================================
+
+let tfCount = 0;
+let isPlanEditMode = false;
+
+async function initPlanForm() {
+    const planIdInput = document.getElementById('edit-plan-id');
+    isPlanEditMode = !!planIdInput;
+    // Ждем загрузки справочников перед продолжением
+    await loadLookups();
+    if (isPlanEditMode) {
+        await loadPlanDataForEdit(planIdInput.value);
+    } else {
+        addTimeframe();
+    }
+    setupAutoUpdateTitle();
+}
+
+async function loadPlanDataForEdit(planId) {
+    try {
+        const response = await fetch(`api/api.php?action=get_plan_details&id=${planId}`);
+        const result = await response.json();
+        if (result.success) {
+            const plan = result.data;
+            // Заполнение полей формы
+            for (const key in plan) {
+                 const input = document.querySelector(`[name="${key}"]`);
+                 if (input) input.value = plan[key];
+            }
+            // Устанавливаем значения селектов
+            if (plan.pair_id) document.getElementById('plan-pair').value = plan.pair_id;
+            if (plan.type) document.getElementById('plan-type').value = plan.type;
+            if (plan.bias) document.getElementById('plan-bias').value = plan.bias;
+
+            
+            const container = document.getElementById('timeframes-container');
+            container.innerHTML = '';
+            if (plan.timeframes && plan.timeframes.length) {
+                plan.timeframes.forEach(tf => addTimeframe(tf));
+            } else {
+                addTimeframe();
+            }
+            document.getElementById('form-page-title').textContent = 'Редактировать План';
+        } else {
+            showMessage('Ошибка загрузки плана: ' + result.message, 'error');
+            window.location.href = 'index.php?view=plans';
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке плана для редактирования:', error);
+        showMessage('Ошибка сети.', 'error');
+    }
+}
+
+function setupAutoUpdateTitle() {
+     const update = () => {
+        if (isPlanEditMode) return;
+        const type = document.getElementById('plan-type')?.value || 'Weekly';
+        const dateVal = document.getElementById('plan-date')?.value;
+        if (!dateVal) return;
+        const date = new Date(dateVal);
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        let formattedDate = `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        if (type.toLowerCase().includes('weekly')) {
+            const endDate = new Date(date); endDate.setDate(date.getDate() + 4);
+            formattedDate = `${date.getDate()} ${monthNames[date.getMonth()]}`;
+            if (date.getMonth() !== endDate.getMonth()) formattedDate += ` - ${endDate.getDate()} ${monthNames[endDate.getMonth()]}`;
+            else formattedDate += `-${endDate.getDate()}`;
+             formattedDate += ` ${date.getFullYear()}`;
+        }
+        document.getElementById('plan-title').value = `${type} Plan / ${formattedDate}`;
+    };
+    document.getElementById('plan-type')?.addEventListener('change', update);
+    document.getElementById('plan-date')?.addEventListener('change', update);
+    setTimeout(update, 500);
+}
+
+
+function addTimeframe(data = null) {
+    tfCount++;
+    const container = document.getElementById('timeframes-container');
+    const tfId = `tf-${tfCount}`;
+    const title = data?.title || '';
+    const notes = data?.notes || '';
+    const url = data?.image_url || '';
+    
+    const html = `
+        <div class="tf-card glass-panel" id="${tfId}">
+            <div class="tf-header">
+                <input type="text" name="timeframes[${tfCount-1}][title]" class="input-field" value="${title}" placeholder="Название таймфрейма (например, 4H Chart)">
+                <button type="button" class="btn-remove" onclick="document.getElementById('${tfId}').remove()">Удалить</button>
+            </div>
+            <div class="form-group">
+                 ${getImageInputHtml(tfId, url, `timeframes[${tfCount-1}][url]`)}
+            </div>
+            <div class="form-group">
+                <textarea class="textarea-field" name="timeframes[${tfCount-1}][notes]" rows="3" placeholder="Заметки к этому таймфрейму...">${notes}</textarea>
+            </div>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+// --- СПИСОК ПЛАНОВ ---
+async function loadPlans(filters = {}) {
+    const container = document.getElementById('plans-list-container');
+    if (!container) return;
+    container.innerHTML = '<div class="loading-spinner">Загрузка планов...</div>';
+
+    try {
+        const params = new URLSearchParams(filters);
+        const response = await fetch(`api/api.php?action=get_plans&${params}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const groupedPlans = result.data;
+            if (groupedPlans.length === 0) {
+                container.innerHTML = '<div class="empty-state">Планы не найдены.</div>';
+                return;
+            }
+            container.innerHTML = '';
+            groupedPlans.forEach(group => {
+                const monthTitle = document.createElement('div');
+                monthTitle.className = 'month-title';
+                monthTitle.textContent = group.month_label;
+                container.appendChild(monthTitle);
+                
+                const plansGrid = document.createElement('div');
+                plansGrid.className = 'plans-grid';
+                group.plans.forEach(plan => {
+                    const dateObj = new Date(plan.date);
+                    const card = document.createElement('a');
+                    card.className = 'plan-card glass-panel';
+                    card.href = `index.php?view=plan_details&id=${plan.id}`;
+                    card.innerHTML = `
+                        <div class="plan-date-box"><span>${dateObj.getDate()}</span><span class="plan-date-type">${plan.type.charAt(0)}</span></div>
+                        <div class="plan-info"><span class="plan-symbol">${plan.pair_symbol}</span><span class="plan-title-text">${plan.title}</span></div>
+                        <div class="plan-bias-tag bias-${plan.bias.toLowerCase()}">${plan.bias}</div>
+                        <div class="plan-arrow">➜</div>`;
+                    plansGrid.appendChild(card);
+                });
+                container.appendChild(plansGrid);
+            });
+        } else { container.innerHTML = `<div class="error-state">Ошибка: ${result.message}</div>`; }
+    } catch (error) { console.error(error); container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>'; }
+}
+
+// --- ДЕТАЛИ ПЛАНА ---
+async function loadPlanDetails() {
+    const planId = document.getElementById('current-plan-id')?.value;
+    if (!planId) return;
+    const container = document.getElementById('plan-details-container');
+    if (container) container.style.opacity = '0.5';
+
+    try {
+        const response = await fetch(`api/api.php?action=get_plan_details&id=${planId}`);
+        const result = await response.json();
+        if (result.success) {
+            const plan = result.data;
+            document.getElementById('plan-details-title').textContent = plan.title;
+            const editBtn = document.querySelector('.plan-actions .btn-secondary');
+            const deleteBtn = document.querySelector('.plan-actions .btn-danger');
+            if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=plan_create&id=${plan.id}`;
+            if (deleteBtn) deleteBtn.onclick = () => deleteEntity(plan.id, 'delete_plan', 'plans');
+            
+            ['type', 'pair_symbol', 'formatted_date', 'bias', 'formatted_created_at'].forEach(key => {
+                const el = document.getElementById(`plan-${key.replace('formatted_', '')}`);
+                if (el) el.textContent = plan[key];
+            });
+            const biasEl = document.getElementById('plan-bias');
+            if (biasEl) biasEl.className = `detail-value plan-bias-tag bias-${plan.bias.toLowerCase()}`;
+            
+            const tfList = document.getElementById('timeframes-list');
+            if (tfList) {
+                tfList.innerHTML = '';
+                if (plan.timeframes.length) {
+                    plan.timeframes.forEach(tf => {
+                        tfList.innerHTML += `
+                            <div class="timeframe-card">
+                                <h3>${tf.title || 'Таймфрейм'}</h3>
+                                ${tf.image_url ? `<img src="${tf.image_url}" class="lightbox-trigger">` : '<p class="text-muted">Нет изображения</p>'}
+                                ${tf.notes ? `<div class="notes">${tf.notes}</div>` : ''}
+                            </div>`;
+                    });
+                } else { tfList.innerHTML = '<div class="empty-state">Нет изображений.</div>'; }
+            }
+        } else {
+            showMessage('Ошибка загрузки деталей плана: ' + result.message, 'error');
+            // window.location.href = 'index.php?view=plans'; // Закомментировано, чтобы не уводить со страницы при ошибке
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке плана для редактирования:', error);
+        showMessage('Ошибка сети.', 'error');
+    }
+    finally { if (container) container.style.opacity = '1'; }
+}
+
+// ==================================================
+// ФУНКЦИИ ДЛЯ СДЕЛОК
+// ==================================================
+
+let tradeImgCount = 0;
+let isTradeEditMode = false;
+
+async function initTradeForm() {
+    const tradeIdInput = document.getElementById('edit-trade-id');
+    // **ИСПРАВЛЕНО ЗДЕСЬ:** Проверяем наличие элемента И его значения
+    isTradeEditMode = (tradeIdInput && tradeIdInput.value); 
+    
+    // Ждем загрузки справочников
+    await loadLookups();
+    if (isTradeEditMode) {
+        await loadTradeDataForEdit(tradeIdInput.value);
+    } else {
+        addTradeImage(); // Добавляем первый слот для изображения только при создании новой сделки
+    }
+    setupTradeCalculations();
+}
+
+async function loadTradeDataForEdit(tradeId) {
+     try {
+        const response = await fetch(`api/api.php?action=get_trade_details&id=${tradeId}`);
+        const result = await response.json();
+        if (result.success) {
+            const trade = result.data;
+            // Заполнение полей формы
+            for (const key in trade) {
+                const input = document.querySelector(`[name="${key}"]`);
+                if (input) {
+                    if (input.type === 'radio') {
+                         const radio = document.querySelector(`[name="${key}"][value="${trade[key]}"]`);
+                         if (radio) radio.checked = true;
+                    } else if (input.type === 'datetime-local' && trade[key]) {
+                        // Форматируем дату для datetime-local (YYYY-MM-DDTHH:mm)
+                        input.value = trade[key].replace(' ', 'T').slice(0, 16);
+                    } else {
+                         input.value = trade[key];
+                    }
+                }
+            }
+            // Установка значений селектов после их загрузки
+            if(trade.pair_id) document.getElementById('trade-pair').value = trade.pair_id;
+            if(trade.account_id) document.getElementById('trade-account').value = trade.account_id;
+            if(trade.style_id) document.getElementById('trade-style').value = trade.style_id;
+            if(trade.plan_id) document.getElementById('trade-plan').value = trade.plan_id;
+            if(trade.status) document.getElementById('trade-status').value = trade.status;
+            if(trade.entry_timeframe) document.getElementById('trade-entry-tf').value = trade.entry_timeframe;
+
+            
+            const container = document.getElementById('trade-images-container');
+            container.innerHTML = '';
+            if (trade.trade_images && trade.trade_images.length) {
+                trade.trade_images.forEach(img => addTradeImage(img));
+            } else {
+                addTradeImage();
+            }
+            document.getElementById('form-page-title').textContent = 'Редактировать Сделку';
+        } else {
+            showMessage('Ошибка загрузки сделки: ' + result.message, 'error');
+            window.location.href = 'index.php?view=journal';
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке сделки для редактирования:', error);
+        showMessage('Ошибка сети.', 'error');
+    }
+}
+
+function setupTradeCalculations() {
+    const calculate = () => {
+        const entry = parseFloat(document.querySelector('[name="entry_price"]')?.value);
+        const sl = parseFloat(document.querySelector('[name="stop_loss_price"]')?.value);
+        const tp = parseFloat(document.querySelector('[name="take_profit_price"]')?.value);
+        const rrInput = document.querySelector('[name="rr_expected"]');
+        
+        if (rrInput && !isNaN(entry) && !isNaN(sl)) {
+            const risk = Math.abs(entry - sl);
+            if (risk > 0 && !isNaN(tp)) {
+                const reward = Math.abs(tp - entry);
+                rrInput.value = (reward / risk).toFixed(2);
+            } else {
+                rrInput.value = '';
+            }
+        }
+    };
+    ['entry_price', 'stop_loss_price', 'take_profit_price'].forEach(name => {
+        document.querySelector(`[name="${name}"]`)?.addEventListener('input', calculate);
+    });
+}
+
+function addTradeImage(data = null) {
+    tradeImgCount++;
+    const container = document.getElementById('trade-images-container');
+    const imgId = `trade-img-${tradeImgCount}`;
+    const url = data?.image_url || '';
+    const notes = data?.notes || '';
+    
+    const html = `
+        <div class="trade-img-card glass-panel" id="${imgId}">
+             <div class="tf-header">
+                <span>Изображение #${tradeImgCount}</span>
+                <button type="button" class="btn-remove" onclick="document.getElementById('${imgId}').remove()">Удалить</button>
+            </div>
+            <div class="form-group">
+                 ${getImageInputHtml(imgId, url, `trade_images[${tradeImgCount-1}][url]`)}
+            </div>
+             <div class="form-group">
+                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="Заметки к изображению...">${notes}</textarea>
+            </div>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    // ВАЖНО: Здесь БЫЛ автоматический клик, который вызывал ошибку. Сейчас его НЕТ.
+}
+// Вспомогательная функция для генерации HTML инпутов изображения
+function getImageInputHtml(id, url, name) {
+    return `
+        <input type="hidden" name="${name}" value="${url}">
+        <input type="file" id="${id}-file" class="input-field" style="display:none" onchange="previewImage(this, '${id}-preview')">
+        <button type="button" class="btn btn-outline w-100 mb-2" onclick="document.getElementById('${id}-file').click()">
+            <i class="fas fa-upload me-2"></i> Загрузить файл
+        </button>
+        <input type="text" id="${id}-url" class="input-field mb-2" placeholder="Или вставьте прямую ссылку на изображение" value="${url}" oninput="previewImage(this, '${id}-preview')">
+        <div id="${id}-preview" class="image-preview-box">${url ? `<img src="${url}">` : '<span class="image-preview-placeholder">Предпросмотр изображения</span>'}</div>
+    `;
+}
+
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    // Ищем скрытый инпут URL и текстовый инпут URL
+    const hiddenUrlInput = preview.parentElement.querySelector(`input[type="hidden"]`);
+    const textUrlInput = preview.parentElement.querySelector(`input[type="text"]`);
+    
+    if (input.type === 'file' && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { 
+            preview.innerHTML = `<img src="${e.target.result}">`; 
+            if (textUrlInput) textUrlInput.value = ''; // Очищаем поле URL при загрузке файла
+            if (hiddenUrlInput) hiddenUrlInput.value = ''; // Очищаем скрытое поле URL
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else if (input.type === 'text' && input.value.trim()) {
+         preview.innerHTML = `<img src="${input.value.trim()}" onerror="this.onerror=null;this.src='';this.alt='Ошибка загрузки изображения'; preview.innerHTML='<span class=\"image-preview-placeholder\">Ошибка загрузки изображения</span>';">`;
+         if (hiddenUrlInput) hiddenUrlInput.value = input.value.trim();
+    } else {
+         preview.innerHTML = '<span class="image-preview-placeholder">Предпросмотр изображения</span>';
+         if (hiddenUrlInput) hiddenUrlInput.value = '';
+    }
+}
+
+
+// --- ЖУРНАЛ СДЕЛОК (СПИСОК) ---
+async function loadTrades(filters = {}) {
+    const container = document.getElementById('journal-table-container');
+    if (!container) return;
+    container.innerHTML = '<div class="loading-spinner">Загрузка журнала...</div>';
+
+    try {
+        const params = new URLSearchParams(filters);
+        const response = await fetch(`api/api.php?action=get_trades&${params}`);
+        const result = await response.json();
+
+        if (result.success) {
+            const groupedTrades = result.data;
+            if (groupedTrades.length === 0) {
+                 container.innerHTML = '<div class="empty-state">Сделки не найдены.</div>';
+                 return;
+            }
+            
+            let html = '';
+            groupedTrades.forEach(group => {
+                html += `
+                    <div class="month-group">
+                        <div class="month-header">
+                            <span class="month-label">${group.month_label}</span>
+                            <span class="month-summary">PnL: <span class="${group.total_pnl >= 0 ? 'text-profit' : 'text-loss'}">${group.total_pnl.toFixed(2)}</span> | RR: ${group.total_rr.toFixed(2)}R</span>
+                        </div>
+                        <div class="trades-table-wrapper"><table class="trades-table">
+                            <thead><tr>
+                                <th>Date</th><th>Pair</th><th>Dir</th><th>Status</th><th>Risk</th><th>RR</th><th>PnL</th><th>Actions</th>
+                            </tr></thead><tbody>`;
+                
+                group.trades.forEach(trade => {
+                    const date = new Date(trade.entry_date).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit', year: '2-digit'});
+                    const statusClass = `status-${trade.status}`;
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td><strong>${trade.pair_symbol}</strong></td>
+                            <td><span class="dir-tag dir-${trade.direction}">${trade.direction.toUpperCase()}</span></td>
+                            <td><span class="status-tag ${statusClass}">${trade.status.charAt(0).toUpperCase() + trade.status.slice(1)}</span></td>
+                            <td>${trade.risk_percent}%</td>
+                            <td>${Number(trade.rr_achieved).toFixed(2)}R</td>
+                            <td class="${Number(trade.pnl) >= 0 ? 'text-profit' : 'text-loss'}">${Number(trade.pnl).toFixed(2)}</td>
+                            <td class="actions-cell">
+                                <a href="index.php?view=trade_details&id=${trade.id}" class="btn-icon" title="Детали"><i class="fas fa-eye"></i></a>
+                                <a href="index.php?view=trade_create&id=${trade.id}" class="btn-icon" title="Редактировать"><i class="fas fa-edit"></i></a>
+                            </td>
+                        </tr>`;
+                });
+                html += '</tbody></table></div></div>';
+            });
+            container.innerHTML = html;
+        } else { container.innerHTML = `<div class="error-state">Ошибка: ${result.message}</div>`; }
+    } catch (error) { console.error(error); container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>'; }
+}
+
+// --- ДЕТАЛИ СДЕЛКИ ---
+async function loadTradeDetails() {
+    const tradeId = document.getElementById('current-trade-id')?.value;
+    if (!tradeId) return;
+    const container = document.getElementById('trade-details-container');
+    if (container) container.style.opacity = '0.5';
+    
+    try {
+        const response = await fetch(`api/api.php?action=get_trade_details&id=${tradeId}`);
+        const result = await response.json();
+        if(result.success) {
+            const trade = result.data;
+            document.getElementById('trade-details-title').innerHTML = `${trade.pair_symbol} <span class="dir-tag dir-${trade.direction}" style="font-size: 0.6em; vertical-align: middle;">${trade.direction.toUpperCase()}</span>`;
+            const editBtn = document.querySelector('.trade-actions .btn-secondary');
+            const deleteBtn = document.querySelector('.trade-actions .btn-danger');
+            if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=trade_create&id=${trade.id}`;
+            if (deleteBtn) deleteBtn.onclick = () => deleteEntity(trade.id, 'delete_trade', 'journal');
+            
+            // Заполнение полей
+            ['entry_date', 'exit_date'].forEach(key => {
+                 const el = document.getElementById(`trade-${key}`);
+                 if(el && trade[key]) el.textContent = new Date(trade[key]).toLocaleString(undefined, {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+            });
+            ['pair_symbol', 'account_name', 'style_name', 'risk_percent', 'rr_achieved', 
+             'pnl', 'entry_price', 'stop_loss_price', 'take_profit_price', 'rr_expected', 
+             'entry_timeframe', 'status', 'notes', 'tags', 'formatted_created_at']
+            .forEach(key => {
+                const el = document.getElementById(`trade-${key.replace('formatted_', '')}`);
+                if (el) {
+                    if (key === 'pnl' || key === 'rr_achieved') {
+                        el.textContent = Number(trade[key]).toFixed(2);
+                        el.className = `detail-value ${Number(trade[key]) >= 0 ? 'text-profit' : 'text-loss'}`;
+                    } else if (key === 'risk_percent') {
+                         el.textContent = `${trade[key]}%`;
+                    } else if (key === 'status') {
+                        el.textContent = trade[key].charAt(0).toUpperCase() + trade[key].slice(1);
+                        el.className = `detail-value status-tag status-${trade[key]}`;
+                    } else if (key === 'tags') {
+                         el.innerHTML = trade[key] ? trade[key].split(',').map(tag => `<span class="trade-tag">${tag.trim()}</span>`).join('') : 'Нет';
+                    }
+                    else {
+                        el.textContent = trade[key] || 'Не указано';
+                    }
+                }
+            });
+            
+            // Изображения
+            const tradeImgList = document.getElementById('trade-images-list');
+            if (tradeImgList) {
+                tradeImgList.innerHTML = '';
+                if (trade.trade_images && trade.trade_images.length) {
+                    trade.trade_images.forEach(img => {
+                        tradeImgList.innerHTML += `
+                            <div class="trade-image-item">
+                                ${img.image_url ? `<img src="${img.image_url}" class="lightbox-trigger">` : '<p class="text-muted">Нет изображения</p>'}
+                                ${img.notes ? `<div class="notes">${img.notes}</div>` : ''}
+                            </div>`;
+                    });
+                } else { tradeImgList.innerHTML = '<div class="empty-state">Нет изображений.</div>'; }
+            }
+            
+            // Связанный план
+            const planLink = document.getElementById('trade-plan-link');
+            if (planLink && trade.plan_id) {
+                planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
+                planLink.textContent = trade.plan_title;
+                planLink.style.display = 'inline';
+            } else if (planLink) {
+                 planLink.textContent = 'Нет связанного плана';
+                 planLink.removeAttribute('href');
+                 planLink.style.display = 'block';
+            }
+
+        } else {
+            showMessage('Ошибка загрузки деталей сделки: ' + result.message, 'error');
+            // window.location.href = 'index.php?view=journal';
+        }
+    } catch (error) {
+        console.error('Ошибка при загрузке сделки для редактирования:', error);
+        showMessage('Ошибка сети.', 'error');
+    }
+    finally { if (container) container.style.opacity = '1'; }
+}
+
+
+// ==================================================
+// DASHBOARD
+// ==================================================
+
+async function loadDashboardSummary() {
+    const container = document.getElementById('dashboard-summary');
+    if (!container) return;
+    container.innerHTML = '<div class="loading-spinner">Загрузка данных...</div>';
+
+    try {
+        const response = await fetch('api/api.php?action=get_dashboard_summary');
+        const result = await response.json();
+        if (result.success) {
+            const summary = result.data;
+            document.getElementById('total-trades').textContent = summary.total_trades;
+            document.getElementById('winning-trades').textContent = summary.winning_trades;
+            document.getElementById('losing-trades').textContent = summary.losing_trades;
+            document.getElementById('win-rate').textContent = summary.win_rate;
+            
+            const totalPnlElement = document.getElementById('total-pnl');
+            totalPnlElement.textContent = summary.total_pnl.toFixed(2);
+            totalPnlElement.className = summary.total_pnl >= 0 ? 'text-profit' : 'text-loss';
+
+            document.getElementById('avg-rr').textContent = summary.avg_rr.toFixed(2) + 'R';
+            document.getElementById('max-rr').textContent = summary.max_rr.toFixed(2) + 'R';
+
+            loadRecentTrades(); // Загружаем последние сделки после загрузки сводки
+        } else {
+            container.innerHTML = `<div class="error-state">Ошибка: ${result.message}</div>`;
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки сводки:', error);
+        container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>';
+    }
+}
+
+async function loadRecentTrades() {
+    const container = document.getElementById('recent-trades-list');
+    if (!container) return;
+    container.innerHTML = '<div class="loading-spinner">Загрузка последних сделок...</div>';
+
+    try {
+        const response = await fetch('api/api.php?action=get_trades&limit=5'); // Загружаем 5 последних сделок
+        const result = await response.json();
+
+        if (result.success) {
+            const trades = result.data.flatMap(group => group.trades); // Разворачиваем группы в один массив сделок
+            if (trades.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет недавних сделок.</div>';
+                return;
+            }
+            container.innerHTML = '';
+            trades.forEach(trade => {
+                const date = new Date(trade.entry_date).toLocaleDateString(undefined, {day: '2-digit', month: 'short'});
+                const pnlClass = Number(trade.pnl) >= 0 ? 'text-profit' : 'text-loss';
+                const html = `
+                    <div class="recent-trade-item glass-panel">
+                        <div class="trade-date">${date}</div>
+                        <div class="trade-pair"><strong>${trade.pair_symbol}</strong></div>
+                        <div class="trade-direction dir-${trade.direction}">${trade.direction.toUpperCase()}</div>
+                        <div class="trade-pnl ${pnlClass}">${Number(trade.pnl).toFixed(2)}</div>
+                        <a href="index.php?view=trade_details&id=${trade.id}" class="btn-icon" title="Детали"><i class="fas fa-eye"></i></a>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        } else {
+            container.innerHTML = `<div class="error-state">Ошибка: ${result.message}</div>`;
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки последних сделок:', error);
+        container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>';
+    }
+}
+
+
+// ==================================================
+// ОБЩИЕ ФУНКЦИИ И УДАЛЕНИЕ
+// ==================================================
+
+async function deleteEntity(id, action, redirectView) {
+    if (confirm('Вы уверены, что хотите удалить этот элемент? Это действие необратимо.')) {
+        try {
+            const response = await fetch(`api/api.php?action=${action}&id=${id}`, { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                showMessage('Элемент успешно удален.');
+                window.location.href = `index.php?view=${redirectView}`;
+            } else {
+                showMessage('Ошибка удаления: ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении:', error);
+            showMessage('Ошибка сети при удалении.', 'error');
+        }
+    }
+}
+
+
+// ==================================================
+// ИНИЦИАЛИЗАЦИЯ НА ОСНОВЕ URL
+// ==================================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const view = urlParams.get('view');
+
+    // Общие элементы UI
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMenu);
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+
+    // Логика для конкретных страниц
+    switch (view) {
+        case 'login':
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
+            break;
+        case 'dashboard':
+            await loadDashboardSummary();
+            break;
+        case 'plans':
+            await loadPlans();
+            document.getElementById('filter-pair')?.addEventListener('change', () => {
+                const pairId = document.getElementById('filter-pair').value;
+                loadPlans(pairId ? { pair_id: pairId } : {});
+            });
+            break;
+        case 'plan_create':
+            await initPlanForm();
+            const planForm = document.getElementById('plan-form');
+            if (planForm) {
+                planForm.addEventListener('submit', (e) => handleFormSubmit(e, isPlanEditMode ? 'update_plan' : 'create_plan', 'plan', 'plans'));
+            }
+            // Динамическое добавление таймфреймов
+            document.getElementById('add-timeframe-btn')?.addEventListener('click', () => addTimeframe());
+            break;
+        case 'plan_details':
+            await loadPlanDetails();
+            break;
+        case 'journal':
+            await loadTrades();
+            document.getElementById('filter-pair')?.addEventListener('change', () => {
+                const pairId = document.getElementById('filter-pair').value;
+                loadTrades(pairId ? { pair_id: pairId } : {});
+            });
+            break;
+        case 'trade_create':
+            await initTradeForm();
+            const tradeForm = document.getElementById('trade-form');
+            if (tradeForm) {
+                tradeForm.addEventListener('submit', (e) => handleFormSubmit(e, isTradeEditMode ? 'update_trade' : 'create_trade', 'trade', 'journal'));
+            }
+            document.getElementById('add-trade-image-btn')?.addEventListener('click', () => addTradeImage());
+            break;
+        case 'trade_details':
+            await loadTradeDetails();
+            break;
+        default:
+            // Если view не указан или неизвестен, можно перенаправить на дашборд или показать что-то по умолчанию
+            // console.log('Unknown view or no view specified.');
+            // window.location.href = 'index.php?view=dashboard'; 
+            break;
+    }
+
+    // Обработка lightbox для изображений, если они загружены
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('lightbox-trigger')) {
+            const imgSrc = e.target.src;
+            const lightbox = document.createElement('div');
+            lightbox.id = 'lightbox';
+            lightbox.innerHTML = `<img src="${imgSrc}">`;
+            document.body.appendChild(lightbox);
+            lightbox.onclick = () => lightbox.remove();
+        }
+    });
+});
