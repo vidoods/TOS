@@ -39,17 +39,17 @@
 
                  <h5 class="text-muted mb-3">Вход в Сделку</h5>
                 <div class="row g-3 mb-4">
-                     <div class="col-md-6">
+                     <div class="col-md-4">
                         <label for="trade-entry-date" class="form-label fw-bold">Дата и Время Входа *</label>
                         <input type="datetime-local" class="form-control" id="trade-entry-date" name="entry_date" required>
                     </div>
-                     <div class="col-md-6">
+                     <div class="col-md-4">
                          <label class="form-label fw-bold d-block">Направление *</label>
                         <div class="btn-group w-100" role="group">
                             <input type="radio" class="btn-check" name="direction" id="dir-long" value="long" required checked>
-                            <label class="btn btn-outline-success" for="dir-long">🔼 Long (Покупка)</label>
+                            <label class="btn btn-outline-success" for="dir-long">🔼 Long</label>
                             <input type="radio" class="btn-check" name="direction" id="dir-short" value="short">
-                            <label class="btn btn-outline-danger" for="dir-short">🔽 Short (Продажа)</label>
+                            <label class="btn btn-outline-danger" for="dir-short">🔽 Short</label>
                         </div>
                     </div>
                      <div class="col-md-4">
@@ -65,31 +65,10 @@
                              <option value="1D">1 День</option>
                         </select>
                     </div>
-                     <div class="col-md-4">
-                        <label for="trade-entry-price" class="form-label fw-bold">Цена Входа</label>
-                        <input type="number" class="form-control" id="trade-entry-price" name="entry_price" step="any" placeholder="Например: 1.0520">
-                    </div>
-                     <div class="col-md-12">
-                        <label for="trade-reason" class="form-label">Причина Входа (Торговая Идея)</label>
-                        <textarea class="form-control" id="trade-reason" name="reason_for_entry" rows="2" placeholder="Почему вы открыли эту сделку?"></textarea>
-                    </div>
                 </div>
                 
-                 <h5 class="text-muted mb-3">Риск и Цели</h5>
+                 <h5 class="text-muted mb-3">Риск</h5>
                  <div class="row g-3 mb-4 p-3 bg-light rounded-3 border">
-                      <div class="col-md-4">
-                        <label for="trade-sl" class="form-label fw-bold text-danger">Stop Loss (Цена)</label>
-                        <input type="number" class="form-control border-danger" id="trade-sl" name="stop_loss_price" step="any">
-                    </div>
-                     <div class="col-md-4">
-                         <label for="trade-tp" class="form-label fw-bold text-success">Take Profit (Цена)</label>
-                        <input type="number" class="form-control border-success" id="trade-tp" name="take_profit_price" step="any">
-                    </div>
-                      <div class="col-md-4">
-                        <label for="trade-rr-expected" class="form-label">Ожидаемый R:R</label>
-                         <input type="number" class="form-control bg-white" id="trade-rr-expected" name="rr_expected" step="0.01" readonly placeholder="Авторасчет...">
-                         <div class="form-text">Рассчитывается автоматически на основе Входа, SL и TP.</div>
-                    </div>
                      <div class="col-md-6">
                          <label for="trade-risk" class="form-label fw-bold">Риск на сделку (%) *</label>
                          <div class="input-group">
@@ -97,15 +76,11 @@
                              <span class="input-group-text">%</span>
                          </div>
                     </div>
-                     <div class="col-md-6">
-                        <label for="trade-lot" class="form-label">Размер Позиции (Лоты)</label>
-                        <input type="number" class="form-control" id="trade-lot" name="lot_size" step="0.01" placeholder="Например: 0.1">
-                    </div>
                  </div>
 
                   <h5 class="text-muted mb-3">Результаты (Заполнить при закрытии)</h5>
                  <div class="row g-3 mb-4 p-3" style="background-color: #f0f2f5; border-radius: 8px;">
-                      <div class="col-md-4">
+                      <div class="col-md-6">
                         <label for="trade-status" class="form-label fw-bold">Статус Сделки</label>
                         <select class="form-select" id="trade-status" name="status">
                             <option value="pending" selected>🕒 Pending (Открыта)</option>
@@ -116,13 +91,9 @@
                             <option value="cancelled">🚫 Cancelled (Отменена)</option>
                         </select>
                     </div>
-                     <div class="col-md-4">
+                     <div class="col-md-6">
                         <label for="trade-exit-date" class="form-label">Дата и Время Выхода</label>
                         <input type="datetime-local" class="form-control" id="trade-exit-date" name="exit_date">
-                    </div>
-                     <div class="col-md-4">
-                         <label for="trade-pips" class="form-label">Результат (Пипсы)</label>
-                        <input type="number" class="form-control" id="trade-pips" name="pips" step="0.1">
                     </div>
                       <div class="col-md-6">
                         <label for="trade-pnl" class="form-label fw-bold">Прибыль/Убыток (PnL) $</label>
@@ -131,7 +102,6 @@
                      <div class="col-md-6">
                         <label for="trade-rr-achieved" class="form-label fw-bold">Достигнутый R:R (Результат)</label>
                         <input type="number" class="form-control fw-bold" id="trade-rr-achieved" name="rr_achieved" step="0.01" placeholder="Например: 2.5">
-                         <div class="form-text">Фактическое соотношение Риск/Прибыль по итогу сделки.</div>
                     </div>
                  </div>
 
