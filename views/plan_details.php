@@ -180,11 +180,3 @@ if (!$plan_id) {
         }
     });
 </script>
-
-<div id="image-modal" class="modal">
-    <span class="modal-close">&times;</span>
-    
-    <img class="modal-content" id="modal-image">
-    
-    <div id="modal-caption"></div>
-</div>
