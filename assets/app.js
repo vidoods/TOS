@@ -683,53 +683,62 @@ async function loadTradeDetails() {
         const result = await response.json();
         if(result.success) {
             const trade = result.data;
+            
+            // 1. Заголовок и Действия
             document.getElementById('trade-details-title').innerHTML = `${trade.pair_symbol} <span class="dir-tag dir-${trade.direction}" style="font-size: 0.6em; vertical-align: middle;">${trade.direction.toUpperCase()}</span>`;
             const editBtn = document.querySelector('.trade-actions .btn-secondary');
             const deleteBtn = document.querySelector('.trade-actions .btn-danger');
             if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=trade_create&id=${trade.id}`;
             if (deleteBtn) deleteBtn.onclick = () => deleteEntity(trade.id, 'delete_trade', 'journal');
             
+            // 2. Отображение основных полей и форматирование
             ['entry_date', 'exit_date'].forEach(key => {
                  const el = document.getElementById(`trade-${key}`);
                  if(el && trade[key]) el.textContent = new Date(trade[key]).toLocaleString(undefined, {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
             });
+            
             ['pair_symbol', 'account_name', 'style_name', 'risk_percent', 'rr_achieved', 
-             'pnl', 'entry_price', 'stop_loss_price', 'take_profit_price', 'rr_expected', 
-             'entry_timeframe', 'status', 'notes', 'tags', 'formatted_created_at']
+             'pnl', 'entry_timeframe', 'status', 'trade_conclusions', 'key_lessons',
+             'notes', 'mistakes_made', 'emotional_state', 'reason_for_entry']
             .forEach(key => {
                 const el = document.getElementById(`trade-${key.replace('formatted_', '')}`);
                 if (el) {
                     if (key === 'pnl' || key === 'rr_achieved') {
                         el.textContent = Number(trade[key]).toFixed(2);
-                        el.className = `detail-value ${Number(trade[key]) >= 0 ? 'text-profit' : 'text-loss'}`;
+                        el.className = `detail-value ${Number(trade[key]) >= 0 ? 'text-profit' : 'text-loss'} fw-bold mb-3`;
                     } else if (key === 'risk_percent') {
                          el.textContent = `${trade[key]}%`;
                     } else if (key === 'status') {
                         el.textContent = trade[key].charAt(0).toUpperCase() + trade[key].slice(1);
-                        el.className = `detail-value status-tag status-${trade[key]}`;
-                    } else if (key === 'tags') {
-                         el.innerHTML = trade[key] ? trade[key].split(',').map(tag => `<span class="trade-tag">${tag.trim()}</span>`).join('') : 'Нет';
-                    }
-                    else {
+                        el.className = `badge status-tag status-${trade[key]} text-uppercase`;
+                    } else if (key === 'notes' || key === 'trade_conclusions' || key === 'key_lessons' || key === 'mistakes_made' || key === 'emotional_state') {
+                         // Для текстовых полей: используем содержимое или прочерк
+                         el.textContent = trade[key] || '-';
+                    } else {
                         el.textContent = trade[key] || 'Не указано';
                     }
                 }
             });
             
-            const tradeImgList = document.getElementById('trade-images-list');
-            if (tradeImgList) {
-                tradeImgList.innerHTML = '';
-                if (trade.trade_images && trade.trade_images.length) {
-                    trade.trade_images.forEach(img => {
-                        tradeImgList.innerHTML += `
-                            <div class="trade-image-item">
-                                ${img.image_url ? `<img src="${img.image_url}" class="lightbox-trigger">` : '<p class="text-muted">Нет изображения</p>'}
-                                ${img.notes ? `<div class="notes">${img.notes}</div>` : ''}
-                            </div>`;
-                    });
-                } else { tradeImgList.innerHTML = '<div class="empty-state">Нет изображений.</div>'; }
+            // 3. Специальная обработка для Направления
+            const directionEl = document.getElementById('trade-direction');
+            if (directionEl) {
+                directionEl.textContent = trade.direction.toUpperCase();
+                directionEl.className = `badge dir-tag dir-${trade.direction} text-uppercase`;
             }
             
+            // 4. Специальная обработка для Тегов
+            const tagsEl = document.getElementById('trade-tags');
+            if (tagsEl) {
+                // Разбиваем строку тегов на отдельные теги и выводим их в виде span-тегов
+                if (trade.tags) {
+                     tagsEl.innerHTML = trade.tags.split(',').map(tag => `<span class="trade-tag">${tag.trim()}</span>`).join('');
+                } else {
+                     tagsEl.textContent = 'Нет';
+                }
+            }
+            
+            // 5. Обработка ссылок на План
             const planLink = document.getElementById('trade-plan-link');
             if (planLink && trade.plan_id) {
                 planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
@@ -739,6 +748,21 @@ async function loadTradeDetails() {
                  planLink.textContent = 'Нет связанного плана';
                  planLink.removeAttribute('href');
                  planLink.style.display = 'block';
+            }
+            
+            // 6. Отображение скриншотов
+            const tradeImgList = document.getElementById('trade-images-list');
+            if (tradeImgList) {
+                tradeImgList.innerHTML = '';
+                if (trade.trade_images && trade.trade_images.length) {
+                    trade.trade_images.forEach(img => {
+                        tradeImgList.innerHTML += `
+                            <div class="trade-image-item">
+                                ${img.image_url ? `<img src="${img.image_url}" class="lightbox-trigger">` : '<p class="text-muted">Нет изображения</p>'}
+                                ${img.notes ? `<div class="notes small text-muted mt-2">${img.notes}</div>` : ''}
+                            </div>`;
+                    });
+                } else { tradeImgList.innerHTML = '<div class="empty-state-small">Нет скриншотов для этой сделки.</div>'; }
             }
 
         } else {
