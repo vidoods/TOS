@@ -230,6 +230,7 @@ async function downloadImage(url, type) {
     if (result.success) return result.url;
     throw new Error(result.message);
 }
+
 // ==================================================
 // ФУНКЦИИ ДЛЯ ПЛАНОВ
 // ==================================================
@@ -418,7 +419,7 @@ async function loadPlanDetails() {
             }
         } else {
             showMessage('Ошибка загрузки деталей плана: ' + result.message, 'error');
-            // window.location.href = 'index.php?view=plans'; // Закомментировано, чтобы не уводить со страницы при ошибке
+            // window.location.href = 'index.php?view=plans'; 
         }
     } catch (error) {
         console.error('Ошибка при загрузке плана для редактирования:', error);
@@ -436,8 +437,8 @@ let isTradeEditMode = false;
 
 async function initTradeForm() {
     const tradeIdInput = document.getElementById('edit-trade-id');
-    // **ИСПРАВЛЕНО ЗДЕСЬ:** Проверяем наличие элемента И его значения
-    isTradeEditMode = (tradeIdInput && tradeIdInput.value); 
+    // Проверяем наличие элемента И его значения (не пустое)
+    isTradeEditMode = (tradeIdInput && tradeIdInput.value.trim() !== ""); 
     
     // Ждем загрузки справочников
     await loadLookups();
@@ -540,8 +541,8 @@ function addTradeImage(data = null) {
             </div>
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
-    // ВАЖНО: Здесь БЫЛ автоматический клик, который вызывал ошибку. Сейчас его НЕТ.
 }
+
 // Вспомогательная функция для генерации HTML инпутов изображения
 function getImageInputHtml(id, url, name) {
     return `
@@ -557,16 +558,15 @@ function getImageInputHtml(id, url, name) {
 
 function previewImage(input, previewId) {
     const preview = document.getElementById(previewId);
-    // Ищем скрытый инпут URL и текстовый инпут URL
-    const hiddenUrlInput = preview.parentElement.querySelector(`input[type="hidden"]`);
-    const textUrlInput = preview.parentElement.querySelector(`input[type="text"]`);
+    const hiddenInput = preview.previousElementSibling.previousElementSibling.previousElementSibling;
+    const urlInput = preview.previousElementSibling;
     
     if (input.type === 'file' && input.files[0]) {
         const reader = new FileReader();
         reader.onload = e => { 
             preview.innerHTML = `<img src="${e.target.result}">`; 
-            if (textUrlInput) textUrlInput.value = ''; // Очищаем поле URL при загрузке файла
-            if (hiddenUrlInput) hiddenUrlInput.value = ''; // Очищаем скрытое поле URL
+            if (textUrlInput) textUrlInput.value = ''; 
+            if (hiddenUrlInput) hiddenUrlInput.value = ''; 
         };
         reader.readAsDataURL(input.files[0]);
     } else if (input.type === 'text' && input.value.trim()) {
@@ -581,7 +581,7 @@ function previewImage(input, previewId) {
 
 // --- ЖУРНАЛ СДЕЛОК (СПИСОК) ---
 async function loadTrades(filters = {}) {
-    const container = document.getElementById('journal-table-container');
+    const container = document.getElementById('trades-list-container');
     if (!container) return;
     container.innerHTML = '<div class="loading-spinner">Загрузка журнала...</div>';
 
@@ -721,180 +721,159 @@ async function loadTradeDetails() {
 
 
 // ==================================================
-// DASHBOARD
-// ==================================================
-
-async function loadDashboardSummary() {
-    const container = document.getElementById('dashboard-summary');
-    if (!container) return;
-    container.innerHTML = '<div class="loading-spinner">Загрузка данных...</div>';
-
-    try {
-        const response = await fetch('api/api.php?action=get_dashboard_summary');
-        const result = await response.json();
-        if (result.success) {
-            const summary = result.data;
-            document.getElementById('total-trades').textContent = summary.total_trades;
-            document.getElementById('winning-trades').textContent = summary.winning_trades;
-            document.getElementById('losing-trades').textContent = summary.losing_trades;
-            document.getElementById('win-rate').textContent = summary.win_rate;
-            
-            const totalPnlElement = document.getElementById('total-pnl');
-            totalPnlElement.textContent = summary.total_pnl.toFixed(2);
-            totalPnlElement.className = summary.total_pnl >= 0 ? 'text-profit' : 'text-loss';
-
-            document.getElementById('avg-rr').textContent = summary.avg_rr.toFixed(2) + 'R';
-            document.getElementById('max-rr').textContent = summary.max_rr.toFixed(2) + 'R';
-
-            loadRecentTrades(); // Загружаем последние сделки после загрузки сводки
-        } else {
-            container.innerHTML = `<div class="error-state">Ошибка: ${result.message}</div>`;
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки сводки:', error);
-        container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>';
-    }
-}
-
-async function loadRecentTrades() {
-    const container = document.getElementById('recent-trades-list');
-    if (!container) return;
-    container.innerHTML = '<div class="loading-spinner">Загрузка последних сделок...</div>';
-
-    try {
-        const response = await fetch('api/api.php?action=get_trades&limit=5'); // Загружаем 5 последних сделок
-        const result = await response.json();
-
-        if (result.success) {
-            const trades = result.data.flatMap(group => group.trades); // Разворачиваем группы в один массив сделок
-            if (trades.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет недавних сделок.</div>';
-                return;
-            }
-            container.innerHTML = '';
-            trades.forEach(trade => {
-                const date = new Date(trade.entry_date).toLocaleDateString(undefined, {day: '2-digit', month: 'short'});
-                const pnlClass = Number(trade.pnl) >= 0 ? 'text-profit' : 'text-loss';
-                const html = `
-                    <div class="recent-trade-item glass-panel">
-                        <div class="trade-date">${date}</div>
-                        <div class="trade-pair"><strong>${trade.pair_symbol}</strong></div>
-                        <div class="trade-direction dir-${trade.direction}">${trade.direction.toUpperCase()}</div>
-                        <div class="trade-pnl ${pnlClass}">${Number(trade.pnl).toFixed(2)}</div>
-                        <a href="index.php?view=trade_details&id=${trade.id}" class="btn-icon" title="Детали"><i class="fas fa-eye"></i></a>
-                    </div>`;
-                container.insertAdjacentHTML('beforeend', html);
-            });
-        } else {
-            container.innerHTML = `<div class="error-state">Ошибка: ${result.message}</div>`;
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки последних сделок:', error);
-        container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>';
-    }
-}
-
-
-// ==================================================
-// ОБЩИЕ ФУНКЦИИ И УДАЛЕНИЕ
+// ОБЩИЕ ФУНКЦИИ УДАЛЕНИЯ, ФИЛЬТРАЦИИ, ЛАЙТБОКСА
 // ==================================================
 
 async function deleteEntity(id, action, redirectView) {
-    if (confirm('Вы уверены, что хотите удалить этот элемент? Это действие необратимо.')) {
-        try {
-            const response = await fetch(`api/api.php?action=${action}&id=${id}`, { method: 'POST' });
-            const result = await response.json();
-            if (result.success) {
-                showMessage('Элемент успешно удален.');
-                window.location.href = `index.php?view=${redirectView}`;
-            } else {
-                showMessage('Ошибка удаления: ' + result.message, 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка при удалении:', error);
-            showMessage('Ошибка сети при удалении.', 'error');
-        }
-    }
+    if (!confirm('Вы уверены? Это действие нельзя отменить.')) return;
+    try {
+        const formData = new FormData();
+        // ВАЖНО: delete_trade в API ищет ID в POST или GET. Для унификации шлем POST.
+        // Мы передаем action в FormData, но также добавим id туда же.
+        formData.append('action', action);
+        formData.append('trade_id', id); // Для delete_trade
+        formData.append('plan_id', id);  // Для delete_plan
+        
+        const response = await fetch('api/api.php', { method: 'POST', body: formData });
+        const result = await response.json();
+        if (result.success) window.location.href = `index.php?view=${redirectView}`;
+        else showMessage('Ошибка удаления: ' + result.message, 'error');
+    } catch (e) { console.error(e); showMessage('Ошибка сети.', 'error'); }
 }
 
+function setupFiltersModal(loadFunction) {
+    const modal = document.getElementById('filters-modal');
+    const openBtn = document.getElementById('show-filters-btn');
+    const closeBtn = document.getElementById('filters-close-btn');
+    const form = document.getElementById('filters-form');
+    const resetBtn = document.getElementById('reset-filters-btn');
+    if (!modal || !openBtn || !form) return;
 
-// ==================================================
-// ИНИЦИАЛИЗАЦИЯ НА ОСНОВЕ URL
-// ==================================================
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const view = urlParams.get('view');
-
-    // Общие элементы UI
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleMenu);
-
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
-
-    // Логика для конкретных страниц
-    switch (view) {
-        case 'login':
-            const loginForm = document.getElementById('login-form');
-            if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
-            break;
-        case 'dashboard':
-            await loadDashboardSummary();
-            break;
-        case 'plans':
-            await loadPlans();
-            document.getElementById('filter-pair')?.addEventListener('change', () => {
-                const pairId = document.getElementById('filter-pair').value;
-                loadPlans(pairId ? { pair_id: pairId } : {});
-            });
-            break;
-        case 'plan_create':
-            await initPlanForm();
-            const planForm = document.getElementById('plan-form');
-            if (planForm) {
-                planForm.addEventListener('submit', (e) => handleFormSubmit(e, isPlanEditMode ? 'update_plan' : 'create_plan', 'plan', 'plans'));
+    openBtn.onclick = async () => { 
+        modal.style.display = "block"; 
+        const filterPairSelect = document.getElementById('filter-pair');
+        if(filterPairSelect && filterPairSelect.options.length <= 1) {
+            await loadLookups();
+        }
+    };
+    const close = () => modal.style.display = "none";
+    if (closeBtn) closeBtn.onclick = close;
+    window.onclick = e => { if(e.target === modal) close(); };
+    
+    form.onsubmit = e => {
+        e.preventDefault();
+        const filters = {};
+        form.querySelectorAll('select, input').forEach(input => {
+            if (input.value) {
+                const paramName = input.id.replace('filter-', '').replace('pair', 'pair_id');
+                filters[paramName] = input.value;
             }
-            // Динамическое добавление таймфреймов
-            document.getElementById('add-timeframe-btn')?.addEventListener('click', () => addTimeframe());
-            break;
-        case 'plan_details':
-            await loadPlanDetails();
-            break;
-        case 'journal':
-            await loadTrades();
-            document.getElementById('filter-pair')?.addEventListener('change', () => {
-                const pairId = document.getElementById('filter-pair').value;
-                loadTrades(pairId ? { pair_id: pairId } : {});
-            });
-            break;
-        case 'trade_create':
-            await initTradeForm();
-            const tradeForm = document.getElementById('trade-form');
-            if (tradeForm) {
-                tradeForm.addEventListener('submit', (e) => handleFormSubmit(e, isTradeEditMode ? 'update_trade' : 'create_trade', 'trade', 'journal'));
-            }
-            document.getElementById('add-trade-image-btn')?.addEventListener('click', () => addTradeImage());
-            break;
-        case 'trade_details':
-            await loadTradeDetails();
-            break;
-        default:
-            // Если view не указан или неизвестен, можно перенаправить на дашборд или показать что-то по умолчанию
-            // console.log('Unknown view or no view specified.');
-            // window.location.href = 'index.php?view=dashboard'; 
-            break;
-    }
+        });
+        loadFunction(filters);
+        close();
+    };
+    
+    if(resetBtn) resetBtn.onclick = () => { form.reset(); loadFunction({}); close(); };
+}
 
-    // Обработка lightbox для изображений, если они загружены
-    document.addEventListener('click', (e) => {
+function setupLightbox() {
+    const modal = document.getElementById('image-modal');
+    if (!modal) return;
+    const modalImg = document.getElementById('modal-image');
+    const closeBtn = modal.querySelector('.modal-close');
+
+    // Функция открытия
+    document.addEventListener('click', e => {
         if (e.target.classList.contains('lightbox-trigger')) {
-            const imgSrc = e.target.src;
-            const lightbox = document.createElement('div');
-            lightbox.id = 'lightbox';
-            lightbox.innerHTML = `<img src="${imgSrc}">`;
-            document.body.appendChild(lightbox);
-            lightbox.onclick = () => lightbox.remove();
+            modal.style.display = "flex"; // Используем flex для центрирования
+            modalImg.src = e.target.src;
+            document.body.style.overflow = 'hidden';
         }
     });
+
+    // Функция закрытия
+    const close = () => { 
+        modal.style.display = "none"; 
+        document.body.style.overflow = ''; 
+    };
+
+    if (closeBtn) closeBtn.onclick = close;
+    modal.onclick = e => { if(e.target === modal) close(); };
+}
+
+// ==================================================
+// ДАШБОРД И ИНИЦИАЛИЗАЦИЯ
+// ==================================================
+
+async function loadDashboardMetrics() {
+    try {
+        const response = await fetch('api/api.php?action=get_dashboard_metrics');
+        const result = await response.json();
+        if (result.success) {
+            const m = result.data;
+            document.getElementById('total-trades-value').textContent = m.total_trades;
+            document.getElementById('winning-ratio-value').textContent = m.win_rate + '%';
+            const winProgress = document.getElementById('winning-ratio-progress');
+            if (winProgress) winProgress.style.width = m.win_rate + '%';
+            
+            const setPnL = (id, val, suffix = '') => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.textContent = (val >= 0 ? '+' : '') + val.toFixed(2) + suffix;
+                    el.classList.toggle('text-profit', val >= 0);
+                    el.classList.toggle('text-loss', val < 0);
+                }
+            };
+            setPnL('net-profit-value', m.total_pnl);
+            setPnL('net-profit-rr-value', m.total_rr, 'R');
+            setPnL('average-rr-value', m.avg_rr_per_trade, 'R');
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMenu);
+    document.getElementById('login-form')?.addEventListener('submit', handleLoginSubmit);
+    document.getElementById('logout-btn')?.addEventListener('click', logout);
+
+    const view = new URLSearchParams(window.location.search).get('view');
+    const planForm = document.getElementById('plan-form');
+    const tradeForm = document.getElementById('trade-form');
+
+    if (planForm) {
+        initPlanForm();
+        planForm.addEventListener('submit', e => handleFormSubmit(e, isPlanEditMode ? 'update_plan' : 'create_plan', 'plan', 'plans'));
+    }
+    if (tradeForm) {
+        initTradeForm();
+        // Здесь мы используем create_trade или update_trade, которые теперь есть в API
+        tradeForm.addEventListener('submit', e => handleFormSubmit(e, isTradeEditMode ? 'update_trade' : 'create_trade', 'trade', 'journal'));
+        
+        const addImgBtn = document.getElementById('add-trade-image-btn');
+        if (addImgBtn) addImgBtn.addEventListener('click', () => addTradeImage());
+    }
+
+    if (view === 'plans') { 
+        loadPlans(); 
+        setupFiltersModal(loadPlans); 
+    }
+    if (view === 'plan_details') { 
+        loadPlanDetails(); 
+        setTimeout(setupLightbox, 100); 
+    }
+    if (view === 'journal') { 
+        loadTrades(); 
+        setupFiltersModal(loadTrades); 
+    }
+    if (view === 'trade_details') { 
+        loadTradeDetails(); 
+        setTimeout(setupLightbox, 100);
+    }
+    if (view === 'dashboard') { 
+        loadDashboardMetrics(); 
+    }
+    
+    // Инициализация лайтбокса глобально (на случай динамического контента)
+    setupLightbox();
 });
