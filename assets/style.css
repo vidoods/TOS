@@ -715,3 +715,55 @@ h3 {
     .metric-card { flex-direction: row; padding: 15px; min-height: 80px; }
     .dashboard-grid { grid-template-columns: 1fr; }
 }
+/* --- СТИЛИ ДЛЯ ДЕТАЛЕЙ СДЕЛОК (trade_details.php) --- */
+
+/* Контейнер для списка изображений */
+#trade-images-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px; /* Интервал между карточками изображений */
+}
+
+.trade-image-item {
+    /* Чтобы два изображения были в ряд */
+    width: calc(50% - 7.5px); 
+    /* Добавляем минимальную высоту для предсказуемости */
+    min-height: 250px; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* Стилизация самого изображения */
+.trade-image-item img {
+    /* Важно: уменьшаем изображение по размеру контейнера */
+    max-width: 100%; 
+    height: 250px;
+    object-fit: contain; /* Уменьшает изображение целиком, чтобы оно уместилось */
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--glass-border);
+    cursor: pointer; /* Указываем, что оно кликабельно для лайтбокса */
+}
+
+/* Стили для тегов */
+.trade-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    background-color: var(--glass-bg-hover); /* Или другой цвет */
+    color: var(--accent-blue); /* Или другой контрастный цвет */
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    font-size: 0.75em;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Адаптивность для изображений */
+@media (max-width: 992px) {
+    .trade-image-item {
+        /* На маленьких экранах делаем одно изображение на всю ширину */
+        width: 100%; 
+    }
+}
