@@ -5,7 +5,6 @@
 // ==================================================
 
 let menuOpen = false;
-// Объект для хранения балансов счетов: { account_id: balance }
 let accountBalances = {};
 
 function toggleMenu() {
@@ -30,7 +29,6 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Функция для отображения сообщений
 function showMessage(message, type = 'success') {
     alert(message);
 }
@@ -87,7 +85,6 @@ async function loadLookups() {
         if (result.success) {
             const data = result.data;
             
-            // Сохраняем балансы счетов для расчетов
             accountBalances = {};
             if (data.accounts) {
                 data.accounts.forEach(acc => {
@@ -434,12 +431,9 @@ async function initTradeForm() {
     } else {
         addTradeImage();
     }
-    
-    // ВАЖНО: Инициализируем расчет RR после загрузки справочников
     setupRRCalculation();
 }
 
-// Функция автоматического расчета R:R
 function setupRRCalculation() {
     const accountSelect = document.getElementById('trade-account');
     const riskInput = document.getElementById('trade-risk');
@@ -453,22 +447,20 @@ function setupRRCalculation() {
         const riskPercent = parseFloat(riskInput.value);
         const pnl = parseFloat(pnlInput.value);
         
-        // Проверяем, есть ли выбранный аккаунт в наших загруженных данных
         const balance = accountBalances[accountId];
 
         if (accountId && balance && !isNaN(riskPercent) && !isNaN(pnl) && riskPercent > 0) {
-            // Формула: Риск в $ = Баланс * (Риск% / 100)
+            // Риск в деньгах = Баланс * (Риск% / 100)
             const riskAmount = balance * (riskPercent / 100);
             
             if (riskAmount > 0) {
-                // R:R = PnL / Риск в $
+                // R:R = PnL / Риск в деньгах
                 const rr = pnl / riskAmount;
                 rrInput.value = rr.toFixed(2);
             }
         }
     };
 
-    // Вешаем обработчики событий
     accountSelect.addEventListener('change', calculate);
     riskInput.addEventListener('input', calculate);
     pnlInput.addEventListener('input', calculate);
@@ -509,8 +501,6 @@ async function loadTradeDataForEdit(tradeId) {
             }
             document.getElementById('form-page-title').textContent = 'Редактировать Сделку';
             
-            // После загрузки данных вызываем пересчет, чтобы цифры обновились если они есть
-            // Но нужно небольшую задержку или прямой вызов, так как change events не триггерятся при программном изменении value
             const event = new Event('input', { bubbles: true });
             document.getElementById('trade-pnl')?.dispatchEvent(event);
             
@@ -530,18 +520,28 @@ function addTradeImage(data = null) {
     const imgId = `trade-img-${tradeImgCount}`;
     const url = data?.image_url || '';
     const notes = data?.notes || '';
+    // Используем title как поле для Таймфрейма
+    const title = data?.title || ''; 
     
     const html = `
         <div class="trade-img-card glass-panel" id="${imgId}">
-             <div class="tf-header">
-                <span>Изображение #${tradeImgCount}</span>
-                <button type="button" class="btn-remove" onclick="document.getElementById('${imgId}').remove()">Удалить</button>
+             <div class="d-flex justify-content-between align-items-start mb-3">
+                <div style="flex-grow: 1; margin-right: 15px;">
+                     <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">Таймфрейм / Контекст</label>
+                     <input type="text" name="trade_images[${tradeImgCount-1}][title]" class="input-field" placeholder="Например: 4H, Entry, Setup" value="${title}">
+                </div>
+                <button type="button" class="btn-remove" style="margin-top: 25px;" onclick="document.getElementById('${imgId}').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+            
             <div class="form-group">
                  ${getImageInputHtml(imgId, url, `trade_images[${tradeImgCount-1}][url]`)}
             </div>
+            
              <div class="form-group">
-                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="Заметки к изображению...">${notes}</textarea>
+                <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">Описание / Идея</label>
+                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="Что происходит на скриншоте...">${notes}</textarea>
             </div>
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
