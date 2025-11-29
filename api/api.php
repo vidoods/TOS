@@ -493,7 +493,9 @@ function saveTrade($pdo) {
         $user_id = $_SESSION['user_id'];
         $data = json_decode(file_get_contents('php://input'), true);
 
-        // ... (проверка обязательных полей)
+        foreach (['pair_id', 'account_id', 'entry_date', 'direction', 'risk_percent'] as $field) {
+            if (empty($data[$field])) throw new Exception("Поле $field обязательно.");
+        }
 
         $trade_id = $data['id'] ?? null;
         $is_update = !empty($trade_id);
@@ -525,20 +527,50 @@ function saveTrade($pdo) {
         ];
 
         if ($is_update) {
-            // ... (проверка прав)
+            $check = $pdo->prepare("SELECT id FROM trades WHERE id = ? AND user_id = ?");
+            $check->execute([$trade_id, $user_id]);
+            if (!$check->fetch()) throw new Exception('Сделка не найдена или нет прав.');
 
-            // SQL-запрос для обновления (уже без entry_price, stop_loss_price и т.д.)
             $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, entry_date=?, exit_date=?, direction=?, risk_percent=?, rr_achieved=?, pnl=?, status=?, trade_conclusions=?, key_lessons=?, entry_tf=?, notes=?, tags=?, mistakes_made=?, emotional_state=?, reason_for_entry=? WHERE id=? AND user_id=?";
             
-            // ... (выполнение запроса)
+            $update_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
+            $update_params[] = $trade_id; // Добавляем ID
+            $update_params[] = $user_id; // Добавляем user_id
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($update_params);
+            
+            $pdo->prepare("DELETE FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 0")->execute([$trade_id]);
+            $message = 'Сделка обновлена!';
         } else {
-            // SQL-запрос для вставки (уже без entry_price, stop_loss_price и т.д.)
+            // SQL-запрос для вставки
             $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, entry_date, exit_date, direction, risk_percent, rr_achieved, pnl, status, trade_conclusions, key_lessons, entry_tf, notes, tags, mistakes_made, emotional_state, reason_for_entry, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             
-            // ... (выполнение запроса)
+            $insert_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
+            $insert_params[] = $user_id; // Добавляем user_id в конец
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($insert_params);
+            
+            $trade_id = $pdo->lastInsertId();
+            
+            // !!! ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Если ID не получен, вызываем ошибку !!!
+            if (!$trade_id) {
+                 throw new Exception("Сбой записи в базу данных. ID сделки не был получен. Проверьте логи сервера или настройки БД.");
+            }
+            // !!! КОНЕЦ ПРОВЕРКИ !!!
+            
+            $message = 'Сделка создана!';
         }
 
-        // ... (обработка изображений)
+        if (!empty($data['trade_images']) && is_array($data['trade_images'])) {
+            $img_stmt = $pdo->prepare("INSERT INTO trade_analysis_images (trade_id, image_url, notes, title, is_plan_image) VALUES (?, ?, ?, ?, 0)");
+            foreach ($data['trade_images'] as $i => $img) {
+                if (!empty($img['url'])) {
+                    $img_stmt->execute([$trade_id, $img['url'], $img['notes'] ?? null, $img['title'] ?? ('Снимок ' . ($i + 1))]);
+                }
+            }
+        }
 
         $pdo->commit();
         echo json_encode(['success' => true, 'message' => $message, 'id' => $trade_id]);
@@ -546,6 +578,7 @@ function saveTrade($pdo) {
     } catch (\Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         http_response_code(500);
+        // Возвращаем более подробное сообщение об ошибке, чтобы выявить проблему
         echo json_encode(['success' => false, 'message' => 'Ошибка сохранения сделки: ' . $e->getMessage()]);
     }
 }
@@ -601,6 +634,32 @@ function getDashboardMetrics($pdo) {
         $closed = $pdo->query("SELECT COUNT(id) FROM trades WHERE user_id = $user_id AND status IN ('win', 'loss', 'breakeven', 'partial')")->fetchColumn();
         $metrics['win_rate'] = ($closed > 0) ? round(($wins / $closed) * 100, 2) : 0;
         $metrics['avg_rr_per_trade'] = ($closed > 0) ? round($metrics['total_rr'] / $closed, 2) : 0;
+        
+        // --- РАСЧЕТ СРЕДНЕЙ ДЛИТЕЛЬНОСТИ ---
+        // Рассчитываем сумму всех длительностей (в секундах) для закрытых сделок
+        $stmt_duration = $pdo->prepare("
+            SELECT AVG(TIMESTAMPDIFF(SECOND, entry_date, exit_date)) AS avg_duration_seconds,
+                   COUNT(id) AS closed_count
+            FROM trades 
+            WHERE user_id = :user_id AND status IN ('win', 'loss', 'breakeven', 'partial') AND exit_date IS NOT NULL
+        ");
+        $stmt_duration->execute(['user_id' => $user_id]);
+        $duration_data = $stmt_duration->fetch();
+        
+        $avg_seconds = round($duration_data['avg_duration_seconds'] ?? 0);
+        
+        // Преобразование секунд в формат "Xд Yч Zмин"
+        $days = floor($avg_seconds / (3600 * 24));
+        $hours = floor(($avg_seconds % (3600 * 24)) / 3600);
+        $minutes = floor(($avg_seconds % 3600) / 60);
+        
+        $duration_text = '';
+        if ($days > 0) $duration_text .= "{$days}д ";
+        if ($hours > 0) $duration_text .= "{$hours}ч ";
+        if ($minutes > 0) $duration_text .= "{$minutes}мин";
+        
+        $metrics['avg_time_in_position'] = trim($duration_text) ?: 'N/A';
+        // --- КОНЕЦ РАСЧЕТА СРЕДНЕЙ ДЛИТЕЛЬНОСТИ ---
 
         echo json_encode(['success' => true, 'data' => $metrics]);
 
