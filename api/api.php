@@ -55,7 +55,9 @@ switch ($action) {
         break;
 
     // --- ОПЕРАЦИИ С ПЛАНАМИ ---
-    case 'save_plan':
+    case 'save_plan': // Оставляем для совместимости
+    case 'create_plan': 
+    case 'update_plan':
         savePlan($conn);
         break;
     case 'get_plans':
@@ -75,9 +77,14 @@ switch ($action) {
     case 'get_trade_details':
         getTradeDetails($conn);
         break;
+    
+    // ИСПРАВЛЕНИЕ ЗДЕСЬ: Добавлены кейсы create_trade и update_trade
     case 'save_trade':
+    case 'create_trade':
+    case 'update_trade':
         saveTrade($conn);
         break;
+        
     case 'delete_trade':
         deleteTrade($conn);
         break;
@@ -201,7 +208,6 @@ function getLookups($pdo) {
 
     } catch (\Exception $e) {
         http_response_code(500);
-        // ВАЖНО: Выводим реальное сообщение об ошибке
         echo json_encode(['success' => false, 'message' => 'Ошибка получения справочников: ' . $e->getMessage()]);
     }
 }
@@ -339,7 +345,6 @@ function getPlans($pdo) {
 
     } catch (\Exception $e) {
         http_response_code(500);
-        // ВАЖНО: Выводим реальное сообщение об ошибке
         echo json_encode(['success' => false, 'message' => 'Ошибка получения планов: ' . $e->getMessage()]);
     }
 }
