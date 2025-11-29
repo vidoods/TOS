@@ -4,7 +4,7 @@
     </div>
 
     <div class="card glass-panel mb-4 border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-body p-4">
+        <div class="card-body p-4" style="padding: 40px;">
             <input type="hidden" id="edit-trade-id" value="<?php echo isset($_GET['id']) ? htmlspecialchars($_GET['id']) : ''; ?>">
 
             <form id="trade-form">
@@ -77,7 +77,7 @@
                  </div>
 
                   <h5 class="text-muted mb-3">Результаты (Заполнить при закрытии)</h5>
-                 <div class="row g-3 mb-4 p-3" style="background-color: #f0f2f5; border-radius: 8px;">
+                 <div class="row g-3 mb-4 p-3" style="background-color: #090c14; border-radius: 8px; padding:10px;">
                       <div class="col-md-6">
                         <label for="trade-status" class="form-label fw-bold">Статус Сделки</label>
                         <select class="form-select" id="trade-status" name="status">
