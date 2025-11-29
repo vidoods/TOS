@@ -715,33 +715,37 @@ h3 {
     .metric-card { flex-direction: row; padding: 15px; min-height: 80px; }
     .dashboard-grid { grid-template-columns: 1fr; }
 }
+
 /* --- СТИЛИ ДЛЯ ДЕТАЛЕЙ СДЕЛОК (trade_details.php) --- */
 
 /* Контейнер для списка изображений */
 #trade-images-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px; /* Интервал между карточками изображений */
+    justify-content: flex-start; /* Выравнивание по левому краю */
+    gap: 15px; 
 }
 
+/* Элемент-обертка для каждого изображения */
 .trade-image-item {
-    /* Чтобы два изображения были в ряд */
+    /* На больших экранах: делаем два изображения в ряд */
     width: calc(50% - 7.5px); 
-    /* Добавляем минимальную высоту для предсказуемости */
-    min-height: 250px; 
     display: flex;
     flex-direction: column;
+    background-color: var(--glass-bg-hover); /* Немного подсветки */
+    padding: 10px;
+    border-radius: var(--border-radius-sm);
 }
 
-/* Стилизация самого изображения */
+/* Стилизация самого изображения внутри обертки */
 .trade-image-item img {
-    /* Важно: уменьшаем изображение по размеру контейнера */
     max-width: 100%; 
-    height: 250px;
+    height: auto; /* Позволяет изображению сохранять пропорции */
+    max-height: 350px; /* Ограничиваем максимальную высоту для больших мониторов */
     object-fit: contain; /* Уменьшает изображение целиком, чтобы оно уместилось */
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--glass-border);
-    cursor: pointer; /* Указываем, что оно кликабельно для лайтбокса */
+    cursor: pointer; 
 }
 
 /* Стили для тегов */
@@ -761,9 +765,27 @@ h3 {
 }
 
 /* Адаптивность для изображений */
+@media (max-width: 1200px) {
+    .trade-image-item {
+        /* На средних экранах (планшеты и ниже) также два в ряд */
+        width: calc(50% - 7.5px); 
+    }
+}
+
+/* Адаптивность для изображений */
 @media (max-width: 992px) {
     .trade-image-item {
         /* На маленьких экранах делаем одно изображение на всю ширину */
         width: 100%; 
+    }
+}
+
+@media (max-width: 768px) {
+    .trade-image-item {
+        /* На мобильных устройствах — одно изображение на всю ширину */
+        width: 100%; 
+    }
+    .trade-image-item img {
+         max-height: 300px; 
     }
 }
