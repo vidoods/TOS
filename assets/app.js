@@ -30,7 +30,6 @@ document.addEventListener('click', (event) => {
 
 // Функция для отображения сообщений
 function showMessage(message, type = 'success') {
-    // В будущем можно заменить на красивый toast-компонент
     alert(message);
 }
 
@@ -79,25 +78,21 @@ async function logout() {
 // ОБЩИЕ ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ И ФОРМ
 // ==================================================
 
-// Загрузка справочников (пар, счетов, стилей и т.д.)
 async function loadLookups() {
     try {
         const response = await fetch('api/api.php?action=get_lookups');
         const result = await response.json();
         if (result.success) {
             const data = result.data;
-            // Заполнение селектов на формах создания
             populateSelect('plan-pair', data.pairs, 'symbol');
             populateSelect('trade-pair', data.pairs, 'symbol');
             populateSelect('trade-account', data.accounts, 'name');
             populateSelect('trade-style', data.styles, 'name');
             populateSelect('trade-plan', data.plans, 'title');
             
-            // Заполнение селектов в фильтрах
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'Все инструменты');
-            // populateSelect('filter-account', data.accounts, 'name', 'id', null, 'Все счета'); // Если нужно в будущем
             
-            return data; // Возвращаем данные для использования в других функциях
+            return data;
         } else {
             console.error('Ошибка загрузки справочников:', result.message);
             showMessage('Не удалось загрузить справочные данные.', 'error');
@@ -113,7 +108,6 @@ async function loadLookups() {
 function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedValue = null, placeholderText = '--- Выберите ---') {
     const select = document.getElementById(selectId);
     if (!select) return;
-    // Сохраняем первую опцию (плейсхолдер), если она есть
     const firstOption = select.querySelector('option[value=""]');
     select.innerHTML = '';
     if (firstOption) select.appendChild(firstOption);
@@ -128,7 +122,6 @@ function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedVa
     });
 }
 
-// Общая функция для отправки форм (планы и сделки)
 async function handleFormSubmit(event, action, entityName, redirectView) {
     event.preventDefault();
     const form = event.target;
@@ -138,11 +131,9 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
     submitBtn.innerHTML = '<span>⏳</span> Сохранение...';
 
     try {
-        // Собираем данные для отправки
         const formData = new FormData(form);
         const data = {};
         formData.forEach((value, key) => {
-            // Обработка массивов (например, timeframes[0][title] -> timeframes: [{title: ...}])
             if (key.includes('[')) {
                 const [mainKey, index, subKey] = key.match(/(\w+)\[(\d+)\]\[(\w+)\]/).slice(1);
                 if (!data[mainKey]) data[mainKey] = [];
@@ -153,12 +144,10 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             }
         });
         
-        // Очищаем массивы от пустых элементов
         ['timeframes', 'trade_images'].forEach(arrKey => {
              if (data[arrKey]) data[arrKey] = data[arrKey].filter(item => item && (item.url || item.notes || item.title));
         });
 
-        // Загрузка изображений на сервер
         const imagePromises = [];
         const processImages = (containerClass, arrayName, type) => {
             form.querySelectorAll(`.${containerClass}`).forEach((card, index) => {
@@ -166,12 +155,10 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
                 const urlInput = card.querySelector('input[name*="[url]"]');
                 const hiddenUrlInput = card.querySelector('input[type="hidden"][name*="[url]"]');
                 
-                // Загружаем файл, если он выбран
                 if (fileInput && fileInput.files[0]) {
                     imagePromises.push(uploadFile(fileInput.files[0], type).then(url => {
                         if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
                     }));
-                // Или скачиваем по URL, если он введен и отличается от того, что уже был
                 } else if (urlInput && urlInput.value.trim() && urlInput.value !== hiddenUrlInput.value) {
                      imagePromises.push(downloadImage(urlInput.value.trim(), type).then(url => {
                         if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
@@ -183,10 +170,8 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
         if (entityName === 'plan') processImages('tf-card', 'timeframes', 'plan');
         if (entityName === 'trade') processImages('trade-img-card', 'trade_images', 'trade');
 
-        // Ждем завершения всех загрузок изображений
         await Promise.all(imagePromises);
 
-        // Отправка итоговых данных на сервер
         const response = await fetch(`api/api.php?action=${action}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -195,7 +180,6 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
         const result = await response.json();
 
         if (result.success) {
-            // showMessage(`${entityName === 'plan' ? 'План' : 'Сделка'} успешно сохранен(а)!`); // Убрали алерт
             window.location.href = `index.php?view=${redirectView}`;
         } else {
             showMessage('Ошибка сохранения: ' + result.message, 'error');
@@ -241,7 +225,6 @@ let isPlanEditMode = false;
 async function initPlanForm() {
     const planIdInput = document.getElementById('edit-plan-id');
     isPlanEditMode = !!planIdInput;
-    // Ждем загрузки справочников перед продолжением
     await loadLookups();
     if (isPlanEditMode) {
         await loadPlanDataForEdit(planIdInput.value);
@@ -257,16 +240,13 @@ async function loadPlanDataForEdit(planId) {
         const result = await response.json();
         if (result.success) {
             const plan = result.data;
-            // Заполнение полей формы
             for (const key in plan) {
                  const input = document.querySelector(`[name="${key}"]`);
                  if (input) input.value = plan[key];
             }
-            // Устанавливаем значения селектов
             if (plan.pair_id) document.getElementById('plan-pair').value = plan.pair_id;
             if (plan.type) document.getElementById('plan-type').value = plan.type;
             if (plan.bias) document.getElementById('plan-bias').value = plan.bias;
-
             
             const container = document.getElementById('timeframes-container');
             container.innerHTML = '';
@@ -378,7 +358,6 @@ async function loadPlans(filters = {}) {
     } catch (error) { console.error(error); container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>'; }
 }
 
-// --- ДЕТАЛИ ПЛАНА ---
 async function loadPlanDetails() {
     const planId = document.getElementById('current-plan-id')?.value;
     if (!planId) return;
@@ -419,7 +398,6 @@ async function loadPlanDetails() {
             }
         } else {
             showMessage('Ошибка загрузки деталей плана: ' + result.message, 'error');
-            // window.location.href = 'index.php?view=plans'; 
         }
     } catch (error) {
         console.error('Ошибка при загрузке плана для редактирования:', error);
@@ -437,17 +415,14 @@ let isTradeEditMode = false;
 
 async function initTradeForm() {
     const tradeIdInput = document.getElementById('edit-trade-id');
-    // Проверяем наличие элемента И его значения (не пустое)
     isTradeEditMode = (tradeIdInput && tradeIdInput.value.trim() !== ""); 
     
-    // Ждем загрузки справочников
     await loadLookups();
     if (isTradeEditMode) {
         await loadTradeDataForEdit(tradeIdInput.value);
     } else {
-        addTradeImage(); // Добавляем первый слот для изображения только при создании новой сделки
+        addTradeImage();
     }
-    setupTradeCalculations();
 }
 
 async function loadTradeDataForEdit(tradeId) {
@@ -456,7 +431,6 @@ async function loadTradeDataForEdit(tradeId) {
         const result = await response.json();
         if (result.success) {
             const trade = result.data;
-            // Заполнение полей формы
             for (const key in trade) {
                 const input = document.querySelector(`[name="${key}"]`);
                 if (input) {
@@ -464,14 +438,12 @@ async function loadTradeDataForEdit(tradeId) {
                          const radio = document.querySelector(`[name="${key}"][value="${trade[key]}"]`);
                          if (radio) radio.checked = true;
                     } else if (input.type === 'datetime-local' && trade[key]) {
-                        // Форматируем дату для datetime-local (YYYY-MM-DDTHH:mm)
                         input.value = trade[key].replace(' ', 'T').slice(0, 16);
                     } else {
                          input.value = trade[key];
                     }
                 }
             }
-            // Установка значений селектов после их загрузки
             if(trade.pair_id) document.getElementById('trade-pair').value = trade.pair_id;
             if(trade.account_id) document.getElementById('trade-account').value = trade.account_id;
             if(trade.style_id) document.getElementById('trade-style').value = trade.style_id;
@@ -479,7 +451,6 @@ async function loadTradeDataForEdit(tradeId) {
             if(trade.status) document.getElementById('trade-status').value = trade.status;
             if(trade.entry_timeframe) document.getElementById('trade-entry-tf').value = trade.entry_timeframe;
 
-            
             const container = document.getElementById('trade-images-container');
             container.innerHTML = '';
             if (trade.trade_images && trade.trade_images.length) {
@@ -496,28 +467,6 @@ async function loadTradeDataForEdit(tradeId) {
         console.error('Ошибка при загрузке сделки для редактирования:', error);
         showMessage('Ошибка сети.', 'error');
     }
-}
-
-function setupTradeCalculations() {
-    const calculate = () => {
-        const entry = parseFloat(document.querySelector('[name="entry_price"]')?.value);
-        const sl = parseFloat(document.querySelector('[name="stop_loss_price"]')?.value);
-        const tp = parseFloat(document.querySelector('[name="take_profit_price"]')?.value);
-        const rrInput = document.querySelector('[name="rr_expected"]');
-        
-        if (rrInput && !isNaN(entry) && !isNaN(sl)) {
-            const risk = Math.abs(entry - sl);
-            if (risk > 0 && !isNaN(tp)) {
-                const reward = Math.abs(tp - entry);
-                rrInput.value = (reward / risk).toFixed(2);
-            } else {
-                rrInput.value = '';
-            }
-        }
-    };
-    ['entry_price', 'stop_loss_price', 'take_profit_price'].forEach(name => {
-        document.querySelector(`[name="${name}"]`)?.addEventListener('input', calculate);
-    });
 }
 
 function addTradeImage(data = null) {
@@ -543,7 +492,6 @@ function addTradeImage(data = null) {
     container.insertAdjacentHTML('beforeend', html);
 }
 
-// Вспомогательная функция для генерации HTML инпутов изображения
 function getImageInputHtml(id, url, name) {
     return `
         <input type="hidden" name="${name}" value="${url}">
@@ -558,8 +506,8 @@ function getImageInputHtml(id, url, name) {
 
 function previewImage(input, previewId) {
     const preview = document.getElementById(previewId);
-    const hiddenInput = preview.previousElementSibling.previousElementSibling.previousElementSibling;
-    const urlInput = preview.previousElementSibling;
+    const hiddenInput = preview.parentElement.querySelector(`input[type="hidden"]`);
+    const textUrlInput = preview.parentElement.querySelector(`input[type="text"]`);
     
     if (input.type === 'file' && input.files[0]) {
         const reader = new FileReader();
@@ -578,8 +526,6 @@ function previewImage(input, previewId) {
     }
 }
 
-
-// --- ЖУРНАЛ СДЕЛОК (СПИСОК) ---
 async function loadTrades(filters = {}) {
     const container = document.getElementById('trades-list-container');
     if (!container) return;
@@ -635,7 +581,6 @@ async function loadTrades(filters = {}) {
     } catch (error) { console.error(error); container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>'; }
 }
 
-// --- ДЕТАЛИ СДЕЛКИ ---
 async function loadTradeDetails() {
     const tradeId = document.getElementById('current-trade-id')?.value;
     if (!tradeId) return;
@@ -653,7 +598,6 @@ async function loadTradeDetails() {
             if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=trade_create&id=${trade.id}`;
             if (deleteBtn) deleteBtn.onclick = () => deleteEntity(trade.id, 'delete_trade', 'journal');
             
-            // Заполнение полей
             ['entry_date', 'exit_date'].forEach(key => {
                  const el = document.getElementById(`trade-${key}`);
                  if(el && trade[key]) el.textContent = new Date(trade[key]).toLocaleString(undefined, {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
@@ -681,7 +625,6 @@ async function loadTradeDetails() {
                 }
             });
             
-            // Изображения
             const tradeImgList = document.getElementById('trade-images-list');
             if (tradeImgList) {
                 tradeImgList.innerHTML = '';
@@ -696,7 +639,6 @@ async function loadTradeDetails() {
                 } else { tradeImgList.innerHTML = '<div class="empty-state">Нет изображений.</div>'; }
             }
             
-            // Связанный план
             const planLink = document.getElementById('trade-plan-link');
             if (planLink && trade.plan_id) {
                 planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
@@ -710,7 +652,6 @@ async function loadTradeDetails() {
 
         } else {
             showMessage('Ошибка загрузки деталей сделки: ' + result.message, 'error');
-            // window.location.href = 'index.php?view=journal';
         }
     } catch (error) {
         console.error('Ошибка при загрузке сделки для редактирования:', error);
@@ -719,20 +660,13 @@ async function loadTradeDetails() {
     finally { if (container) container.style.opacity = '1'; }
 }
 
-
-// ==================================================
-// ОБЩИЕ ФУНКЦИИ УДАЛЕНИЯ, ФИЛЬТРАЦИИ, ЛАЙТБОКСА
-// ==================================================
-
 async function deleteEntity(id, action, redirectView) {
     if (!confirm('Вы уверены? Это действие нельзя отменить.')) return;
     try {
         const formData = new FormData();
-        // ВАЖНО: delete_trade в API ищет ID в POST или GET. Для унификации шлем POST.
-        // Мы передаем action в FormData, но также добавим id туда же.
         formData.append('action', action);
-        formData.append('trade_id', id); // Для delete_trade
-        formData.append('plan_id', id);  // Для delete_plan
+        formData.append('trade_id', id); 
+        formData.append('plan_id', id);  
         
         const response = await fetch('api/api.php', { method: 'POST', body: formData });
         const result = await response.json();
@@ -782,16 +716,14 @@ function setupLightbox() {
     const modalImg = document.getElementById('modal-image');
     const closeBtn = modal.querySelector('.modal-close');
 
-    // Функция открытия
     document.addEventListener('click', e => {
         if (e.target.classList.contains('lightbox-trigger')) {
-            modal.style.display = "flex"; // Используем flex для центрирования
+            modal.style.display = "flex"; 
             modalImg.src = e.target.src;
             document.body.style.overflow = 'hidden';
         }
     });
 
-    // Функция закрытия
     const close = () => { 
         modal.style.display = "none"; 
         document.body.style.overflow = ''; 
@@ -800,10 +732,6 @@ function setupLightbox() {
     if (closeBtn) closeBtn.onclick = close;
     modal.onclick = e => { if(e.target === modal) close(); };
 }
-
-// ==================================================
-// ДАШБОРД И ИНИЦИАЛИЗАЦИЯ
-// ==================================================
 
 async function loadDashboardMetrics() {
     try {
@@ -831,7 +759,6 @@ async function loadDashboardMetrics() {
     } catch (e) { console.error(e); }
 }
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMenu);
     document.getElementById('login-form')?.addEventListener('submit', handleLoginSubmit);
@@ -847,7 +774,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (tradeForm) {
         initTradeForm();
-        // Здесь мы используем create_trade или update_trade, которые теперь есть в API
         tradeForm.addEventListener('submit', e => handleFormSubmit(e, isTradeEditMode ? 'update_trade' : 'create_trade', 'trade', 'journal'));
         
         const addImgBtn = document.getElementById('add-trade-image-btn');
@@ -874,6 +800,5 @@ document.addEventListener('DOMContentLoaded', () => {
         loadDashboardMetrics(); 
     }
     
-    // Инициализация лайтбокса глобально (на случай динамического контента)
     setupLightbox();
 });
