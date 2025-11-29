@@ -44,7 +44,7 @@
                         <input type="datetime-local" class="form-control" id="trade-entry-date" name="entry_date" required>
                     </div>
                      <div class="col-md-4">
-                         <label class="form-label fw-bold d-block">Направление</label>
+                         <label class="form-label fw-bold d-block">Направление *</label>
                         <div class="btn-group w-100" role="group">
                             <input type="radio" class="btn-check" name="direction" id="dir-long" value="long" required checked>
                             <label class="btn btn-outline-success" for="dir-long">🔼 Long</label>
@@ -55,9 +55,10 @@
                      <div class="col-md-4">
                         <label for="trade-entry-tf" class="form-label">Таймфрейм Входа</label>
                          <select class="form-select" id="trade-entry-tf" name="entry_timeframe">
-                            <option value="">---</option>
+                            <option value="">Select</option>
                             <option value="5m">5 минут</option>
                             <option value="15m">15 минут</option>
+                            <option value="30m">30 минут</option>
                             <option value="1h">1 час</option>
                             <option value="4h">4 часа</option>
                              <option value="1D">1 День</option>
@@ -76,7 +77,7 @@
                  </div>
 
                   <h5 class="text-muted mb-3">Результаты (Заполнить при закрытии)</h5>
-                 <div class="row g-3 mb-4 p-3">
+                 <div class="row g-3 mb-4 p-3" style="background-color: #f0f2f5; border-radius: 8px;">
                       <div class="col-md-6">
                         <label for="trade-status" class="form-label fw-bold">Статус Сделки</label>
                         <select class="form-select" id="trade-status" name="status">
@@ -131,8 +132,8 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="text-muted m-0">Скриншоты Сделки (Вход/Выход)</h5>
-                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addTradeImage()">
+                    <h5 class="text-muted m-0">Скриншоты Сделки</h5>
+                    <button type="button" class="btn btn-secondary" onclick="addTradeImage()">
                         <i class="fas fa-plus me-1"></i> Добавить Изображение
                     </button>
                 </div>
