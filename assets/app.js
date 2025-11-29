@@ -672,6 +672,7 @@ async function loadTrades(filters = {}) {
 }
 
 // --- ДЕТАЛИ СДЕЛКИ ---
+
 async function loadTradeDetails() {
     const tradeId = document.getElementById('current-trade-id')?.value;
     if (!tradeId) return;
@@ -697,9 +698,33 @@ async function loadTradeDetails() {
                  if(el && trade[key]) el.textContent = new Date(trade[key]).toLocaleString(undefined, {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
             });
             
+            // 3. Расчет и отображение ДЛИТЕЛЬНОСТИ
+            const durationEl = document.getElementById('trade-duration');
+            if (trade.entry_date && trade.exit_date) {
+                const entry = new Date(trade.entry_date);
+                const exit = new Date(trade.exit_date);
+                const diffMs = exit - entry; // Разница в миллисекундах
+                
+                const seconds = Math.floor(diffMs / 1000);
+                const days = Math.floor(seconds / (3600 * 24));
+                const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                
+                let durationText = '';
+                if (days > 0) durationText += `${days}д `;
+                if (hours > 0) durationText += `${hours}ч `;
+                if (minutes > 0) durationText += `${minutes}мин`;
+                
+                durationEl.textContent = durationText.trim() || 'Менее минуты';
+            } else {
+                durationEl.textContent = trade.exit_date ? 'Закрыта, но нет даты входа' : 'В процессе';
+            }
+            
+            // 4. Отображение остальных полей
+            // ВАЖНО: entry_timeframe в форме, entry_tf в базе
             ['pair_symbol', 'account_name', 'style_name', 'risk_percent', 'rr_achieved', 
-             'pnl', 'entry_timeframe', 'status', 'trade_conclusions', 'key_lessons',
-             'notes', 'mistakes_made', 'emotional_state', 'reason_for_entry']
+             'pnl', 'status', 'trade_conclusions', 'key_lessons',
+             'notes', 'mistakes_made', 'emotional_state']
             .forEach(key => {
                 const el = document.getElementById(`trade-${key.replace('formatted_', '')}`);
                 if (el) {
@@ -712,7 +737,6 @@ async function loadTradeDetails() {
                         el.textContent = trade[key].charAt(0).toUpperCase() + trade[key].slice(1);
                         el.className = `badge status-tag status-${trade[key]} text-uppercase`;
                     } else if (key === 'notes' || key === 'trade_conclusions' || key === 'key_lessons' || key === 'mistakes_made' || key === 'emotional_state') {
-                         // Для текстовых полей: используем содержимое или прочерк
                          el.textContent = trade[key] || '-';
                     } else {
                         el.textContent = trade[key] || 'Не указано';
@@ -720,17 +744,21 @@ async function loadTradeDetails() {
                 }
             });
             
-            // 3. Специальная обработка для Направления
+            // 5. ИСПРАВЛЕНИЕ: Отображение Таймфрейма (entry_tf из БД)
+            const entryTfEl = document.getElementById('trade-entry_timeframe');
+            if (entryTfEl) {
+                entryTfEl.textContent = trade.entry_tf || 'Не указано';
+            }
+            
+            // 6. Специальная обработка для Направления и Тегов
             const directionEl = document.getElementById('trade-direction');
             if (directionEl) {
                 directionEl.textContent = trade.direction.toUpperCase();
                 directionEl.className = `badge dir-tag dir-${trade.direction} text-uppercase`;
             }
             
-            // 4. Специальная обработка для Тегов
             const tagsEl = document.getElementById('trade-tags');
             if (tagsEl) {
-                // Разбиваем строку тегов на отдельные теги и выводим их в виде span-тегов
                 if (trade.tags) {
                      tagsEl.innerHTML = trade.tags.split(',').map(tag => `<span class="trade-tag">${tag.trim()}</span>`).join('');
                 } else {
@@ -738,7 +766,7 @@ async function loadTradeDetails() {
                 }
             }
             
-            // 5. Обработка ссылок на План
+            // 7. Обработка ссылок на План
             const planLink = document.getElementById('trade-plan-link');
             if (planLink && trade.plan_id) {
                 planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
@@ -750,7 +778,7 @@ async function loadTradeDetails() {
                  planLink.style.display = 'block';
             }
             
-            // 6. Отображение скриншотов
+            // 8. Отображение скриншотов
             const tradeImgList = document.getElementById('trade-images-list');
             if (tradeImgList) {
                 tradeImgList.innerHTML = '';
@@ -848,6 +876,10 @@ function setupLightbox() {
     modal.onclick = e => { if(e.target === modal) close(); };
 }
 
+// assets/app.js
+
+// ...
+
 async function loadDashboardMetrics() {
     try {
         const response = await fetch('api/api.php?action=get_dashboard_metrics');
@@ -858,6 +890,16 @@ async function loadDashboardMetrics() {
             document.getElementById('winning-ratio-value').textContent = m.win_rate + '%';
             const winProgress = document.getElementById('winning-ratio-progress');
             if (winProgress) winProgress.style.width = m.win_rate + '%';
+            
+            // --- ИСПРАВЛЕНИЕ: Отображение среднего времени в позиции ---
+            const avgTimeEl = document.getElementById('avg-time-in-position-value');
+            if (avgTimeEl) {
+                // Если данные есть, присваиваем их элементу
+                avgTimeEl.textContent = m.avg_time_in_position; 
+                // Дополнительно обновляем класс для цвета, если нужно (например, если N/A)
+                avgTimeEl.classList.remove('text-profit', 'text-loss');
+            }
+            // --------------------------------------------------------
             
             const setPnL = (id, val, suffix = '') => {
                 const el = document.getElementById(id);
@@ -871,7 +913,11 @@ async function loadDashboardMetrics() {
             setPnL('net-profit-rr-value', m.total_rr, 'R');
             setPnL('average-rr-value', m.avg_rr_per_trade, 'R');
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error(e); 
+        // В случае ошибки показываем, что данные недоступны
+        document.getElementById('avg-time-in-position-value').textContent = 'Ошибка';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
