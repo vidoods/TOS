@@ -6,16 +6,16 @@ $db   = 'b10_40483036_tos';     // Имя вашей базы данных
 $user = 'root';         // Имя пользователя базы данных
 $pass = '';         // Пароль пользователя базы данных
 
-// ИСПРАВЛЕНО: УБРАНО "charset=utf8mb4" из DSN. 
-// Теперь полагаемся ТОЛЬКО на PDO::MYSQL_ATTR_INIT_COMMAND.
-$dsn = "mysql:host=$host;dbname=$db";
+// ВАЖНО: Используем charset=utf8 в DSN для максимальной совместимости.
+$dsn = "mysql:host=$host;dbname=$db;charset=utf8";
 
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,      
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,           
     PDO::ATTR_EMULATE_PREPARES   => false,                      
     
-    // КЛЮЧЕВАЯ КОМАНДА: Принудительно устанавливаем кодировку UTF-8
+    // КЛЮЧЕВАЯ КОМАНДА: Принудительно устанавливаем кодировку UTF8MB4
+    // Эта команда выполняется сразу после подключения и решает конфликт.
     PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci" 
 ];
 
