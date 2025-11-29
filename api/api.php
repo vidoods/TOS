@@ -186,7 +186,8 @@ function getLookups($pdo) {
         $stmt_pairs = $pdo->query("SELECT id, symbol, type FROM ref_pairs ORDER BY symbol ASC");
         $results['pairs'] = $stmt_pairs->fetchAll();
 
-        $stmt_accounts = $pdo->prepare("SELECT id, name, type FROM accounts WHERE user_id = :user_id ORDER BY name ASC");
+        // ИЗМЕНЕНИЕ: Добавили current_equity в выборку
+        $stmt_accounts = $pdo->prepare("SELECT id, name, type, current_equity FROM accounts WHERE user_id = :user_id ORDER BY name ASC");
         $stmt_accounts->execute(['user_id' => $user_id]);
         $results['accounts'] = $stmt_accounts->fetchAll();
 
