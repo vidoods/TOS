@@ -152,6 +152,17 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             }
         });
         
+        // --- ИСПРАВЛЕНИЕ: Добавляем ID вручную, так как input находится вне формы ---
+        if (entityName === 'plan' && typeof isPlanEditMode !== 'undefined' && isPlanEditMode) {
+            const idInput = document.getElementById('edit-plan-id');
+            if (idInput && idInput.value) data['id'] = idInput.value;
+        }
+        if (entityName === 'trade' && typeof isTradeEditMode !== 'undefined' && isTradeEditMode) {
+            const idInput = document.getElementById('edit-trade-id');
+            if (idInput && idInput.value) data['id'] = idInput.value;
+        }
+        // ---------------------------------------------------------------------------
+        
         ['timeframes', 'trade_images'].forEach(arrKey => {
              if (data[arrKey]) data[arrKey] = data[arrKey].filter(item => item && (item.url || item.notes || item.title));
         });
@@ -232,8 +243,11 @@ let isPlanEditMode = false;
 
 async function initPlanForm() {
     const planIdInput = document.getElementById('edit-plan-id');
-    isPlanEditMode = !!planIdInput;
+    // Проверка: элемент существует и у него есть значение
+    isPlanEditMode = (planIdInput && planIdInput.value.trim() !== "");
+    
     await loadLookups();
+    
     if (isPlanEditMode) {
         await loadPlanDataForEdit(planIdInput.value);
     } else {
@@ -248,22 +262,41 @@ async function loadPlanDataForEdit(planId) {
         const result = await response.json();
         if (result.success) {
             const plan = result.data;
+            
+            // Заполнение текстовых полей
             for (const key in plan) {
                  const input = document.querySelector(`[name="${key}"]`);
                  if (input) input.value = plan[key];
             }
-            if (plan.pair_id) document.getElementById('plan-pair').value = plan.pair_id;
-            if (plan.type) document.getElementById('plan-type').value = plan.type;
-            if (plan.bias) document.getElementById('plan-bias').value = plan.bias;
             
-            const container = document.getElementById('timeframes-container');
-            container.innerHTML = '';
-            if (plan.timeframes && plan.timeframes.length) {
-                plan.timeframes.forEach(tf => addTimeframe(tf));
-            } else {
-                addTimeframe();
+            // Явное заполнение селектов
+            if (plan.pair_id) {
+                const pairSelect = document.getElementById('plan-pair');
+                if (pairSelect) pairSelect.value = plan.pair_id;
             }
-            document.getElementById('form-page-title').textContent = 'Редактировать План';
+            if (plan.type) {
+                const typeSelect = document.getElementById('plan-type');
+                if (typeSelect) typeSelect.value = plan.type;
+            }
+            if (plan.bias) {
+                const biasSelect = document.getElementById('plan-bias');
+                if (biasSelect) biasSelect.value = plan.bias;
+            }
+            
+            // Восстановление изображений (таймфреймов)
+            const container = document.getElementById('timeframes-container');
+            if (container) {
+                container.innerHTML = ''; // Очищаем, чтобы не дублировать
+                if (plan.timeframes && plan.timeframes.length > 0) {
+                    plan.timeframes.forEach(tf => addTimeframe(tf));
+                } else {
+                    addTimeframe();
+                }
+            }
+            
+            const pageTitle = document.getElementById('form-page-title');
+            if (pageTitle) pageTitle.textContent = 'Редактировать План';
+            
         } else {
             showMessage('Ошибка загрузки плана: ' + result.message, 'error');
             window.location.href = 'index.php?view=plans';
@@ -290,7 +323,8 @@ function setupAutoUpdateTitle() {
             else formattedDate += `-${endDate.getDate()}`;
              formattedDate += ` ${date.getFullYear()}`;
         }
-        document.getElementById('plan-title').value = `${type} Plan / ${formattedDate}`;
+        const titleInput = document.getElementById('plan-title');
+        if (titleInput) titleInput.value = `${type} Plan / ${formattedDate}`;
     };
     document.getElementById('plan-type')?.addEventListener('change', update);
     document.getElementById('plan-date')?.addEventListener('change', update);
@@ -450,11 +484,8 @@ function setupRRCalculation() {
         const balance = accountBalances[accountId];
 
         if (accountId && balance && !isNaN(riskPercent) && !isNaN(pnl) && riskPercent > 0) {
-            // Риск в деньгах = Баланс * (Риск% / 100)
             const riskAmount = balance * (riskPercent / 100);
-            
             if (riskAmount > 0) {
-                // R:R = PnL / Риск в деньгах
                 const rr = pnl / riskAmount;
                 rrInput.value = rr.toFixed(2);
             }
@@ -494,15 +525,17 @@ async function loadTradeDataForEdit(tradeId) {
 
             const container = document.getElementById('trade-images-container');
             container.innerHTML = '';
-            if (trade.trade_images && trade.trade_images.length) {
+            if (trade.trade_images && trade.trade_images.length > 0) {
                 trade.trade_images.forEach(img => addTradeImage(img));
             } else {
                 addTradeImage();
             }
             document.getElementById('form-page-title').textContent = 'Редактировать Сделку';
             
+            // Триггер пересчета RR
             const event = new Event('input', { bubbles: true });
-            document.getElementById('trade-pnl')?.dispatchEvent(event);
+            const pnlInput = document.getElementById('trade-pnl');
+            if (pnlInput) pnlInput.dispatchEvent(event);
             
         } else {
             showMessage('Ошибка загрузки сделки: ' + result.message, 'error');
@@ -520,7 +553,6 @@ function addTradeImage(data = null) {
     const imgId = `trade-img-${tradeImgCount}`;
     const url = data?.image_url || '';
     const notes = data?.notes || '';
-    // Используем title как поле для Таймфрейма
     const title = data?.title || ''; 
     
     const html = `
@@ -561,15 +593,16 @@ function getImageInputHtml(id, url, name) {
 
 function previewImage(input, previewId) {
     const preview = document.getElementById(previewId);
-    const hiddenInput = preview.parentElement.querySelector(`input[type="hidden"]`);
-    const textUrlInput = preview.parentElement.querySelector(`input[type="text"]`);
+    const formGroup = preview.closest('.form-group');
+    const hiddenUrlInput = formGroup.querySelector(`input[type="hidden"]`);
+    const textUrlInput = formGroup.querySelector(`input[type="text"]`);
     
     if (input.type === 'file' && input.files[0]) {
         const reader = new FileReader();
         reader.onload = e => { 
             preview.innerHTML = `<img src="${e.target.result}">`; 
             if (textUrlInput) textUrlInput.value = ''; 
-            if (hiddenUrlInput) hiddenUrlInput.value = ''; 
+            // Файл будет загружен при отправке
         };
         reader.readAsDataURL(input.files[0]);
     } else if (input.type === 'text' && input.value.trim()) {
@@ -581,6 +614,8 @@ function previewImage(input, previewId) {
     }
 }
 
+
+// --- ЖУРНАЛ СДЕЛОК (СПИСОК) ---
 async function loadTrades(filters = {}) {
     const container = document.getElementById('trades-list-container');
     if (!container) return;
@@ -615,7 +650,7 @@ async function loadTrades(filters = {}) {
                     const date = new Date(trade.entry_date).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit', year: '2-digit'});
                     const statusClass = `status-${trade.status}`;
                     html += `
-                        <tr>
+                        <tr onclick="window.location.href='index.php?view=trade_details&id=${trade.id}'">
                             <td>${date}</td>
                             <td><strong>${trade.pair_symbol}</strong></td>
                             <td><span class="dir-tag dir-${trade.direction}">${trade.direction.toUpperCase()}</span></td>
@@ -623,7 +658,7 @@ async function loadTrades(filters = {}) {
                             <td>${trade.risk_percent}%</td>
                             <td>${Number(trade.rr_achieved).toFixed(2)}R</td>
                             <td class="${Number(trade.pnl) >= 0 ? 'text-profit' : 'text-loss'}">${Number(trade.pnl).toFixed(2)}</td>
-                            <td class="actions-cell">
+                            <td class="actions-cell" onclick="event.stopPropagation()">
                                 <a href="index.php?view=trade_details&id=${trade.id}" class="btn-icon" title="Детали"><i class="fas fa-eye"></i></a>
                                 <a href="index.php?view=trade_create&id=${trade.id}" class="btn-icon" title="Редактировать"><i class="fas fa-edit"></i></a>
                             </td>
@@ -636,6 +671,7 @@ async function loadTrades(filters = {}) {
     } catch (error) { console.error(error); container.innerHTML = '<div class="error-state">Ошибка загрузки.</div>'; }
 }
 
+// --- ДЕТАЛИ СДЕЛКИ ---
 async function loadTradeDetails() {
     const tradeId = document.getElementById('current-trade-id')?.value;
     if (!tradeId) return;
