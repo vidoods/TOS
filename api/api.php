@@ -55,8 +55,8 @@ switch ($action) {
         break;
 
     // --- ОПЕРАЦИИ С ПЛАНАМИ ---
-    case 'save_plan': // Оставляем для совместимости
-    case 'create_plan': 
+    case 'save_plan':
+    case 'create_plan':
     case 'update_plan':
         savePlan($conn);
         break;
@@ -78,7 +78,7 @@ switch ($action) {
         getTradeDetails($conn);
         break;
     
-    // ИСПРАВЛЕНИЕ ЗДЕСЬ: Добавлены кейсы create_trade и update_trade
+    // Создание и обновление сделок
     case 'save_trade':
     case 'create_trade':
     case 'update_trade':
@@ -186,7 +186,7 @@ function getLookups($pdo) {
         $stmt_pairs = $pdo->query("SELECT id, symbol, type FROM ref_pairs ORDER BY symbol ASC");
         $results['pairs'] = $stmt_pairs->fetchAll();
 
-        // ИЗМЕНЕНИЕ: Добавляем выборку поля 'balance'
+        // Возвращаем баланс для расчетов
         $stmt_accounts = $pdo->prepare("SELECT id, name, type, balance FROM accounts WHERE user_id = :user_id ORDER BY name ASC");
         $stmt_accounts->execute(['user_id' => $user_id]);
         $results['accounts'] = $stmt_accounts->fetchAll();
@@ -197,13 +197,6 @@ function getLookups($pdo) {
         $stmt_plans = $pdo->prepare("SELECT id, title, date FROM plans WHERE user_id = :user_id ORDER BY date DESC");
         $stmt_plans->execute(['user_id' => $user_id]);
         $results['plans'] = $stmt_plans->fetchAll();
-
-        $results['trade_statuses'] = ['pending', 'win', 'loss', 'breakeven', 'partial', 'cancelled'];
-        $results['trade_directions'] = ['long', 'short'];
-        $results['plan_types'] = ['Daily', 'Weekly', 'Monthly', 'Long Term'];
-        $results['plan_biases'] = ['Bullish', 'Bearish', 'Neutral'];
-        $results['plan_statuses'] = ['pending', 'completed', 'cancelled'];
-        $results['entry_timeframes'] = ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'];
 
         echo json_encode(['success' => true, 'data' => $results]);
 
@@ -388,7 +381,6 @@ function deletePlan($pdo) {
         $checkStmt->execute([$plan_id, $user_id]);
         if (!$checkStmt->fetch()) throw new Exception('План не найден или нет прав.');
 
-        // Получаем изображения для удаления файлов
         $stmt_get_images = $pdo->prepare("SELECT image_url FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 1");
         $stmt_get_images->execute([$plan_id]);
         $images = $stmt_get_images->fetchAll();
@@ -494,6 +486,7 @@ function getTradeDetails($pdo) {
     }
 }
 
+// *** ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ СДЕЛКИ ***
 function saveTrade($pdo) {
     try {
         $user_id = $_SESSION['user_id'];
@@ -509,15 +502,26 @@ function saveTrade($pdo) {
         $pdo->beginTransaction();
 
         $params = [
-            $data['pair_id'], $data['account_id'], $data['plan_id'] ?? null, $data['style_id'] ?? null,
-            $data['entry_date'], $data['exit_date'] ?? null, $data['direction'],
-            $data['entry_price'] ?? null, $data['stop_loss_price'] ?? null, $data['take_profit_price'] ?? null,
-            $data['lot_size'] ?? null, $data['risk_percent'], $data['rr_expected'] ?? null, $data['rr_achieved'] ?? null,
-            $data['pips'] ?? null, $data['pnl'] ?? null, $data['status'] ?? 'pending',
-            $data['entry_screenshot_url'] ?? null, $data['exit_screenshot_url'] ?? null,
-            $data['notes'] ?? null, $data['trade_conclusions'] ?? null, $data['key_lessons'] ?? null,
-            $data['tags'] ?? null, $data['entry_timeframe'] ?? null, $data['reason_for_entry'] ?? null,
-            $data['mistakes_made'] ?? null, $data['emotional_state'] ?? null,
+            $data['pair_id'], 
+            $data['account_id'], 
+            $data['plan_id'] ?? null, 
+            $data['style_id'] ?? null,
+            $data['entry_date'], 
+            $data['exit_date'] ?? null, 
+            $data['direction'],
+            $data['risk_percent'], 
+            $data['rr_achieved'] ?? null, 
+            $data['pnl'] ?? null, 
+            $data['status'] ?? 'pending',
+            $data['trade_conclusions'] ?? null, 
+            $data['key_lessons'] ?? null, 
+            $data['entry_timeframe'] ?? null, // entry_tf в базе
+            // Новые поля
+            $data['notes'] ?? null,
+            $data['tags'] ?? null,
+            $data['mistakes_made'] ?? null,
+            $data['emotional_state'] ?? null,
+            $data['reason_for_entry'] ?? null,
             $user_id
         ];
 
@@ -526,17 +530,28 @@ function saveTrade($pdo) {
             $check->execute([$trade_id, $user_id]);
             if (!$check->fetch()) throw new Exception('Сделка не найдена или нет прав.');
 
-            $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, entry_date=?, exit_date=?, direction=?, entry_price=?, stop_loss_price=?, take_profit_price=?, lot_size=?, risk_percent=?, rr_expected=?, rr_achieved=?, pips=?, pnl=?, status=?, entry_screenshot_url=?, exit_screenshot_url=?, notes=?, trade_conclusions=?, key_lessons=?, tags=?, entry_timeframe=?, reason_for_entry=?, mistakes_made=?, emotional_state=? WHERE id=? AND user_id=?";
-            $params[] = $trade_id;
+            // SQL-запрос для обновления
+            $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, entry_date=?, exit_date=?, direction=?, risk_percent=?, rr_achieved=?, pnl=?, status=?, trade_conclusions=?, key_lessons=?, entry_tf=?, notes=?, tags=?, mistakes_made=?, emotional_state=?, reason_for_entry=? WHERE id=? AND user_id=?";
+            
+            // Внимание: order of parameters is CRUCIAL for prepared statements
+            $update_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
+            $update_params[] = $trade_id; // Добавляем ID
+            $update_params[] = $user_id; // Добавляем user_id
+            
             $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
+            $stmt->execute($update_params);
             
             $pdo->prepare("DELETE FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 0")->execute([$trade_id]);
             $message = 'Сделка обновлена!';
         } else {
-            $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, entry_date, exit_date, direction, entry_price, stop_loss_price, take_profit_price, lot_size, risk_percent, rr_expected, rr_achieved, pips, pnl, status, entry_screenshot_url, exit_screenshot_url, notes, trade_conclusions, key_lessons, tags, entry_timeframe, reason_for_entry, mistakes_made, emotional_state, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            // SQL-запрос для вставки
+            $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, entry_date, exit_date, direction, risk_percent, rr_achieved, pnl, status, trade_conclusions, key_lessons, entry_tf, notes, tags, mistakes_made, emotional_state, reason_for_entry, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            
+            $insert_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
+            $insert_params[] = $user_id; // Добавляем user_id в конец
+
             $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
+            $stmt->execute($insert_params);
             $trade_id = $pdo->lastInsertId();
             $message = 'Сделка создана!';
         }
