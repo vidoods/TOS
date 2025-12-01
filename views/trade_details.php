@@ -28,73 +28,77 @@
                     <table class="details-table w-100" style="table-layout: fixed;">
                          <tr>
                             <td style="width: 50%;">
-                                <strong class="d-block mb-1">Счет:</strong>
-                                <p class="text-muted mb-3" id="trade-account_name">-</p>
+                                <strong>Счет:</strong>
+                                <span class="info-badge badge-neutral" id="trade-account_name">-</span>
                             </td>
                             <td>
-                                <strong class="d-block mb-1">План:</strong>
-                                <a href="#" id="trade-plan-link" class="text-primary mb-3" style="text-decoration: none;">-</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong class="d-block mb-1">Направление:</strong>
-                                <span class="badge dir-tag" id="trade-direction">-</span>
-                            </td>
-                            <td>
-                                <strong class="d-block mb-1">Таймфрейм Входа:</strong>
-                                <p class="text-muted mb-3" id="trade-entry_timeframe">-</p>
+                                <strong>План:</strong>
+								<p>
+                                <a href="#" id="trade-plan-link" class="info-badge badge-neutral" style="text-decoration: none; color: var(--accent-blue); border-color: rgba(41, 151, 255, 0.3);">-</a>
+								</p>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <strong class="d-block mb-1">Дата Входа:</strong>
-                                <p class="text-muted mb-3" id="trade-entry_date">-</p>
+                                <strong>Направление:</strong>
+                                <span class="info-badge badge-neutral" id="trade-direction">-</span>
                             </td>
                             <td>
-                                <strong class="d-block mb-1">Дата Выхода:</strong>
-                                <p class="text-muted mb-3" id="trade-exit_date">-</p>
+                                <strong>Таймфрейм Входа:</strong>
+                                <span class="info-badge badge-neutral" id="trade-entry_timeframe">-</span>
                             </td>
                         </tr>
                         <tr>
                              <td>
-                                <strong class="d-block mb-1">Стиль:</strong>
-                                <p class="text-muted mb-3" id="trade-style_name">-</p>
+                                <strong>Стиль:</strong>
+                                <span class="info-badge badge-blue" id="trade-style_name">-</span>
                             </td>
                             <td>
-                                <strong class="d-block mb-1">Модель:</strong>
-                                <p class="text-muted mb-3" id="trade-model_name">-</p>
+                                <strong>Модель:</strong>
+                                <span class="info-badge badge-blue" id="trade-model_name">-</span>
                             </td>
                         </tr>
                         <tr>
+                            <td>
+                                <strong>Дата Входа:</strong>
+                                <span class="info-badge badge-neutral" id="trade-entry_date">-</span>
+                            </td>
+                            <td>
+                                <strong>Дата Выхода:</strong>
+                                <span class="info-badge badge-neutral" id="trade-exit_date">-</span>
+                            </td>
+                        </tr>
+                         <tr>
                             <td colspan="2">
-                                <strong class="d-block mb-1">Статус:</strong>
+                                <strong>Статус:</strong>
                                 <span class="badge status-tag" id="trade-status">-</span>
                             </td>
                         </tr>
                     </table>
                     
-                    <h5 class="text-muted text-uppercase fw-bold mt-4 mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">Результат и Риск</h5>
+                    <hr class="my-4" style="opacity: 0.1;">
+
+                    <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">Результат и Риск</h5>
 
                     <table class="details-table w-100" style="table-layout: fixed;">
                          <tr>
                             <td style="width: 50%;">
-                                <strong class="d-block mb-1">Риск:</strong>
-                                <p class="text-muted mb-3" id="trade-risk_percent">-</p>
+                                <strong>Риск:</strong>
+                                <span class="info-badge badge-neutral" id="trade-risk_percent">-</span>
                             </td>
                             <td>
-                                <strong class="d-block mb-1">RR (Достигнут):</strong>
-                                <p class="text-muted mb-3" id="trade-rr_achieved">-</p>
+                                <strong>RR (Достигнут):</strong>
+                                <span class="info-badge badge-neutral" id="trade-rr_achieved">-</span>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <strong class="d-block mb-1">PnL:</strong>
-                                <p class="text-muted mb-3 fw-bold" id="trade-pnl">-</p>
+                                <strong>PnL:</strong>
+                                <span class="info-badge badge-neutral" id="trade-pnl">-</span>
                             </td>
                             <td>
-                                 <strong class="d-block mb-1">Длительность:</strong>
-                                <p class="text-muted mb-3" id="trade-duration">-</p>
+                                 <strong>Длительность:</strong>
+                                <span class="info-badge badge-neutral" id="trade-duration">-</span>
                             </td>
                         </tr>
                     </table>
@@ -112,36 +116,55 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; padding:10px;">
+             <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; position: sticky; top: 20px; padding:10px;">
                 <div class="card-body p-4">
-                    <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">Анализ и Заключения</h5>
+                     <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">
+                        <i class="fas fa-brain me-2"></i>Анализ и Психология
+                     </h5>
+                     
+                     <div class="analysis-group">
+                         <div class="analysis-label">
+                             <i class="fas fa-sticky-note"></i> Общие Заметки
+                         </div>
+                         <div class="analysis-box" id="trade-notes">-</div>
+                     </div>
 
-                    <div class="mb-3">
-                         <strong class="d-block mb-1" style="color: var(--text-primary);">Заметки:</strong>
-                         <p class="text-muted mb-0 small" id="trade-notes">-</p>
-                    </div>
+                     <hr class="my-4" style="opacity: 0.1;">
 
-                    <div class="mb-3">
-                         <strong class="d-block mb-1" style="color: var(--text-primary);">Заключения Сделки:</strong>
-                         <p class="text-muted mb-0 small" id="trade-trade_conclusions">-</p>
+                     <div class="analysis-group">
+                         <div class="analysis-label">
+                             <i class="fas fa-check-circle"></i> Выводы
+                         </div>
+                         <div class="analysis-box" id="trade-trade_conclusions">-</div>
                      </div>
-                      <div class="mb-3">
-                         <strong class="d-block mb-1" style="color: var(--text-primary);">Ключевые Уроки:</strong>
-                         <p class="text-muted mb-0 small" id="trade-key_lessons">-</p>
+
+                     <div class="analysis-group">
+                         <div class="analysis-label lessons-label">
+                             <i class="fas fa-lightbulb"></i> Ключевые Уроки
+                         </div>
+                         <div class="analysis-box" id="trade-key_lessons">-</div>
                      </div>
-                      <div class="mb-3">
-                         <strong class="d-block mb-1 text-danger">Ошибки:</strong>
-                         <p class="text-muted mb-0 small" id="trade-mistakes_made">-</p>
+
+                     <div class="analysis-group">
+                         <div class="analysis-label emotions-label">
+                             <i class="fas fa-exclamation-triangle"></i> Ошибки
+                         </div>
+                         <div class="analysis-box" id="trade-mistakes_made">-</div>
                      </div>
-                     <div class="mb-3">
-                         <strong class="d-block mb-1">Эмоции:</strong>
-                         <p class="text-muted mb-0 small" id="trade-emotional_state">-</p>
+                     
+                     <div class="analysis-group">
+                         <div class="analysis-label emotions-label">
+                             <i class="fas fa-heartbeat"></i> Эмоции
+                         </div>
+                         <div class="analysis-box" id="trade-emotional_state">-</div>
                      </div>
                      
                      <div class="mt-4">
-                          <strong class="d-block mb-2" style="color: var(--text-primary);">Теги:</strong>
+                          <div class="analysis-label">
+                              <i class="fas fa-tags"></i> Теги
+                          </div>
                           <div id="trade-tags-container">
-                              <span class="text-muted" id="trade-tags">Нет</span>
+                              <span class="text-muted ps-2" id="trade-tags">Нет тегов</span>
                           </div>
                      </div>
 
