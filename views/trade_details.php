@@ -38,7 +38,7 @@
                         </tr>
                         <tr>
                             <td>
-                                <strong class="d-block mb-1">Направление (Direction):</strong>
+                                <strong class="d-block mb-1">Направление:</strong>
                                 <span class="badge dir-tag" id="trade-direction">-</span>
                             </td>
                             <td>
@@ -62,6 +62,12 @@
                                 <p class="text-muted mb-3" id="trade-style_name">-</p>
                             </td>
                             <td>
+                                <strong class="d-block mb-1">Модель:</strong>
+                                <p class="text-muted mb-3" id="trade-model_name">-</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
                                 <strong class="d-block mb-1">Статус:</strong>
                                 <span class="badge status-tag" id="trade-status">-</span>
                             </td>
