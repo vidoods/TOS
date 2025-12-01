@@ -98,6 +98,8 @@ async function loadLookups() {
             populateSelect('trade-style', data.styles, 'name');
 			populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
+            populateSelect('note-trade', data.trades, 'pair_symbol'); // Нужно будет добавить get_trades_simple в API или использовать data.trades если бы они были
+            populateSelect('note-plan', data.plans, 'title');
             
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'Все инструменты');
             
@@ -162,6 +164,7 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             const idInput = document.getElementById('edit-trade-id');
             if (idInput && idInput.value) data['id'] = idInput.value;
         }
+		if (entity === 'note' && document.getElementById('edit-note-id')) data['id'] = document.getElementById('edit-note-id').value;
         // ---------------------------------------------------------------------------
         
         ['timeframes', 'trade_images'].forEach(arrKey => {
@@ -675,6 +678,8 @@ async function loadTrades(filters = {}) {
 
 // --- ДЕТАЛИ СДЕЛКИ ---
 
+// assets/app.js (Только функция loadTradeDetails)
+
 async function loadTradeDetails() {
     const tradeId = document.getElementById('current-trade-id')?.value;
     if (!tradeId) return;
@@ -694,36 +699,45 @@ async function loadTradeDetails() {
             if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=trade_create&id=${trade.id}`;
             if (deleteBtn) deleteBtn.onclick = () => deleteEntity(trade.id, 'delete_trade', 'journal');
             
-            // 2. Отображение основных полей и форматирование
+            // 2. Отображение ДАТ (Изменен формат на dd.mm.yy)
             ['entry_date', 'exit_date'].forEach(key => {
                  const el = document.getElementById(`trade-${key}`);
-                 if(el && trade[key]) el.textContent = new Date(trade[key]).toLocaleString(undefined, {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+                 if(el && trade[key]) {
+                     const dateObj = new Date(trade[key]);
+                     const day = String(dateObj.getDate()).padStart(2, '0');
+                     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                     const year = String(dateObj.getFullYear()).slice(-2); // Берем последние 2 цифры года
+                     
+                     el.textContent = `${day}.${month}.${year}`;
+                 }
             });
             
-            // 3. Расчет и отображение ДЛИТЕЛЬНОСТИ
+            // 3. Расчет и отображение ДЛИТЕЛЬНОСТИ (Только дни и часы)
             const durationEl = document.getElementById('trade-duration');
             if (trade.entry_date && trade.exit_date) {
                 const entry = new Date(trade.entry_date);
                 const exit = new Date(trade.exit_date);
-                const diffMs = exit - entry; // Разница в миллисекундах
+                const diffMs = exit - entry; 
                 
-                const seconds = Math.floor(diffMs / 1000);
-                const days = Math.floor(seconds / (3600 * 24));
-                const hours = Math.floor((seconds % (3600 * 24)) / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
+                const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+                const days = Math.floor(totalHours / 24);
+                const hours = totalHours % 24;
                 
                 let durationText = '';
                 if (days > 0) durationText += `${days}д `;
-                if (hours > 0) durationText += `${hours}ч `;
-                if (minutes > 0) durationText += `${minutes}мин`;
+                if (hours > 0) durationText += `${hours}ч`;
                 
-                durationEl.textContent = durationText.trim() || 'Менее минуты';
+                // Если прошло меньше часа, пишем "Менее 1ч"
+                if (days === 0 && hours === 0) {
+                    durationText = 'Менее 1ч';
+                }
+                
+                durationEl.textContent = durationText.trim();
             } else {
-                durationEl.textContent = trade.exit_date ? 'Закрыта, но нет даты входа' : 'В процессе';
+                durationEl.textContent = trade.exit_date ? 'Нет даты входа' : 'В процессе';
             }
             
             // 4. Отображение остальных полей
-            // ВАЖНО: entry_timeframe в форме, entry_tf в базе
             ['pair_symbol', 'account_name', 'style_name', 'model_name', 'risk_percent', 'rr_achieved', 
              'pnl', 'status', 'trade_conclusions', 'key_lessons',
              'notes', 'mistakes_made', 'emotional_state']
@@ -731,8 +745,10 @@ async function loadTradeDetails() {
                 const el = document.getElementById(`trade-${key.replace('formatted_', '')}`);
                 if (el) {
                     if (key === 'pnl' || key === 'rr_achieved') {
-                        el.textContent = Number(trade[key]).toFixed(2);
-                        el.className = `detail-value ${Number(trade[key]) >= 0 ? 'text-profit' : 'text-loss'} fw-bold mb-3`;
+                        const val = parseFloat(trade[key]);
+                        el.textContent = val.toFixed(2) + (key === 'risk_percent' ? '%' : (key === 'rr_achieved' ? 'R' : ''));
+                        el.className = 'info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
+                        if (key === 'risk_percent') el.textContent += '%';
                     } else if (key === 'risk_percent') {
                          el.textContent = `${trade[key]}%`;
                     } else if (key === 'status') {
@@ -746,19 +762,27 @@ async function loadTradeDetails() {
                 }
             });
             
-            // 5. ИСПРАВЛЕНИЕ: Отображение Таймфрейма (entry_tf из БД)
+            // 5. Таймфрейм
             const entryTfEl = document.getElementById('trade-entry_timeframe');
             if (entryTfEl) {
                 entryTfEl.textContent = trade.entry_tf || 'Не указано';
             }
             
-            // 6. Специальная обработка для Направления и Тегов
+            // 6. Направление
             const directionEl = document.getElementById('trade-direction');
             if (directionEl) {
-                directionEl.textContent = trade.direction.toUpperCase();
-                directionEl.className = `badge dir-tag dir-${trade.direction} text-uppercase`;
+                const dir = trade.direction.toLowerCase();
+                const isLong = dir === 'long';
+                directionEl.textContent = dir.toUpperCase();
+                directionEl.className = 'info-badge'; 
+                if (isLong) {
+                    directionEl.classList.add('badge-profit'); 
+                } else {
+                    directionEl.classList.add('badge-loss');   
+                }
             }
             
+            // 7. Теги
             const tagsEl = document.getElementById('trade-tags');
             if (tagsEl) {
                 if (trade.tags) {
@@ -768,7 +792,7 @@ async function loadTradeDetails() {
                 }
             }
             
-            // 7. Обработка ссылок на План
+            // 8. План
             const planLink = document.getElementById('trade-plan-link');
             if (planLink && trade.plan_id) {
                 planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
@@ -780,7 +804,7 @@ async function loadTradeDetails() {
                  planLink.style.display = 'block';
             }
             
-            // 8. Отображение скриншотов
+            // 9. Скриншоты
             const tradeImgList = document.getElementById('trade-images-list');
             if (tradeImgList) {
                 tradeImgList.innerHTML = '';
@@ -922,6 +946,82 @@ async function loadDashboardMetrics() {
     }
 }
 
+// ==================================================
+// ЗАМЕТКИ (NOTES)
+// ==================================================
+
+async function loadNotes() {
+    const container = document.getElementById('notes-grid-container');
+    if (!container) return;
+    
+    try {
+        const res = await fetch('api/api.php?action=get_notes');
+        const json = await res.json();
+        
+        if (json.success) {
+            if (json.data.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет заметок. Создайте первую!</div>';
+                return;
+            }
+            
+            let html = '';
+            json.data.forEach(note => {
+                html += `
+                <a href="index.php?view=note_create&id=${note.id}" class="note-card">
+                    <div class="note-header">
+                        <i class="fas fa-bookmark note-icon"></i>
+                        <div class="note-title">${note.title}</div>
+                    </div>
+                    <div class="note-meta">
+                        <div class="note-meta-row">
+                            <span>${note.formatted_date}</span>
+                            <span class="meta-divider">/</span>
+                            <span>${note.day_of_week}</span>
+                            <span class="meta-divider">/</span>
+                            <span>${note.week_number}</span>
+                        </div>
+                        <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
+                            ${note.relations_text}
+                        </div>
+                         <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.5;">
+                            Latest usage: Not Used
+                        </div>
+                    </div>
+                </a>`;
+            });
+            container.innerHTML = html;
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function initNoteForm() {
+    const idInput = document.getElementById('edit-note-id');
+    const isEdit = (idInput && idInput.value);
+    
+    // Загружаем планы для селекта
+    await loadLookups(); 
+    
+    // Если это редактирование, подгружаем данные
+    if (isEdit) {
+        const res = await fetch(`api/api.php?action=get_note_details&id=${idInput.value}`);
+        const json = await res.json();
+        if (json.success) {
+            const n = json.data;
+            document.getElementById('note-title').value = n.title;
+            document.getElementById('note-content').value = n.content;
+            if(n.linked_plan_id) document.getElementById('note-plan').value = n.linked_plan_id;
+            // Trade select пока пустой, логику добавим при необходимости
+        }
+    }
+}
+
+async function deleteNote(id) {
+    if(!confirm('Удалить заметку?')) return;
+    const fd = new FormData(); fd.append('id', id);
+    await fetch('api/api.php?action=delete_note', {method:'POST', body:fd});
+    window.location.href='index.php?view=notes';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMenu);
     document.getElementById('login-form')?.addEventListener('submit', handleLoginSubmit);
@@ -930,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const view = new URLSearchParams(window.location.search).get('view');
     const planForm = document.getElementById('plan-form');
     const tradeForm = document.getElementById('trade-form');
+	const noteForm = document.getElementById('note-form');
 
     if (planForm) {
         initPlanForm();
@@ -942,6 +1043,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const addImgBtn = document.getElementById('add-trade-image-btn');
         if (addImgBtn) addImgBtn.addEventListener('click', () => addTradeImage());
     }
+
+    if (noteForm) {
+        initNoteForm();
+        noteForm.addEventListener('submit', e => handleFormSubmit(e, 'save_note', 'note', 'notes'));
+    }
+
+    if (view === 'notes') loadNotes();
 
     if (view === 'plans') { 
         loadPlans(); 
