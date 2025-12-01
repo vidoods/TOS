@@ -45,6 +45,7 @@ $pageTitles = [
     'journal' => 'Журнал Сделок',
     'trade_create' => 'Новая Сделка',
     'trade_details' => 'Детали Сделки',
+	'note_details' => 'Просмотр Заметки',
     'login' => 'Вход',
     'register' => 'Регистрация'
 ];
