@@ -61,7 +61,8 @@ $currentTitle = $pageTitles[$view] ?? 'TOS - Trading Operating System';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40JuKakVzbu4J2+PMGvS_2eGj1sEZgADvGUP0Jp3h1xJ8xGzH/2Z4r4t0S8Kz3LpQG40N4wA0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     
     <link rel="stylesheet" href="assets/style.css?v=<?php echo time(); ?>">
 </head>
@@ -85,7 +86,7 @@ $currentTitle = $pageTitles[$view] ?? 'TOS - Trading Operating System';
                     <div class="nav-links">
                         <a href="index.php?view=dashboard" class="<?= $view === 'dashboard' ? 'active' : '' ?>">📊 Dashboard</a>
                         <a href="index.php?view=plans" class="<?= strpos($view, 'plan') !== false ? 'active' : '' ?>">📄 Trading Plan</a>
-                        <a href="index.php?view=journal" class="<?= strpos($view, 'trade') !== false || $view === 'journal' ? 'active' : '' ?>"><i class="fas fa-book-open"></i>📄 Trading Journal</a>
+                        <a href="index.php?view=journal" class="<?= strpos($view, 'trade') !== false || $view === 'journal' ? 'active' : '' ?>"><i class="fas fa-book-open"></i> Trading Journal</a>
                         <a href="index.php?view=notes" class="<?= $view === 'notes' ? 'active' : '' ?>">🗒️ Notes</a>
                         <a href="index.php?view=strategy" class="<?= $view === 'strategy' ? 'active' : '' ?>">⚙️ Trading Strategy</a>
                     </div>
