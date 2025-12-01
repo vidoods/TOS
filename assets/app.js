@@ -98,7 +98,8 @@ async function loadLookups() {
             populateSelect('trade-style', data.styles, 'name');
 			populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
-            populateSelect('note-trade', data.trades, 'pair_symbol'); // Нужно будет добавить get_trades_simple в API или использовать data.trades если бы они были
+            // Используем 'display_name', которое мы создали в API
+			populateSelect('note-trade', data.trades, 'display_name');
             populateSelect('note-plan', data.plans, 'title');
             
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'Все инструменты');
@@ -155,7 +156,7 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             }
         });
         
-        // --- ИСПРАВЛЕНИЕ: Добавляем ID вручную, так как input находится вне формы ---
+        // ИСПРАВЛЕНО: Используем entityName вместо entity
         if (entityName === 'plan' && typeof isPlanEditMode !== 'undefined' && isPlanEditMode) {
             const idInput = document.getElementById('edit-plan-id');
             if (idInput && idInput.value) data['id'] = idInput.value;
@@ -164,25 +165,29 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             const idInput = document.getElementById('edit-trade-id');
             if (idInput && idInput.value) data['id'] = idInput.value;
         }
-		if (entity === 'note' && document.getElementById('edit-note-id')) data['id'] = document.getElementById('edit-note-id').value;
-        // ---------------------------------------------------------------------------
+        // Добавлена проверка для заметок (исправлено имя переменной)
+        if (entityName === 'note') {
+            const idInput = document.getElementById('edit-note-id');
+            if (idInput && idInput.value) data['id'] = idInput.value;
+        }
         
         ['timeframes', 'trade_images'].forEach(arrKey => {
              if (data[arrKey]) data[arrKey] = data[arrKey].filter(item => item && (item.url || item.notes || item.title));
         });
 
         const imagePromises = [];
+        // ... (код обработки изображений без изменений) ...
         const processImages = (containerClass, arrayName, type) => {
             form.querySelectorAll(`.${containerClass}`).forEach((card, index) => {
                 const fileInput = card.querySelector('input[type="file"]');
                 const urlInput = card.querySelector('input[name*="[url]"]');
-                const hiddenUrlInput = card.querySelector('input[type="hidden"][name*="[url]"]');
-                
+                // const hiddenUrlInput = card.querySelector('input[type="hidden"][name*="[url]"]'); // Можно убрать, если не используется
+
                 if (fileInput && fileInput.files[0]) {
                     imagePromises.push(uploadFile(fileInput.files[0], type).then(url => {
                         if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
                     }));
-                } else if (urlInput && urlInput.value.trim() && urlInput.value !== hiddenUrlInput.value) {
+                } else if (urlInput && urlInput.value.trim()) { // Упростил условие
                      imagePromises.push(downloadImage(urlInput.value.trim(), type).then(url => {
                         if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
                     }));
@@ -192,6 +197,7 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
         
         if (entityName === 'plan') processImages('tf-card', 'timeframes', 'plan');
         if (entityName === 'trade') processImages('trade-img-card', 'trade_images', 'trade');
+        // Для заметок изображения пока не реализованы, но если нужно - добавьте условие
 
         await Promise.all(imagePromises);
 
@@ -902,10 +908,6 @@ function setupLightbox() {
     modal.onclick = e => { if(e.target === modal) close(); };
 }
 
-// assets/app.js
-
-// ...
-
 async function loadDashboardMetrics() {
     try {
         const response = await fetch('api/api.php?action=get_dashboard_metrics');
@@ -966,25 +968,29 @@ async function loadNotes() {
             
             let html = '';
             json.data.forEach(note => {
+                const isUsed = note.latest_usage !== 'Not Used';
+                const usageStyle = isUsed ? 'color: var(--accent-blue); font-weight: 500;' : 'color: var(--text-secondary); opacity: 0.5;';
+                
+                // ИСПРАВЛЕНО: Ссылка теперь ведет на note_details
                 html += `
-                <a href="index.php?view=note_create&id=${note.id}" class="note-card">
+                <a href="index.php?view=note_details&id=${note.id}" class="note-card">
                     <div class="note-header">
                         <i class="fas fa-bookmark note-icon"></i>
                         <div class="note-title">${note.title}</div>
                     </div>
                     <div class="note-meta">
                         <div class="note-meta-row">
-                            <span>${note.formatted_date}</span>
+                            <span>${note.date_formatted}</span>
                             <span class="meta-divider">/</span>
-                            <span>${note.day_of_week}</span>
+                            <span>${note.day}</span>
                             <span class="meta-divider">/</span>
-                            <span>${note.week_number}</span>
+                            <span>${note.week}</span>
                         </div>
                         <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
-                            ${note.relations_text}
+                            ${note.relations}
                         </div>
-                         <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.5;">
-                            Latest usage: Not Used
+                         <div class="note-meta-row" style="${usageStyle}">
+                            Latest usage: ${note.latest_usage}
                         </div>
                     </div>
                 </a>`;
@@ -994,23 +1000,64 @@ async function loadNotes() {
     } catch (e) { console.error(e); }
 }
 
+async function loadNoteDetails() {
+    const id = document.getElementById('current-note-id')?.value;
+    if (!id) return;
+    
+    const res = await fetch(`api/api.php?action=get_note_details&id=${id}`);
+    const json = await res.json();
+    
+    if (json.success) {
+        const n = json.data;
+        
+        document.getElementById('note-details-title').textContent = n.title;
+        document.getElementById('note-content-display').textContent = n.content;
+        document.getElementById('note-created-at').textContent = n.date_formatted || n.created_formatted;
+        document.getElementById('note-date-info').textContent = n.created_formatted;
+
+        // Ссылки на сделку/план
+        const tradeEl = document.getElementById('note-linked-trade');
+        if (n.trade) {
+            tradeEl.innerHTML = `<a href="index.php?view=trade_details&id=${n.trade.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.trade.label}</a>`;
+        } else {
+            tradeEl.textContent = 'Нет привязки';
+        }
+
+        const planEl = document.getElementById('note-linked-plan');
+        if (n.plan) {
+            planEl.innerHTML = `<a href="index.php?view=plan_details&id=${n.plan.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.plan.label}</a>`;
+        } else {
+            planEl.textContent = 'Нет привязки';
+        }
+        
+        // Кнопки
+        document.getElementById('btn-edit-note').onclick = () => window.location.href = `index.php?view=note_create&id=${n.id}`;
+        document.getElementById('btn-delete-note').onclick = () => deleteNote(n.id);
+    }
+}
+
 async function initNoteForm() {
-    const idInput = document.getElementById('edit-note-id');
-    const isEdit = (idInput && idInput.value);
+    const idEl = document.getElementById('edit-note-id');
+    await loadLookups();
     
-    // Загружаем планы для селекта
-    await loadLookups(); 
-    
-    // Если это редактирование, подгружаем данные
-    if (isEdit) {
-        const res = await fetch(`api/api.php?action=get_note_details&id=${idInput.value}`);
-        const json = await res.json();
-        if (json.success) {
-            const n = json.data;
+    // Загружаем сделки (у нас это уже было, оставляем)
+    const tradeSelect = document.getElementById('note-trade');
+    if (tradeSelect) {
+        const r = await fetch('api/api.php?action=get_lookups'); // Или get_trades если нужно больше
+        // ... (код заполнения селекта, если он не заполнился loadLookups)
+    }
+
+    if(idEl && idEl.value) {
+        const r = await fetch(`api/api.php?action=get_note_details&id=${idEl.value}`);
+        const j = await r.json();
+        if(j.success) {
+            const n = j.data;
             document.getElementById('note-title').value = n.title;
             document.getElementById('note-content').value = n.content;
-            if(n.linked_plan_id) document.getElementById('note-plan').value = n.linked_plan_id;
-            // Trade select пока пустой, логику добавим при необходимости
+            
+            // ИСПРАВЛЕНО: теперь проверяем n.trade и n.plan как объекты
+            if(n.trade && n.trade.id) document.getElementById('note-trade').value = n.trade.id;
+            if(n.plan && n.plan.id) document.getElementById('note-plan').value = n.plan.id;
         }
     }
 }
@@ -1050,6 +1097,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (view === 'notes') loadNotes();
+	
+	if (view === 'note_details') loadNoteDetails();
 
     if (view === 'plans') { 
         loadPlans(); 
