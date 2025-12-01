@@ -104,6 +104,12 @@ switch ($action) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Неизвестное действие: ' . $action]);
         break;
+		
+	// --- ЗАМЕТКИ ---
+    case 'get_notes': getNotes($conn); break;
+    case 'get_note_details': getNoteDetails($conn); break;
+    case 'save_note': saveNote($conn); break;
+    case 'delete_note': deleteNote($conn); break;
 }
 
 // ==============================================================================================
@@ -744,5 +750,122 @@ function compressAndSaveImage($source, $dest, $mime, $quality = 80) {
     };
     imagedestroy($img);
     return $res;
+}
+
+// ==============================================================================================
+// ФУНКЦИИ ЗАМЕТОК
+// ==============================================================================================
+
+function getNotes($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        // Получаем заметки
+        $stmt = $pdo->prepare("SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC");
+        $stmt->execute([$uid]);
+        $notes = $stmt->fetchAll();
+
+        // Форматируем данные для карточек
+        foreach ($notes as &$note) {
+            $date = strtotime($note['created_at']);
+            $note['formatted_date'] = date('d.m.y', $date);
+            $note['day_of_week'] = date('l', $date); // Sunday
+            $note['week_number'] = 'Week #' . date('W', $date);
+            
+            // Проверяем связи (есть ли привязанные сделки/планы)
+            $tradeCount = $pdo->query("SELECT COUNT(*) FROM note_to_trade WHERE note_id = " . $note['id'])->fetchColumn();
+            $planCount = $pdo->query("SELECT COUNT(*) FROM note_to_plan WHERE note_id = " . $note['id'])->fetchColumn();
+            
+            $links = [];
+            if ($tradeCount > 0) $links[] = "$tradeCount Trades";
+            if ($planCount > 0) $links[] = "$planCount Plans";
+            $note['relations_text'] = empty($links) ? 'No Trades / No Plans' : implode(' / ', $links);
+        }
+
+        echo json_encode(['success' => true, 'data' => $notes]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function getNoteDetails($pdo) {
+    try {
+        $id = $_GET['id'] ?? null;
+        if (!$id) throw new Exception('ID не указан');
+        
+        $stmt = $pdo->prepare("SELECT * FROM notes WHERE id = ? AND user_id = ?");
+        $stmt->execute([$id, $_SESSION['user_id']]);
+        $note = $stmt->fetch();
+        
+        if (!$note) throw new Exception('Заметка не найдена');
+
+        // Получаем привязанные ID
+        $note['linked_trade_id'] = $pdo->query("SELECT trade_id FROM note_to_trade WHERE note_id = $id LIMIT 1")->fetchColumn();
+        $note['linked_plan_id'] = $pdo->query("SELECT plan_id FROM note_to_plan WHERE note_id = $id LIMIT 1")->fetchColumn();
+
+        echo json_encode(['success' => true, 'data' => $note]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function saveNote($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        $d = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($d['title'])) throw new Exception('Заголовок обязателен');
+        
+        $id = $d['id'] ?? null;
+        $pdo->beginTransaction();
+
+        if ($id) {
+            $sql = "UPDATE notes SET title = ?, content = ? WHERE id = ? AND user_id = ?";
+            $pdo->prepare($sql)->execute([$d['title'], $d['content'] ?? '', $id, $uid]);
+            
+            // Обновляем связи (удаляем старые, добавляем новые)
+            $pdo->prepare("DELETE FROM note_to_trade WHERE note_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM note_to_plan WHERE note_id = ?")->execute([$id]);
+        } else {
+            $sql = "INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)";
+            $pdo->prepare($sql)->execute([$uid, $d['title'], $d['content'] ?? '']);
+            $id = $pdo->lastInsertId();
+        }
+
+        // Добавляем новые связи
+        if (!empty($d['trade_id'])) {
+            $pdo->prepare("INSERT INTO note_to_trade (note_id, trade_id) VALUES (?, ?)")->execute([$id, $d['trade_id']]);
+        }
+        if (!empty($d['plan_id'])) {
+            $pdo->prepare("INSERT INTO note_to_plan (note_id, plan_id) VALUES (?, ?)")->execute([$id, $d['plan_id']]);
+        }
+
+        $pdo->commit();
+        echo json_encode(['success' => true, 'id' => $id]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function deleteNote($pdo) {
+    try {
+        $id = $_POST['id'] ?? null;
+        $uid = $_SESSION['user_id'];
+        
+        $pdo->beginTransaction();
+        $pdo->prepare("DELETE FROM note_to_trade WHERE note_id = ?")->execute([$id]);
+        $pdo->prepare("DELETE FROM note_to_plan WHERE note_id = ?")->execute([$id]);
+        $pdo->prepare("DELETE FROM notes WHERE id = ? AND user_id = ?")->execute([$id, $uid]);
+        $pdo->commit();
+        
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
 }
 ?>
