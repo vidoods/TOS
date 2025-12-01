@@ -96,6 +96,7 @@ async function loadLookups() {
             populateSelect('trade-pair', data.pairs, 'symbol');
             populateSelect('trade-account', data.accounts, 'name');
             populateSelect('trade-style', data.styles, 'name');
+			populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
             
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'Все инструменты');
@@ -519,9 +520,10 @@ async function loadTradeDataForEdit(tradeId) {
             if(trade.pair_id) document.getElementById('trade-pair').value = trade.pair_id;
             if(trade.account_id) document.getElementById('trade-account').value = trade.account_id;
             if(trade.style_id) document.getElementById('trade-style').value = trade.style_id;
+			if(trade.model_id) document.getElementById('trade-model').value = trade.model_id;
             if(trade.plan_id) document.getElementById('trade-plan').value = trade.plan_id;
             if(trade.status) document.getElementById('trade-status').value = trade.status;
-            if(trade.entry_timeframe) document.getElementById('trade-entry-tf').value = trade.entry_timeframe;
+            if(trade.entry_timeframe) document.getElementById('trade-entry-tf').value = trade.entry_tf;
 
             const container = document.getElementById('trade-images-container');
             container.innerHTML = '';
@@ -722,7 +724,7 @@ async function loadTradeDetails() {
             
             // 4. Отображение остальных полей
             // ВАЖНО: entry_timeframe в форме, entry_tf в базе
-            ['pair_symbol', 'account_name', 'style_name', 'risk_percent', 'rr_achieved', 
+            ['pair_symbol', 'account_name', 'style_name', 'model_name', 'risk_percent', 'rr_achieved', 
              'pnl', 'status', 'trade_conclusions', 'key_lessons',
              'notes', 'mistakes_made', 'emotional_state']
             .forEach(key => {
