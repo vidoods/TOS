@@ -464,13 +464,21 @@ function getTradeDetails($pdo) {
         $trade_id = $_GET['id'] ?? null;
         if (!$trade_id) throw new Exception('ID не указан.');
 
-        $query = "SELECT t.*, rp.symbol AS pair_symbol, rp.type AS pair_type, a.name AS account_name, a.type AS account_type, p.title AS plan_title, p.date AS plan_date, rs.name AS style_name
+        // ИСПРАВЛЕНО: Добавлен LEFT JOIN ref_models и выборка rm.name AS model_name
+        $query = "SELECT t.*, 
+                         rp.symbol AS pair_symbol, rp.type AS pair_type, 
+                         a.name AS account_name, a.type AS account_type, 
+                         p.title AS plan_title, p.date AS plan_date, 
+                         rs.name AS style_name,
+                         rm.name AS model_name  
                   FROM trades t
                   JOIN ref_pairs rp ON t.pair_id = rp.id
                   JOIN accounts a ON t.account_id = a.id
                   LEFT JOIN plans p ON t.plan_id = p.id
                   LEFT JOIN ref_styles rs ON t.style_id = rs.id
+                  LEFT JOIN ref_models rm ON t.model_id = rm.id
                   WHERE t.id = ? AND t.user_id = ?";
+                  
         $stmt = $pdo->prepare($query);
         $stmt->execute([$trade_id, $_SESSION['user_id']]);
         $trade = $stmt->fetch();
@@ -510,7 +518,7 @@ function saveTrade($pdo) {
             $data['account_id'], 
             $data['plan_id'] ?? null, 
             $data['style_id'] ?? null,
-			$data['model_id'] ?? null,
+            $data['model_id'] ?? null, 
             $data['entry_date'], 
             $data['exit_date'] ?? null, 
             $data['direction'],
@@ -520,13 +528,12 @@ function saveTrade($pdo) {
             $data['status'] ?? 'pending',
             $data['trade_conclusions'] ?? null, 
             $data['key_lessons'] ?? null, 
-            $data['entry_timeframe'] ?? null, // entry_tf в базе
-            // Новые поля
+            $data['entry_timeframe'] ?? null, 
             $data['notes'] ?? null,
             $data['tags'] ?? null,
             $data['mistakes_made'] ?? null,
             $data['emotional_state'] ?? null,
-            $data['reason_for_entry'] ?? null,
+            // reason_for_entry УДАЛЕНО
             $user_id
         ];
 
@@ -535,11 +542,12 @@ function saveTrade($pdo) {
             $check->execute([$trade_id, $user_id]);
             if (!$check->fetch()) throw new Exception('Сделка не найдена или нет прав.');
 
-            $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, entry_date=?, exit_date=?, direction=?, risk_percent=?, rr_achieved=?, pnl=?, status=?, model_id=?, trade_conclusions=?, key_lessons=?, entry_tf=?, notes=?, tags=?, mistakes_made=?, emotional_state=?, reason_for_entry=? WHERE id=? AND user_id=?";
+            // Убрано reason_for_entry=? из SQL
+            $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, model_id=?, entry_date=?, exit_date=?, direction=?, risk_percent=?, rr_achieved=?, pnl=?, status=?, trade_conclusions=?, key_lessons=?, entry_tf=?, notes=?, tags=?, mistakes_made=?, emotional_state=? WHERE id=? AND user_id=?";
             
-            $update_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
-            $update_params[] = $trade_id; // Добавляем ID
-            $update_params[] = $user_id; // Добавляем user_id
+            $update_params = array_slice($params, 0, count($params) - 1); 
+            $update_params[] = $trade_id; 
+            $update_params[] = $user_id; 
             
             $stmt = $pdo->prepare($sql);
             $stmt->execute($update_params);
@@ -547,23 +555,15 @@ function saveTrade($pdo) {
             $pdo->prepare("DELETE FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 0")->execute([$trade_id]);
             $message = 'Сделка обновлена!';
         } else {
-            // SQL-запрос для вставки
-            $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, model_id, entry_date, exit_date, direction, risk_percent, rr_achieved, pnl, status, trade_conclusions, key_lessons, entry_tf, notes, tags, mistakes_made, emotional_state, reason_for_entry, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            // Убрано reason_for_entry из списка полей и один знак ? из VALUES
+            $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, model_id, entry_date, exit_date, direction, risk_percent, rr_achieved, pnl, status, trade_conclusions, key_lessons, entry_tf, notes, tags, mistakes_made, emotional_state, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             
-            $insert_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
-            $insert_params[] = $user_id; // Добавляем user_id в конец
+            $insert_params = array_slice($params, 0, count($params) - 1);
+            $insert_params[] = $user_id; 
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute($insert_params);
-            
             $trade_id = $pdo->lastInsertId();
-            
-            // !!! ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Если ID не получен, вызываем ошибку !!!
-            if (!$trade_id) {
-                 throw new Exception("Сбой записи в базу данных. ID сделки не был получен. Проверьте логи сервера или настройки БД.");
-            }
-            // !!! КОНЕЦ ПРОВЕРКИ !!!
-            
             $message = 'Сделка создана!';
         }
 
@@ -582,7 +582,6 @@ function saveTrade($pdo) {
     } catch (\Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         http_response_code(500);
-        // Возвращаем более подробное сообщение об ошибке, чтобы выявить проблему
         echo json_encode(['success' => false, 'message' => 'Ошибка сохранения сделки: ' . $e->getMessage()]);
     }
 }
