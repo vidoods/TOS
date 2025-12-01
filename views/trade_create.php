@@ -28,6 +28,12 @@
                             <option value="">Select</option>
                         </select>
                     </div>
+					<div class="col-md-4">
+                        <label for="trade-model" class="form-label fw-bold">Модель Входа</label>
+                        <select class="form-select" id="trade-model" name="model_id">
+                            <option value="">Select</option>
+                        </select>
+                    </div>
                      <div class="col-md-12">
                         <label for="trade-plan" class="form-label fw-bold">Связать с Планом</label>
                         <select class="form-select" id="trade-plan" name="plan_id">
