@@ -523,7 +523,7 @@ async function loadTradeDataForEdit(tradeId) {
 			if(trade.model_id) document.getElementById('trade-model').value = trade.model_id;
             if(trade.plan_id) document.getElementById('trade-plan').value = trade.plan_id;
             if(trade.status) document.getElementById('trade-status').value = trade.status;
-            if(trade.entry_timeframe) document.getElementById('trade-entry-tf').value = trade.entry_tf;
+            if(trade.entry_tf) document.getElementById('trade-entry-tf').value = trade.entry_tf;
 
             const container = document.getElementById('trade-images-container');
             container.innerHTML = '';
