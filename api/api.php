@@ -192,20 +192,41 @@ function getLookups($pdo) {
         $stmt_pairs = $pdo->query("SELECT id, symbol, type FROM ref_pairs ORDER BY symbol ASC");
         $results['pairs'] = $stmt_pairs->fetchAll();
 
-        // Возвращаем баланс для расчетов
         $stmt_accounts = $pdo->prepare("SELECT id, name, type, balance FROM accounts WHERE user_id = :user_id ORDER BY name ASC");
         $stmt_accounts->execute(['user_id' => $user_id]);
         $results['accounts'] = $stmt_accounts->fetchAll();
 
         $stmt_styles = $pdo->query("SELECT id, name FROM ref_styles ORDER BY name ASC");
         $results['styles'] = $stmt_styles->fetchAll();
-		
-		$stmt_models = $pdo->query("SELECT id, name FROM ref_models ORDER BY name ASC");
+        
+        $stmt_models = $pdo->query("SELECT id, name FROM ref_models ORDER BY name ASC");
         $results['models'] = $stmt_models->fetchAll();
 
         $stmt_plans = $pdo->prepare("SELECT id, title, date FROM plans WHERE user_id = :user_id ORDER BY date DESC");
         $stmt_plans->execute(['user_id' => $user_id]);
         $results['plans'] = $stmt_plans->fetchAll();
+
+        // --- ДОБАВЛЕНО: Загрузка списка сделок для заметок ---
+        // Формируем красивое название прямо в SQL: "ДД.ММ.ГГ - ПАРА (Направление)"
+        $stmt_trades = $pdo->prepare("
+            SELECT t.id, 
+                   CONCAT(DATE_FORMAT(t.entry_date, '%d.%m.%y'), ' - ', rp.symbol, ' (', UCASE(t.direction), ')') as display_name 
+            FROM trades t 
+            JOIN ref_pairs rp ON t.pair_id = rp.id 
+            WHERE t.user_id = :user_id 
+            ORDER BY t.entry_date DESC 
+            LIMIT 50
+        ");
+        $stmt_trades->execute(['user_id' => $user_id]);
+        $results['trades'] = $stmt_trades->fetchAll();
+        // ----------------------------------------------------
+
+        $results['trade_statuses'] = ['pending', 'win', 'loss', 'breakeven', 'partial', 'cancelled'];
+        $results['trade_directions'] = ['long', 'short'];
+        $results['plan_types'] = ['Daily', 'Weekly', 'Monthly', 'Long Term'];
+        $results['plan_biases'] = ['Bullish', 'Bearish', 'Neutral'];
+        $results['plan_statuses'] = ['pending', 'completed', 'cancelled'];
+        $results['entry_timeframes'] = ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'];
 
         echo json_encode(['success' => true, 'data' => $results]);
 
@@ -757,57 +778,83 @@ function compressAndSaveImage($source, $dest, $mime, $quality = 80) {
 // ==============================================================================================
 
 function getNotes($pdo) {
+    $uid = $_SESSION['user_id'];
     try {
-        $uid = $_SESSION['user_id'];
-        // Получаем заметки
-        $stmt = $pdo->prepare("SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC");
-        $stmt->execute([$uid]);
-        $notes = $stmt->fetchAll();
-
-        // Форматируем данные для карточек
+        $notes = $pdo->query("SELECT * FROM notes WHERE user_id = $uid ORDER BY created_at DESC")->fetchAll();
         foreach ($notes as &$note) {
-            $date = strtotime($note['created_at']);
-            $note['formatted_date'] = date('d.m.y', $date);
-            $note['day_of_week'] = date('l', $date); // Sunday
-            $note['week_number'] = 'Week #' . date('W', $date);
+            $nid = $note['id'];
+            $time = strtotime($note['created_at']);
+            $note['date_formatted'] = date('d.m.y', $time);
+            $note['day'] = date('l', $time);
+            $note['week'] = 'Week #' . date('W', $time);
             
-            // Проверяем связи (есть ли привязанные сделки/планы)
-            $tradeCount = $pdo->query("SELECT COUNT(*) FROM note_to_trade WHERE note_id = " . $note['id'])->fetchColumn();
-            $planCount = $pdo->query("SELECT COUNT(*) FROM note_to_plan WHERE note_id = " . $note['id'])->fetchColumn();
-            
+            // Связи (Счетчики)
+            $tr = $pdo->query("SELECT COUNT(*) FROM note_to_trade WHERE note_id=$nid")->fetchColumn();
+            $pl = $pdo->query("SELECT COUNT(*) FROM note_to_plan WHERE note_id=$nid")->fetchColumn();
             $links = [];
-            if ($tradeCount > 0) $links[] = "$tradeCount Trades";
-            if ($planCount > 0) $links[] = "$planCount Plans";
-            $note['relations_text'] = empty($links) ? 'No Trades / No Plans' : implode(' / ', $links);
-        }
+            if ($tr > 0) $links[] = "$tr Trades";
+            if ($pl > 0) $links[] = "$pl Plans";
+            $note['relations'] = empty($links) ? 'No Links' : implode(' / ', $links);
 
+            // --- НОВОЕ: Расчет Latest Usage ---
+            // Получаем дату самой свежей связанной сделки
+            $lastTradeDate = $pdo->query("SELECT MAX(t.entry_date) FROM note_to_trade nt JOIN trades t ON nt.trade_id = t.id WHERE nt.note_id = $nid")->fetchColumn();
+            // Получаем дату самого свежего связанного плана
+            $lastPlanDate = $pdo->query("SELECT MAX(p.date) FROM note_to_plan np JOIN plans p ON np.plan_id = p.id WHERE np.note_id = $nid")->fetchColumn();
+            
+            $latestTimestamp = null;
+            
+            if ($lastTradeDate) {
+                $latestTimestamp = strtotime($lastTradeDate);
+            }
+            
+            if ($lastPlanDate) {
+                $pTime = strtotime($lastPlanDate);
+                // Если дата плана свежее сделки (или сделки нет), берем её
+                if (!$latestTimestamp || $pTime > $latestTimestamp) {
+                    $latestTimestamp = $pTime;
+                }
+            }
+            
+            // Формируем строку
+            $note['latest_usage'] = $latestTimestamp ? date('d.m.y', $latestTimestamp) : 'Not Used';
+            // ----------------------------------
+        }
         echo json_encode(['success' => true, 'data' => $notes]);
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    } catch (Exception $e) { 
+        http_response_code(500); 
+        echo json_encode(['success'=>false, 'message'=>$e->getMessage()]); 
     }
 }
 
 function getNoteDetails($pdo) {
-    try {
-        $id = $_GET['id'] ?? null;
-        if (!$id) throw new Exception('ID не указан');
-        
-        $stmt = $pdo->prepare("SELECT * FROM notes WHERE id = ? AND user_id = ?");
-        $stmt->execute([$id, $_SESSION['user_id']]);
-        $note = $stmt->fetch();
-        
-        if (!$note) throw new Exception('Заметка не найдена');
+    $id = $_GET['id']; $uid = $_SESSION['user_id'];
+    $stmt = $pdo->prepare("SELECT * FROM notes WHERE id=? AND user_id=? LIMIT 1");
+    $stmt->execute([$id, $uid]);
+    $res = $stmt->fetch();
+    
+    if (!$res) { echo json_encode(['success'=>false]); return; }
+    
+    // Получаем данные о связанных сущностях (ID и Название)
+    $res['trade'] = $pdo->query("
+        SELECT t.id, CONCAT(rp.symbol, ' (', UPPER(t.direction), ') ', DATE_FORMAT(t.entry_date, '%d.%m.%y')) as label 
+        FROM note_to_trade nt 
+        JOIN trades t ON nt.trade_id = t.id 
+        JOIN ref_pairs rp ON t.pair_id = rp.id 
+        WHERE nt.note_id = $id LIMIT 1
+    ")->fetch(PDO::FETCH_ASSOC);
 
-        // Получаем привязанные ID
-        $note['linked_trade_id'] = $pdo->query("SELECT trade_id FROM note_to_trade WHERE note_id = $id LIMIT 1")->fetchColumn();
-        $note['linked_plan_id'] = $pdo->query("SELECT plan_id FROM note_to_plan WHERE note_id = $id LIMIT 1")->fetchColumn();
-
-        echo json_encode(['success' => true, 'data' => $note]);
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-    }
+    $res['plan'] = $pdo->query("
+        SELECT p.id, p.title as label 
+        FROM note_to_plan np 
+        JOIN plans p ON np.plan_id = p.id 
+        WHERE np.note_id = $id LIMIT 1
+    ")->fetch(PDO::FETCH_ASSOC);
+    
+    // Форматируем дату создания
+    $res['created_formatted'] = date('d F Y, H:i', strtotime($res['created_at']));
+    
+    echo json_encode(['success' => true, 'data' => $res]);
 }
 
 function saveNote($pdo) {
