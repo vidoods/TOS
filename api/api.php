@@ -193,6 +193,9 @@ function getLookups($pdo) {
 
         $stmt_styles = $pdo->query("SELECT id, name FROM ref_styles ORDER BY name ASC");
         $results['styles'] = $stmt_styles->fetchAll();
+		
+		$stmt_models = $pdo->query("SELECT id, name FROM ref_models ORDER BY name ASC");
+        $results['models'] = $stmt_models->fetchAll();
 
         $stmt_plans = $pdo->prepare("SELECT id, title, date FROM plans WHERE user_id = :user_id ORDER BY date DESC");
         $stmt_plans->execute(['user_id' => $user_id]);
@@ -507,6 +510,7 @@ function saveTrade($pdo) {
             $data['account_id'], 
             $data['plan_id'] ?? null, 
             $data['style_id'] ?? null,
+			$data['model_id'] ?? null,
             $data['entry_date'], 
             $data['exit_date'] ?? null, 
             $data['direction'],
@@ -531,7 +535,7 @@ function saveTrade($pdo) {
             $check->execute([$trade_id, $user_id]);
             if (!$check->fetch()) throw new Exception('Сделка не найдена или нет прав.');
 
-            $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, entry_date=?, exit_date=?, direction=?, risk_percent=?, rr_achieved=?, pnl=?, status=?, trade_conclusions=?, key_lessons=?, entry_tf=?, notes=?, tags=?, mistakes_made=?, emotional_state=?, reason_for_entry=? WHERE id=? AND user_id=?";
+            $sql = "UPDATE trades SET pair_id=?, account_id=?, plan_id=?, style_id=?, entry_date=?, exit_date=?, direction=?, risk_percent=?, rr_achieved=?, pnl=?, status=?, model_id=?, trade_conclusions=?, key_lessons=?, entry_tf=?, notes=?, tags=?, mistakes_made=?, emotional_state=?, reason_for_entry=? WHERE id=? AND user_id=?";
             
             $update_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
             $update_params[] = $trade_id; // Добавляем ID
@@ -544,7 +548,7 @@ function saveTrade($pdo) {
             $message = 'Сделка обновлена!';
         } else {
             // SQL-запрос для вставки
-            $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, entry_date, exit_date, direction, risk_percent, rr_achieved, pnl, status, trade_conclusions, key_lessons, entry_tf, notes, tags, mistakes_made, emotional_state, reason_for_entry, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            $sql = "INSERT INTO trades (pair_id, account_id, plan_id, style_id, model_id, entry_date, exit_date, direction, risk_percent, rr_achieved, pnl, status, trade_conclusions, key_lessons, entry_tf, notes, tags, mistakes_made, emotional_state, reason_for_entry, user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             
             $insert_params = array_slice($params, 0, count($params) - 1); // Все, кроме user_id
             $insert_params[] = $user_id; // Добавляем user_id в конец
