@@ -21,7 +21,7 @@
     <div id="trade-details-container" class="row g-4" style="transition: opacity 0.3s ease;">
         
         <div class="col-lg-8">
-             <div class="card glass-panel border-0 shadow-sm mb-4" style="border-radius: 12px;">
+             <div class="card glass-panel border-0 shadow-sm mb-4" style="border-radius: 12px; padding:10px;">
                 <div class="card-body p-4">
                     <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">Параметры Сделки</h5>
                     
@@ -101,7 +101,7 @@
                 </div>
              </div>
              
-             <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px;">
+             <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; padding:10px;">
                  <div class="card-body p-4">
                      <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">Скриншоты и Анализ</h5>
                      <div id="trade-images-list" class="d-flex flex-wrap justify-content-start gap-3">
@@ -112,7 +112,7 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; padding:10px;">
                 <div class="card-body p-4">
                     <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">Анализ и Заключения</h5>
 
