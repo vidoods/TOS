@@ -543,9 +543,9 @@ function saveTrade($pdo) {
         $params = [
             $data['pair_id'], 
             $data['account_id'], 
-            $data['plan_id'] ?? null, 
-            $data['style_id'] ?? null,
-            $data['model_id'] ?? null, 
+            !empty($data['plan_id']) ? $data['plan_id'] : null, 
+            !empty($data['style_id']) ? $data['style_id'] : null,
+            !empty($data['model_id']) ? $data['model_id'] : null, 
             $data['entry_date'], 
             $data['exit_date'] ?? null, 
             $data['direction'],
