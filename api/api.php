@@ -715,15 +715,36 @@ function uploadOrDownloadImage($isDownload) {
     try {
         if (!isset($_SESSION['user_id'])) throw new Exception('Нужна авторизация.');
         
+        // 1. Получаем тип (папку) из запроса
         $type = $_POST['type'] ?? 'general';
+        
+        // 2. БЕЗОПАСНОСТЬ: Разрешаем только определенные папки
+        $allowedTypes = ['general', 'notes', 'trades', 'plans'];
+        if (!in_array($type, $allowedTypes)) {
+            $type = 'general'; // Если прислали что-то левое, кидаем в general
+        }
+
+        // 3. Формируем путь
         $uploadDir = "../assets/uploads/images/$type/";
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0775, true);
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
 
         if ($isDownload) {
-            $url = json_decode(file_get_contents('php://input'), true)['image_url'] ?? '';
+            $data = json_decode(file_get_contents('php://input'), true);
+            $url = $data['image_url'] ?? ''; // Исправлено получение URL для JSON запроса
+            
+            // Если тип передали в JSON (для скачивания по URL)
+            if (isset($data['type']) && in_array($data['type'], $allowedTypes)) {
+                $uploadDir = "../assets/uploads/images/" . $data['type'] . "/";
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0775, true);
+            }
+
             if (!filter_var($url, FILTER_VALIDATE_URL)) throw new Exception('Некорректный URL.');
+            
             $content = @file_get_contents($url);
             if ($content === false) throw new Exception('Не удалось скачать изображение.');
+            
             $tmpPath = tempnam(sys_get_temp_dir(), 'img');
             file_put_contents($tmpPath, $content);
         } else {
@@ -733,17 +754,24 @@ function uploadOrDownloadImage($isDownload) {
 
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($tmpPath);
-        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
-        if (!isset($allowed[$mime])) { unlink($tmpPath); throw new Exception('Недопустимый тип файла.'); }
+        $allowedMimes = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        
+        if (!isset($allowedMimes[$mime])) { 
+            unlink($tmpPath); 
+            throw new Exception('Недопустимый тип файла.'); 
+        }
 
-        $filename = uniqid('img_') . '.' . $allowed[$mime];
+        $filename = uniqid('img_') . '.' . $allowedMimes[$mime];
         $dest = $uploadDir . $filename;
         
         if (compressAndSaveImage($tmpPath, $dest, $mime)) {
             if ($isDownload) unlink($tmpPath);
-            echo json_encode(['success' => true, 'url' => "assets/uploads/images/$type/$filename"]);
+            // Возвращаем путь без ../ для использования на фронтенде
+            $webPath = str_replace('../', '', $dest);
+            echo json_encode(['success' => true, 'url' => $webPath]);
         } else {
-            unlink($tmpPath); throw new Exception('Ошибка сохранения.');
+            unlink($tmpPath); 
+            throw new Exception('Ошибка сохранения.');
         }
 
     } catch (\Exception $e) {
@@ -754,6 +782,7 @@ function uploadOrDownloadImage($isDownload) {
 
 function compressAndSaveImage($source, $dest, $mime, $quality = 80) {
     if (!extension_loaded('gd')) return copy($source, $dest);
+    
     $img = match ($mime) {
         'image/jpeg' => imagecreatefromjpeg($source),
         'image/png' => imagecreatefrompng($source),
@@ -761,6 +790,7 @@ function compressAndSaveImage($source, $dest, $mime, $quality = 80) {
         'image/webp' => imagecreatefromwebp($source),
         default => null
     };
+    
     if (!$img) return false;
     
     $res = match ($mime) {
@@ -769,6 +799,7 @@ function compressAndSaveImage($source, $dest, $mime, $quality = 80) {
         'image/webp' => imagewebp($img, $dest, $quality),
         default => imagejpeg($img, $dest, $quality)
     };
+    
     imagedestroy($img);
     return $res;
 }
