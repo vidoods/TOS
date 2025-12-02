@@ -97,7 +97,7 @@ async function loadLookups() {
             populateSelect('trade-pair', data.pairs, 'symbol');
             populateSelect('trade-account', data.accounts, 'name');
             populateSelect('trade-style', data.styles, 'name');
-			populateSelect('trade-model', data.models, 'name');
+            populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
             
             // Заполнение для заметок
@@ -229,7 +229,7 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
     }
 }
 
-async function uploadFile(file, type) {
+async function uploadFile(file, type = 'general') {
     const formData = new FormData();
     formData.append('action', 'upload_image');
     formData.append('image', file);
@@ -240,7 +240,7 @@ async function uploadFile(file, type) {
     throw new Error(result.message);
 }
 
-async function downloadImage(url, type) {
+async function downloadImage(url, type = 'general') {
     const response = await fetch('api/api.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -306,19 +306,46 @@ async function initNoteForm() {
     const idEl = document.getElementById('edit-note-id');
     await loadLookups();
     
-    // Инициализация Quill
+    // Инициализация редактора Quill
     if (document.getElementById('editor-container')) {
         document.getElementById('editor-container').innerHTML = ''; 
         quillEditor = new Quill('#editor-container', {
             theme: 'snow',
             placeholder: 'Пишите здесь...',
             modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link', 'clean']
-                ]
+                toolbar: {
+                    container: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link', 'image', 'clean']
+                    ],
+                    handlers: {
+                        'image': function() {
+                            const input = document.createElement('input');
+                            input.setAttribute('type', 'file');
+                            input.setAttribute('accept', 'image/*');
+                            input.click();
+
+                            input.onchange = async () => {
+                                const file = input.files[0];
+                                if (file && /^image\//.test(file.type)) {
+                                    try {
+                                        // Загружаем в папку notes
+                                        const url = await uploadFile(file, 'notes'); 
+                                        const range = quillEditor.getSelection();
+                                        quillEditor.insertEmbed(range.index, 'image', url);
+                                    } catch (e) {
+                                        console.error('Upload failed:', e);
+                                        alert('Не удалось загрузить изображение');
+                                    }
+                                } else {
+                                    alert('Пожалуйста, выберите файл изображения.');
+                                }
+                            };
+                        }
+                    }
+                }
             }
         });
     }
@@ -1005,7 +1032,10 @@ function setupLightbox() {
     const closeBtn = modal.querySelector('.modal-close');
 
     document.addEventListener('click', e => {
-        if (e.target.classList.contains('lightbox-trigger')) {
+        // Проверяем: либо класс lightbox-trigger, либо это картинка внутри заметки
+        const isNoteImage = e.target.tagName === 'IMG' && e.target.closest('#note-content-display');
+        
+        if (e.target.classList.contains('lightbox-trigger') || isNoteImage) {
             modal.style.display = "flex"; 
             modalImg.src = e.target.src;
             document.body.style.overflow = 'hidden';
@@ -1019,135 +1049,6 @@ function setupLightbox() {
 
     if (closeBtn) closeBtn.onclick = close;
     modal.onclick = e => { if(e.target === modal) close(); };
-}
-
-// ==================================================
-// ЗАМЕТКИ (NOTES)
-// ==================================================
-
-async function loadNotes() {
-    const container = document.getElementById('notes-grid-container');
-    if (!container) return;
-    
-    try {
-        const res = await fetch('api/api.php?action=get_notes');
-        const json = await res.json();
-        
-        if (json.success) {
-            if (json.data.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет заметок. Создайте первую!</div>';
-                return;
-            }
-            
-            let html = '';
-            json.data.forEach(note => {
-                const isUsed = note.latest_usage !== 'Not Used';
-                const usageStyle = isUsed ? 'color: var(--accent-blue); font-weight: 500;' : 'color: var(--text-secondary); opacity: 0.5;';
-                
-                html += `
-                <a href="index.php?view=note_details&id=${note.id}" class="note-card">
-                    <div class="note-header">
-                        <i class="fas fa-bookmark note-icon"></i>
-                        <div class="note-title">${note.title}</div>
-                    </div>
-                    <div class="note-meta">
-                        <div class="note-meta-row">
-                            <span>${note.date_formatted}</span>
-                            <span class="meta-divider">/</span>
-                            <span>${note.day}</span>
-                            <span class="meta-divider">/</span>
-                            <span>${note.week}</span>
-                        </div>
-                        <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
-                            ${note.relations}
-                        </div>
-                         <div class="note-meta-row" style="${usageStyle}">
-                            Latest usage: ${note.latest_usage}
-                        </div>
-                    </div>
-                </a>`;
-            });
-            container.innerHTML = html;
-        }
-    } catch (e) { console.error(e); }
-}
-
-async function initNoteForm() {
-    const idEl = document.getElementById('edit-note-id');
-    await loadLookups();
-    
-    // Инициализация редактора Quill
-    if (document.getElementById('editor-container')) {
-        document.getElementById('editor-container').innerHTML = ''; 
-        quillEditor = new Quill('#editor-container', {
-            theme: 'snow',
-            placeholder: 'Пишите здесь...',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link', 'clean']
-                ]
-            }
-        });
-    }
-
-    if(idEl && idEl.value) {
-        const r = await fetch(`api/api.php?action=get_note_details&id=${idEl.value}`);
-        const j = await r.json();
-        if(j.success) {
-            const n = j.data;
-            document.getElementById('note-title').value = n.title;
-            // Вставляем HTML в редактор
-            if(quillEditor) quillEditor.clipboard.dangerouslyPasteHTML(n.content || '');
-            
-            // ИСПРАВЛЕНИЕ: Проверяем, есть ли trade/plan как объекты, и берем их ID
-            if(n.trade && n.trade.id) document.getElementById('note-trade').value = n.trade.id;
-            if(n.plan && n.plan.id) document.getElementById('note-plan').value = n.plan.id;
-        }
-    }
-}
-
-async function loadNoteDetails() {
-    const id = document.getElementById('current-note-id')?.value;
-    if (!id) return;
-    
-    const res = await fetch(`api/api.php?action=get_note_details&id=${id}`);
-    const json = await res.json();
-    
-    if (json.success) {
-        const n = json.data;
-        
-        document.getElementById('note-details-title').textContent = n.title;
-        document.getElementById('note-content-display').innerHTML = n.content; // Выводим HTML
-        document.getElementById('note-created-at').textContent = n.date_formatted || n.created_formatted;
-        document.getElementById('note-date-info').textContent = n.created_formatted;
-
-        const tradeEl = document.getElementById('note-linked-trade');
-        if (n.trade) {
-            tradeEl.innerHTML = `<a href="index.php?view=trade_details&id=${n.trade.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.trade.label}</a>`;
-        } else {
-            tradeEl.textContent = 'Нет привязки';
-        }
-
-        const planEl = document.getElementById('note-linked-plan');
-        if (n.plan) {
-            planEl.innerHTML = `<a href="index.php?view=plan_details&id=${n.plan.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.plan.label}</a>`;
-        } else {
-            planEl.textContent = 'Нет привязки';
-        }
-        
-        document.getElementById('btn-edit-note').onclick = () => window.location.href = `index.php?view=note_create&id=${n.id}`;
-        document.getElementById('btn-delete-note').onclick = () => deleteNote(n.id);
-    }
-}
-
-async function deleteNote(id) {
-    if(!confirm('Удалить заметку?')) return;
-    const fd = new FormData(); fd.append('id', id);
-    await fetch('api/api.php?action=delete_note', {method:'POST', body:fd});
-    window.location.href='index.php?view=notes';
 }
 
 async function loadDashboardMetrics() {
@@ -1244,6 +1145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (view === 'note_details') {
         loadNoteDetails();
+        setTimeout(setupLightbox, 100);
     }
     
     setupLightbox();

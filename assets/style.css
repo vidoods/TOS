@@ -1028,3 +1028,21 @@ h3 {
 #note-content-display p {
     margin-bottom: 0.8em;
 }
+
+/* Стили для изображений внутри контента заметки (Quill) */
+#note-content-display img {
+    max-width: 100%;       /* Не шире контейнера */
+    height: auto;          /* Сохранять пропорции */
+    display: block;        /* Блочный элемент (каждая картинка с новой строки) */
+    margin: 20px auto;     /* Отступы сверху/снизу и центрирование */
+    border-radius: 8px;    /* Скругление углов */
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Тень для объема */
+    cursor: zoom-in;       /* Курсор-лупа */
+    transition: all 0.2s ease;
+}
+
+#note-content-display img:hover {
+    opacity: 0.9;
+    border-color: var(--glass-border-hover);
+}
