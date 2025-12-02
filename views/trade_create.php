@@ -139,14 +139,15 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="text-muted m-0">Скриншоты Сделки</h5>
-                    <button type="button" class="btn btn-secondary" onclick="addTradeImage()">
-                        <i class="fas fa-plus me-1"></i> Добавить Изображение
-                    </button>
+                    
                 </div>
                 <div id="trade-images-container">
                     </div>
 
                  <div class="mt-4 pt-3 border-top">
+				    <button type="button" class="btn btn-secondary" onclick="addTradeImage()">
+                        <i class="fas fa-plus me-1"></i> Добавить Изображение
+                    </button>
                     <button type="submit" class="btn btn-primary btn-lg px-5">
                         <i class="fas fa-save me-2"></i> Сохранить Сделку
                     </button>
