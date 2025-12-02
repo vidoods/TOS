@@ -973,3 +973,58 @@ h3 {
 .meta-divider {
     color: var(--glass-border-hover);
 }
+
+/* --- QUILL EDITOR DARK THEME --- */
+.ql-toolbar.ql-snow {
+    border: 1px solid var(--glass-border) !important;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px 8px 0 0;
+}
+
+.ql-container.ql-snow {
+    border: 1px solid var(--glass-border) !important;
+    border-top: none !important;
+    border-radius: 0 0 8px 8px;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 1rem !important;
+    color: var(--text-main) !important;
+}
+
+/* Цвет иконок в тулбаре */
+.ql-snow .ql-stroke {
+    stroke: var(--text-secondary) !important;
+}
+.ql-snow .ql-fill {
+    fill: var(--text-secondary) !important;
+}
+.ql-snow .ql-picker {
+    color: var(--text-secondary) !important;
+}
+
+/* Активные кнопки */
+.ql-snow .ql-active .ql-stroke {
+    stroke: var(--accent-blue) !important;
+}
+.ql-snow .ql-active .ql-fill {
+    fill: var(--accent-blue) !important;
+}
+
+/* Плейсхолдер */
+.ql-editor.ql-blank::before {
+    color: rgba(255, 255, 255, 0.3) !important;
+    font-style: italic;
+}
+
+/* Контент в режиме просмотра */
+#note-content-display h1, #note-content-display h2, #note-content-display h3 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    color: var(--text-main);
+}
+#note-content-display ul, #note-content-display ol {
+    padding-left: 20px;
+    margin-bottom: 1em;
+}
+#note-content-display p {
+    margin-bottom: 0.8em;
+}

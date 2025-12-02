@@ -6,6 +6,7 @@
 
 let menuOpen = false;
 let accountBalances = {};
+let quillEditor = null; // Глобальная переменная для редактора
 
 function toggleMenu() {
     menuOpen = !menuOpen;
@@ -98,9 +99,12 @@ async function loadLookups() {
             populateSelect('trade-style', data.styles, 'name');
 			populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
-            // Используем 'display_name', которое мы создали в API
-			populateSelect('note-trade', data.trades, 'display_name');
-            populateSelect('note-plan', data.plans, 'title');
+            
+            // Заполнение для заметок
+            if(document.getElementById('note-plan')) {
+                populateSelect('note-plan', data.plans, 'title');
+                populateSelect('note-trade', data.trades, 'display_name', 'id', null, '-- Выберите сделку --');
+            }
             
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'Все инструменты');
             
@@ -128,7 +132,7 @@ function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedVa
     items.forEach(item => {
         const option = document.createElement('option');
         option.value = item[valueKey];
-        option.textContent = item[displayKey];
+        option.textContent = item[displayKey] || item.id; // Fallback
         if (selectedValue && item[valueKey] == selectedValue) option.selected = true;
         select.appendChild(option);
     });
@@ -141,6 +145,12 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span>⏳</span> Сохранение...';
+
+    // --- Если это заметка, переносим HTML из редактора в скрытое поле ---
+    if (entityName === 'note' && quillEditor) {
+        document.getElementById('note-content-hidden').value = quillEditor.root.innerHTML;
+    }
+    // -------------------------------------------------------------------
 
     try {
         const formData = new FormData(form);
@@ -156,19 +166,18 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             }
         });
         
-        // ИСПРАВЛЕНО: Используем entityName вместо entity
-        if (entityName === 'plan' && typeof isPlanEditMode !== 'undefined' && isPlanEditMode) {
-            const idInput = document.getElementById('edit-plan-id');
-            if (idInput && idInput.value) data['id'] = idInput.value;
+        // Добавляем ID, если это редактирование (поля часто вне формы)
+        if (entityName === 'plan' && document.getElementById('edit-plan-id')) {
+            const idVal = document.getElementById('edit-plan-id').value;
+            if (idVal) data['id'] = idVal;
         }
-        if (entityName === 'trade' && typeof isTradeEditMode !== 'undefined' && isTradeEditMode) {
-            const idInput = document.getElementById('edit-trade-id');
-            if (idInput && idInput.value) data['id'] = idInput.value;
+        if (entityName === 'trade' && document.getElementById('edit-trade-id')) {
+            const idVal = document.getElementById('edit-trade-id').value;
+            if (idVal) data['id'] = idVal;
         }
-        // Добавлена проверка для заметок (исправлено имя переменной)
-        if (entityName === 'note') {
-            const idInput = document.getElementById('edit-note-id');
-            if (idInput && idInput.value) data['id'] = idInput.value;
+        if (entityName === 'note' && document.getElementById('edit-note-id')) {
+            const idVal = document.getElementById('edit-note-id').value;
+            if (idVal) data['id'] = idVal;
         }
         
         ['timeframes', 'trade_images'].forEach(arrKey => {
@@ -176,18 +185,17 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
         });
 
         const imagePromises = [];
-        // ... (код обработки изображений без изменений) ...
         const processImages = (containerClass, arrayName, type) => {
             form.querySelectorAll(`.${containerClass}`).forEach((card, index) => {
                 const fileInput = card.querySelector('input[type="file"]');
                 const urlInput = card.querySelector('input[name*="[url]"]');
-                // const hiddenUrlInput = card.querySelector('input[type="hidden"][name*="[url]"]'); // Можно убрать, если не используется
-
+                const hiddenUrlInput = card.querySelector('input[type="hidden"][name*="[url]"]');
+                
                 if (fileInput && fileInput.files[0]) {
                     imagePromises.push(uploadFile(fileInput.files[0], type).then(url => {
                         if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
                     }));
-                } else if (urlInput && urlInput.value.trim()) { // Упростил условие
+                } else if (urlInput && urlInput.value.trim() && (!hiddenUrlInput || urlInput.value.trim() !== hiddenUrlInput.value)) {
                      imagePromises.push(downloadImage(urlInput.value.trim(), type).then(url => {
                         if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
                     }));
@@ -197,7 +205,6 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
         
         if (entityName === 'plan') processImages('tf-card', 'timeframes', 'plan');
         if (entityName === 'trade') processImages('trade-img-card', 'trade_images', 'trade');
-        // Для заметок изображения пока не реализованы, но если нужно - добавьте условие
 
         await Promise.all(imagePromises);
 
@@ -245,6 +252,134 @@ async function downloadImage(url, type) {
 }
 
 // ==================================================
+// ЗАМЕТКИ (NOTES)
+// ==================================================
+
+async function loadNotes() {
+    const container = document.getElementById('notes-grid-container');
+    if (!container) return;
+    
+    try {
+        const res = await fetch('api/api.php?action=get_notes');
+        const json = await res.json();
+        
+        if (json.success) {
+            if (json.data.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет заметок. Создайте первую!</div>';
+                return;
+            }
+            
+            let html = '';
+            json.data.forEach(note => {
+                const isUsed = note.latest_usage !== 'Not Used';
+                const usageStyle = isUsed ? 'color: var(--accent-blue); font-weight: 500;' : 'color: var(--text-secondary); opacity: 0.5;';
+                
+                html += `
+                <a href="index.php?view=note_details&id=${note.id}" class="note-card">
+                    <div class="note-header">
+                        <i class="fas fa-bookmark note-icon"></i>
+                        <div class="note-title">${note.title}</div>
+                    </div>
+                    <div class="note-meta">
+                        <div class="note-meta-row">
+                            <span>${note.date_formatted}</span>
+                            <span class="meta-divider">/</span>
+                            <span>${note.day}</span>
+                            <span class="meta-divider">/</span>
+                            <span>${note.week}</span>
+                        </div>
+                        <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
+                            ${note.relations}
+                        </div>
+                         <div class="note-meta-row" style="${usageStyle}">
+                            Latest usage: ${note.latest_usage}
+                        </div>
+                    </div>
+                </a>`;
+            });
+            container.innerHTML = html;
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function initNoteForm() {
+    const idEl = document.getElementById('edit-note-id');
+    await loadLookups();
+    
+    // Инициализация Quill
+    if (document.getElementById('editor-container')) {
+        document.getElementById('editor-container').innerHTML = ''; 
+        quillEditor = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Пишите здесь...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
+        });
+    }
+
+    if(idEl && idEl.value) {
+        const r = await fetch(`api/api.php?action=get_note_details&id=${idEl.value}`);
+        const j = await r.json();
+        if(j.success) {
+            const n = j.data;
+            document.getElementById('note-title').value = n.title;
+            // Вставляем HTML в редактор
+            if(quillEditor) quillEditor.clipboard.dangerouslyPasteHTML(n.content || '');
+            
+            if(n.trade && n.trade.id) document.getElementById('note-trade').value = n.trade.id;
+            if(n.plan && n.plan.id) document.getElementById('note-plan').value = n.plan.id;
+        }
+    }
+}
+
+async function loadNoteDetails() {
+    const id = document.getElementById('current-note-id')?.value;
+    if (!id) return;
+    
+    const res = await fetch(`api/api.php?action=get_note_details&id=${id}`);
+    const json = await res.json();
+    
+    if (json.success) {
+        const n = json.data;
+        
+        document.getElementById('note-details-title').textContent = n.title;
+        document.getElementById('note-content-display').innerHTML = n.content; // Выводим HTML
+        document.getElementById('note-created-at').textContent = n.date_formatted || n.created_formatted;
+        document.getElementById('note-date-info').textContent = n.created_formatted;
+
+        const tradeEl = document.getElementById('note-linked-trade');
+        if (n.trade) {
+            tradeEl.innerHTML = `<a href="index.php?view=trade_details&id=${n.trade.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.trade.label}</a>`;
+        } else {
+            tradeEl.textContent = 'Нет привязки';
+        }
+
+        const planEl = document.getElementById('note-linked-plan');
+        if (n.plan) {
+            planEl.innerHTML = `<a href="index.php?view=plan_details&id=${n.plan.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.plan.label}</a>`;
+        } else {
+            planEl.textContent = 'Нет привязки';
+        }
+        
+        document.getElementById('btn-edit-note').onclick = () => window.location.href = `index.php?view=note_create&id=${n.id}`;
+        document.getElementById('btn-delete-note').onclick = () => deleteNote(n.id);
+    }
+}
+
+async function deleteNote(id) {
+    if(!confirm('Удалить заметку?')) return;
+    const fd = new FormData(); fd.append('id', id);
+    await fetch('api/api.php?action=delete_note', {method:'POST', body:fd});
+    window.location.href='index.php?view=notes';
+}
+
+// ==================================================
 // ФУНКЦИИ ДЛЯ ПЛАНОВ
 // ==================================================
 
@@ -253,7 +388,6 @@ let isPlanEditMode = false;
 
 async function initPlanForm() {
     const planIdInput = document.getElementById('edit-plan-id');
-    // Проверка: элемент существует и у него есть значение
     isPlanEditMode = (planIdInput && planIdInput.value.trim() !== "");
     
     await loadLookups();
@@ -272,41 +406,22 @@ async function loadPlanDataForEdit(planId) {
         const result = await response.json();
         if (result.success) {
             const plan = result.data;
-            
-            // Заполнение текстовых полей
             for (const key in plan) {
                  const input = document.querySelector(`[name="${key}"]`);
                  if (input) input.value = plan[key];
             }
+            if (plan.pair_id) document.getElementById('plan-pair').value = plan.pair_id;
+            if (plan.type) document.getElementById('plan-type').value = plan.type;
+            if (plan.bias) document.getElementById('plan-bias').value = plan.bias;
             
-            // Явное заполнение селектов
-            if (plan.pair_id) {
-                const pairSelect = document.getElementById('plan-pair');
-                if (pairSelect) pairSelect.value = plan.pair_id;
-            }
-            if (plan.type) {
-                const typeSelect = document.getElementById('plan-type');
-                if (typeSelect) typeSelect.value = plan.type;
-            }
-            if (plan.bias) {
-                const biasSelect = document.getElementById('plan-bias');
-                if (biasSelect) biasSelect.value = plan.bias;
-            }
-            
-            // Восстановление изображений (таймфреймов)
             const container = document.getElementById('timeframes-container');
-            if (container) {
-                container.innerHTML = ''; // Очищаем, чтобы не дублировать
-                if (plan.timeframes && plan.timeframes.length > 0) {
-                    plan.timeframes.forEach(tf => addTimeframe(tf));
-                } else {
-                    addTimeframe();
-                }
+            container.innerHTML = '';
+            if (plan.timeframes && plan.timeframes.length) {
+                plan.timeframes.forEach(tf => addTimeframe(tf));
+            } else {
+                addTimeframe();
             }
-            
-            const pageTitle = document.getElementById('form-page-title');
-            if (pageTitle) pageTitle.textContent = 'Редактировать План';
-            
+            document.getElementById('form-page-title').textContent = 'Редактировать План';
         } else {
             showMessage('Ошибка загрузки плана: ' + result.message, 'error');
             window.location.href = 'index.php?view=plans';
@@ -684,8 +799,6 @@ async function loadTrades(filters = {}) {
 
 // --- ДЕТАЛИ СДЕЛКИ ---
 
-// assets/app.js (Только функция loadTradeDetails)
-
 async function loadTradeDetails() {
     const tradeId = document.getElementById('current-trade-id')?.value;
     if (!tradeId) return;
@@ -908,6 +1021,135 @@ function setupLightbox() {
     modal.onclick = e => { if(e.target === modal) close(); };
 }
 
+// ==================================================
+// ЗАМЕТКИ (NOTES)
+// ==================================================
+
+async function loadNotes() {
+    const container = document.getElementById('notes-grid-container');
+    if (!container) return;
+    
+    try {
+        const res = await fetch('api/api.php?action=get_notes');
+        const json = await res.json();
+        
+        if (json.success) {
+            if (json.data.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет заметок. Создайте первую!</div>';
+                return;
+            }
+            
+            let html = '';
+            json.data.forEach(note => {
+                const isUsed = note.latest_usage !== 'Not Used';
+                const usageStyle = isUsed ? 'color: var(--accent-blue); font-weight: 500;' : 'color: var(--text-secondary); opacity: 0.5;';
+                
+                html += `
+                <a href="index.php?view=note_details&id=${note.id}" class="note-card">
+                    <div class="note-header">
+                        <i class="fas fa-bookmark note-icon"></i>
+                        <div class="note-title">${note.title}</div>
+                    </div>
+                    <div class="note-meta">
+                        <div class="note-meta-row">
+                            <span>${note.date_formatted}</span>
+                            <span class="meta-divider">/</span>
+                            <span>${note.day}</span>
+                            <span class="meta-divider">/</span>
+                            <span>${note.week}</span>
+                        </div>
+                        <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
+                            ${note.relations}
+                        </div>
+                         <div class="note-meta-row" style="${usageStyle}">
+                            Latest usage: ${note.latest_usage}
+                        </div>
+                    </div>
+                </a>`;
+            });
+            container.innerHTML = html;
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function initNoteForm() {
+    const idEl = document.getElementById('edit-note-id');
+    await loadLookups();
+    
+    // Инициализация редактора Quill
+    if (document.getElementById('editor-container')) {
+        document.getElementById('editor-container').innerHTML = ''; 
+        quillEditor = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Пишите здесь...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ]
+            }
+        });
+    }
+
+    if(idEl && idEl.value) {
+        const r = await fetch(`api/api.php?action=get_note_details&id=${idEl.value}`);
+        const j = await r.json();
+        if(j.success) {
+            const n = j.data;
+            document.getElementById('note-title').value = n.title;
+            // Вставляем HTML в редактор
+            if(quillEditor) quillEditor.clipboard.dangerouslyPasteHTML(n.content || '');
+            
+            // ИСПРАВЛЕНИЕ: Проверяем, есть ли trade/plan как объекты, и берем их ID
+            if(n.trade && n.trade.id) document.getElementById('note-trade').value = n.trade.id;
+            if(n.plan && n.plan.id) document.getElementById('note-plan').value = n.plan.id;
+        }
+    }
+}
+
+async function loadNoteDetails() {
+    const id = document.getElementById('current-note-id')?.value;
+    if (!id) return;
+    
+    const res = await fetch(`api/api.php?action=get_note_details&id=${id}`);
+    const json = await res.json();
+    
+    if (json.success) {
+        const n = json.data;
+        
+        document.getElementById('note-details-title').textContent = n.title;
+        document.getElementById('note-content-display').innerHTML = n.content; // Выводим HTML
+        document.getElementById('note-created-at').textContent = n.date_formatted || n.created_formatted;
+        document.getElementById('note-date-info').textContent = n.created_formatted;
+
+        const tradeEl = document.getElementById('note-linked-trade');
+        if (n.trade) {
+            tradeEl.innerHTML = `<a href="index.php?view=trade_details&id=${n.trade.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.trade.label}</a>`;
+        } else {
+            tradeEl.textContent = 'Нет привязки';
+        }
+
+        const planEl = document.getElementById('note-linked-plan');
+        if (n.plan) {
+            planEl.innerHTML = `<a href="index.php?view=plan_details&id=${n.plan.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.plan.label}</a>`;
+        } else {
+            planEl.textContent = 'Нет привязки';
+        }
+        
+        document.getElementById('btn-edit-note').onclick = () => window.location.href = `index.php?view=note_create&id=${n.id}`;
+        document.getElementById('btn-delete-note').onclick = () => deleteNote(n.id);
+    }
+}
+
+async function deleteNote(id) {
+    if(!confirm('Удалить заметку?')) return;
+    const fd = new FormData(); fd.append('id', id);
+    await fetch('api/api.php?action=delete_note', {method:'POST', body:fd});
+    window.location.href='index.php?view=notes';
+}
+
 async function loadDashboardMetrics() {
     try {
         const response = await fetch('api/api.php?action=get_dashboard_metrics');
@@ -948,144 +1190,25 @@ async function loadDashboardMetrics() {
     }
 }
 
-// ==================================================
-// ЗАМЕТКИ (NOTES)
-// ==================================================
-
-async function loadNotes() {
-    const container = document.getElementById('notes-grid-container');
-    if (!container) return;
+document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const view = urlParams.get('view');
     
-    try {
-        const res = await fetch('api/api.php?action=get_notes');
-        const json = await res.json();
-        
-        if (json.success) {
-            if (json.data.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет заметок. Создайте первую!</div>';
-                return;
-            }
-            
-            let html = '';
-            json.data.forEach(note => {
-                const isUsed = note.latest_usage !== 'Not Used';
-                const usageStyle = isUsed ? 'color: var(--accent-blue); font-weight: 500;' : 'color: var(--text-secondary); opacity: 0.5;';
-                
-                // ИСПРАВЛЕНО: Ссылка теперь ведет на note_details
-                html += `
-                <a href="index.php?view=note_details&id=${note.id}" class="note-card">
-                    <div class="note-header">
-                        <i class="fas fa-bookmark note-icon"></i>
-                        <div class="note-title">${note.title}</div>
-                    </div>
-                    <div class="note-meta">
-                        <div class="note-meta-row">
-                            <span>${note.date_formatted}</span>
-                            <span class="meta-divider">/</span>
-                            <span>${note.day}</span>
-                            <span class="meta-divider">/</span>
-                            <span>${note.week}</span>
-                        </div>
-                        <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
-                            ${note.relations}
-                        </div>
-                         <div class="note-meta-row" style="${usageStyle}">
-                            Latest usage: ${note.latest_usage}
-                        </div>
-                    </div>
-                </a>`;
-            });
-            container.innerHTML = html;
-        }
-    } catch (e) { console.error(e); }
-}
-
-async function loadNoteDetails() {
-    const id = document.getElementById('current-note-id')?.value;
-    if (!id) return;
-    
-    const res = await fetch(`api/api.php?action=get_note_details&id=${id}`);
-    const json = await res.json();
-    
-    if (json.success) {
-        const n = json.data;
-        
-        document.getElementById('note-details-title').textContent = n.title;
-        document.getElementById('note-content-display').textContent = n.content;
-        document.getElementById('note-created-at').textContent = n.date_formatted || n.created_formatted;
-        document.getElementById('note-date-info').textContent = n.created_formatted;
-
-        // Ссылки на сделку/план
-        const tradeEl = document.getElementById('note-linked-trade');
-        if (n.trade) {
-            tradeEl.innerHTML = `<a href="index.php?view=trade_details&id=${n.trade.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.trade.label}</a>`;
-        } else {
-            tradeEl.textContent = 'Нет привязки';
-        }
-
-        const planEl = document.getElementById('note-linked-plan');
-        if (n.plan) {
-            planEl.innerHTML = `<a href="index.php?view=plan_details&id=${n.plan.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.plan.label}</a>`;
-        } else {
-            planEl.textContent = 'Нет привязки';
-        }
-        
-        // Кнопки
-        document.getElementById('btn-edit-note').onclick = () => window.location.href = `index.php?view=note_create&id=${n.id}`;
-        document.getElementById('btn-delete-note').onclick = () => deleteNote(n.id);
-    }
-}
-
-async function initNoteForm() {
-    const idEl = document.getElementById('edit-note-id');
-    await loadLookups();
-    
-    // Загружаем сделки (у нас это уже было, оставляем)
-    const tradeSelect = document.getElementById('note-trade');
-    if (tradeSelect) {
-        const r = await fetch('api/api.php?action=get_lookups'); // Или get_trades если нужно больше
-        // ... (код заполнения селекта, если он не заполнился loadLookups)
-    }
-
-    if(idEl && idEl.value) {
-        const r = await fetch(`api/api.php?action=get_note_details&id=${idEl.value}`);
-        const j = await r.json();
-        if(j.success) {
-            const n = j.data;
-            document.getElementById('note-title').value = n.title;
-            document.getElementById('note-content').value = n.content;
-            
-            // ИСПРАВЛЕНО: теперь проверяем n.trade и n.plan как объекты
-            if(n.trade && n.trade.id) document.getElementById('note-trade').value = n.trade.id;
-            if(n.plan && n.plan.id) document.getElementById('note-plan').value = n.plan.id;
-        }
-    }
-}
-
-async function deleteNote(id) {
-    if(!confirm('Удалить заметку?')) return;
-    const fd = new FormData(); fd.append('id', id);
-    await fetch('api/api.php?action=delete_note', {method:'POST', body:fd});
-    window.location.href='index.php?view=notes';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMenu);
     document.getElementById('login-form')?.addEventListener('submit', handleLoginSubmit);
     document.getElementById('logout-btn')?.addEventListener('click', logout);
-
-    const view = new URLSearchParams(window.location.search).get('view');
+    
     const planForm = document.getElementById('plan-form');
     const tradeForm = document.getElementById('trade-form');
-	const noteForm = document.getElementById('note-form');
+    const noteForm = document.getElementById('note-form');
 
     if (planForm) {
         initPlanForm();
-        planForm.addEventListener('submit', e => handleFormSubmit(e, isPlanEditMode ? 'update_plan' : 'create_plan', 'plan', 'plans'));
+        planForm.addEventListener('submit', e => handleFormSubmit(e, 'save_plan', 'plan', 'plans'));
     }
     if (tradeForm) {
         initTradeForm();
-        tradeForm.addEventListener('submit', e => handleFormSubmit(e, isTradeEditMode ? 'update_trade' : 'create_trade', 'trade', 'journal'));
+        tradeForm.addEventListener('submit', e => handleFormSubmit(e, 'save_trade', 'trade', 'journal'));
         
         const addImgBtn = document.getElementById('add-trade-image-btn');
         if (addImgBtn) addImgBtn.addEventListener('click', () => addTradeImage());
@@ -1096,10 +1219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noteForm.addEventListener('submit', e => handleFormSubmit(e, 'save_note', 'note', 'notes'));
     }
 
-    if (view === 'notes') loadNotes();
-	
-	if (view === 'note_details') loadNoteDetails();
-
+    // Логика страниц
     if (view === 'plans') { 
         loadPlans(); 
         setupFiltersModal(loadPlans); 
@@ -1118,6 +1238,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (view === 'dashboard') { 
         loadDashboardMetrics(); 
+    }
+    if (view === 'notes') {
+        loadNotes();
+    }
+    if (view === 'note_details') {
+        loadNoteDetails();
     }
     
     setupLightbox();
