@@ -99,6 +99,8 @@ async function loadLookups() {
             populateSelect('trade-style', data.styles, 'name');
             populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
+			populateSelect('trade-note', data.notes, 'title', 'id', null, '--- Без заметки ---');
+            populateSelect('plan-note', data.notes, 'title', 'id', null, '--- Без заметки ---');
             
             // Заполнение для заметок
             if(document.getElementById('note-plan')) {
@@ -440,6 +442,7 @@ async function loadPlanDataForEdit(planId) {
             if (plan.pair_id) document.getElementById('plan-pair').value = plan.pair_id;
             if (plan.type) document.getElementById('plan-type').value = plan.type;
             if (plan.bias) document.getElementById('plan-bias').value = plan.bias;
+			if(plan.note_id) document.getElementById('plan-note').value = plan.note_id;
             
             const container = document.getElementById('timeframes-container');
             container.innerHTML = '';
@@ -564,18 +567,42 @@ async function loadPlanDetails() {
         if (result.success) {
             const plan = result.data;
             document.getElementById('plan-details-title').textContent = plan.title;
+            
             const editBtn = document.querySelector('.plan-actions .btn-secondary');
             const deleteBtn = document.querySelector('.plan-actions .btn-danger');
             if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=plan_create&id=${plan.id}`;
             if (deleteBtn) deleteBtn.onclick = () => deleteEntity(plan.id, 'delete_plan', 'plans');
             
-            ['type', 'pair_symbol', 'formatted_date', 'bias', 'formatted_created_at'].forEach(key => {
-                const el = document.getElementById(`plan-${key.replace('formatted_', '')}`);
-                if (el) el.textContent = plan[key];
-            });
+            // ИСПРАВЛЕННЫЙ БЛОК ЗАПОЛНЕНИЯ ПОЛЕЙ
+            // Мы заполняем каждое поле явно, чтобы избежать путаницы с ID
+            document.getElementById('plan-type').textContent = plan.type;
+            document.getElementById('plan-pair-symbol').textContent = plan.pair_symbol; // Тут был pair_symbol, а ID plan-pair-symbol
+            document.getElementById('plan-date').textContent = plan.formatted_date;
+            document.getElementById('plan-bias').textContent = plan.bias;
+            // Исправление для даты создания (в JSON: formatted_created_at, в HTML ID: plan-created-at)
+            document.getElementById('plan-created-at').textContent = plan.formatted_created_at;
+
             const biasEl = document.getElementById('plan-bias');
             if (biasEl) biasEl.className = `detail-value plan-bias-tag bias-${plan.bias.toLowerCase()}`;
             
+            // Отображение привязанной заметки
+            const oldNoteLink = document.getElementById('plan-note-link-container');
+            if(oldNoteLink) oldNoteLink.remove();
+
+            if (plan.note_id && plan.note_title) {
+                const noteHtml = `
+                    <div id="plan-note-link-container" class="detail-item mt-3">
+						</br>
+                        <span class="detail-label">Привязанная заметка:</span>
+                        <a href="index.php?view=note_details&id=${plan.note_id}" class="info-badge badge-blue" style="text-decoration:none; width: fit-content;">${plan.note_title}</a>
+                    </div>`;
+                // Вставляем в конец секции обзора
+                const overviewSection = document.querySelector('.plan-overview');
+                if (overviewSection) {
+                    overviewSection.insertAdjacentHTML('beforeend', noteHtml);
+                }
+            }
+
             const tfList = document.getElementById('timeframes-list');
             if (tfList) {
                 tfList.innerHTML = '';
@@ -675,6 +702,7 @@ async function loadTradeDataForEdit(tradeId) {
             if(trade.plan_id) document.getElementById('trade-plan').value = trade.plan_id;
             if(trade.status) document.getElementById('trade-status').value = trade.status;
             if(trade.entry_tf) document.getElementById('trade-entry-tf').value = trade.entry_tf;
+			if(trade.note_id) document.getElementById('trade-note').value = trade.note_id;
 
             const container = document.getElementById('trade-images-container');
             container.innerHTML = '';
@@ -862,20 +890,19 @@ async function loadTradeDetails() {
             if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=trade_create&id=${trade.id}`;
             if (deleteBtn) deleteBtn.onclick = () => deleteEntity(trade.id, 'delete_trade', 'journal');
             
-            // 2. Отображение ДАТ (Изменен формат на dd.mm.yy)
+            // 2. Отображение ДАТ (dd.mm.yy)
             ['entry_date', 'exit_date'].forEach(key => {
                  const el = document.getElementById(`trade-${key}`);
                  if(el && trade[key]) {
                      const dateObj = new Date(trade[key]);
                      const day = String(dateObj.getDate()).padStart(2, '0');
                      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                     const year = String(dateObj.getFullYear()).slice(-2); // Берем последние 2 цифры года
-                     
+                     const year = String(dateObj.getFullYear()).slice(-2); 
                      el.textContent = `${day}.${month}.${year}`;
                  }
             });
             
-            // 3. Расчет и отображение ДЛИТЕЛЬНОСТИ (Только дни и часы)
+            // 3. Расчет ДЛИТЕЛЬНОСТИ
             const durationEl = document.getElementById('trade-duration');
             if (trade.entry_date && trade.exit_date) {
                 const entry = new Date(trade.entry_date);
@@ -889,15 +916,14 @@ async function loadTradeDetails() {
                 let durationText = '';
                 if (days > 0) durationText += `${days}д `;
                 if (hours > 0) durationText += `${hours}ч`;
-                
-                // Если прошло меньше часа, пишем "Менее 1ч"
-                if (days === 0 && hours === 0) {
-                    durationText = 'Менее 1ч';
-                }
+                if (days === 0 && hours === 0) durationText = 'Менее 1ч';
                 
                 durationEl.textContent = durationText.trim();
+                // ИСПРАВЛЕНО: Добавляем стиль бейджа
+                durationEl.className = 'detail-value info-badge badge-neutral';
             } else {
                 durationEl.textContent = trade.exit_date ? 'Нет даты входа' : 'В процессе';
+                durationEl.className = 'detail-value'; // Без фона, если нет данных
             }
             
             // 4. Отображение остальных полей
@@ -910,13 +936,23 @@ async function loadTradeDetails() {
                     if (key === 'pnl' || key === 'rr_achieved') {
                         const val = parseFloat(trade[key]);
                         el.textContent = val.toFixed(2) + (key === 'risk_percent' ? '%' : (key === 'rr_achieved' ? 'R' : ''));
-                        el.className = 'info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
+                        el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
                         if (key === 'risk_percent') el.textContent += '%';
+                    
+                    } else if (key === 'status') {
+                        const val = trade[key].toLowerCase();
+                        el.textContent = val.toUpperCase();
+                        el.className = 'detail-value info-badge';
+                        if (val === 'win') el.classList.add('badge-profit');
+                        else if (val === 'loss') el.classList.add('badge-loss');
+                        else if (val === 'breakeven') el.classList.add('badge-blue');
+                        else el.classList.add('badge-neutral');
+                    
                     } else if (key === 'risk_percent') {
                          el.textContent = `${trade[key]}%`;
-                    } else if (key === 'status') {
-                        el.textContent = trade[key].charAt(0).toUpperCase() + trade[key].slice(1);
-                        el.className = `badge status-tag status-${trade[key]} text-uppercase`;
+                         // ИСПРАВЛЕНО: Добавляем стиль бейджа для Риска
+                         el.className = 'detail-value info-badge badge-neutral';
+                    
                     } else if (key === 'notes' || key === 'trade_conclusions' || key === 'key_lessons' || key === 'mistakes_made' || key === 'emotional_state') {
                          el.textContent = trade[key] || '-';
                     } else {
@@ -938,11 +974,8 @@ async function loadTradeDetails() {
                 const isLong = dir === 'long';
                 directionEl.textContent = dir.toUpperCase();
                 directionEl.className = 'info-badge'; 
-                if (isLong) {
-                    directionEl.classList.add('badge-profit'); 
-                } else {
-                    directionEl.classList.add('badge-loss');   
-                }
+                if (isLong) directionEl.classList.add('badge-profit'); 
+                else directionEl.classList.add('badge-loss');   
             }
             
             // 7. Теги
@@ -957,14 +990,20 @@ async function loadTradeDetails() {
             
             // 8. План
             const planLink = document.getElementById('trade-plan-link');
-            if (planLink && trade.plan_id) {
-                planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
-                planLink.textContent = trade.plan_title;
-                planLink.style.display = 'inline';
-            } else if (planLink) {
-                 planLink.textContent = 'Нет связанного плана';
-                 planLink.removeAttribute('href');
-                 planLink.style.display = 'block';
+            if (planLink) {
+                if (trade.plan_id && trade.plan_title) {
+                    planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
+                    planLink.textContent = trade.plan_title;
+                    // Применяем стили бейджа:
+                    planLink.className = 'info-badge badge-blue'; 
+                    // Добавляем иконку ссылки для наглядности (опционально)
+                    planLink.innerHTML = `<i class="fas fa-solid fa-link me-2"></i> ${trade.plan_title}`;
+                } else {
+                    planLink.textContent = 'Нет связанного плана';
+                    planLink.removeAttribute('href');
+                    // Применяем стиль нейтрального бейджа (серый)
+                    planLink.className = 'info-badge badge-neutral';
+                }
             }
             
             // 9. Скриншоты
@@ -1089,17 +1128,17 @@ async function loadDashboardMetrics() {
             }
             // --------------------------------------------------------
             
-            const setPnL = (id, val, suffix = '') => {
+            const setPnL = (id, val, suffix = ' $') => {
                 const el = document.getElementById(id);
                 if(el) {
-                    el.textContent = (val >= 0 ? '+' : '') + val.toFixed(2) + suffix;
+                    el.textContent = (val >= 0 ? '+ ' : '') + val.toFixed(2) + suffix;
                     el.classList.toggle('text-profit', val >= 0);
                     el.classList.toggle('text-loss', val < 0);
                 }
             };
             setPnL('net-profit-value', m.total_pnl);
-            setPnL('net-profit-rr-value', m.total_rr, 'R');
-            setPnL('average-rr-value', m.avg_rr_per_trade, 'R');
+            setPnL('net-profit-rr-value', m.total_rr, '');
+            setPnL('average-rr-value', m.avg_rr_per_trade, '');
         }
     } catch (e) { 
         console.error(e); 
