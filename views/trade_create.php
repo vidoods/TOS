@@ -41,6 +41,12 @@
                              </select>
                          <div class="form-text">Выберите план, на основе которого была открыта эта сделка.</div>
                     </div>
+					<div class="col-md-12 mt-3">
+                        <label for="trade-note" class="form-label fw-bold">Привязать Заметку</label>
+                        <select class="form-select" id="trade-note" name="note_id">
+                            <option value="">--- Без заметки ---</option>
+                        </select>
+                    </div>
                 </div>
 
                  <h5 class="text-muted mb-3">Вход в Сделку</h5>

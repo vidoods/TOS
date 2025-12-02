@@ -68,6 +68,13 @@ $default_date = (!$is_edit_mode) ? date('Y-m-d') : '';
                     <input type="text" class="input-field" id="plan-title" name="title"
                            placeholder="Например: Weekly Plan 17-21 Nov 2025" required>
                 </div>
+				
+				<div class="form-group">
+                    <label for="plan-note" class="form-label">Привязать Заметку</label>
+                    <select class="select-field" id="plan-note" name="note_id">
+                         <option value="">--- Без заметки ---</option>
+                    </select>
+                </div>
 
                 <h2 style="font-size: 16px; color: var(--text-secondary); margin-top: 40px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Анализ Таймфреймов</h2>
 
