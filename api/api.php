@@ -205,6 +205,8 @@ function getLookups($pdo) {
         $stmt_plans = $pdo->prepare("SELECT id, title, date FROM plans WHERE user_id = :user_id ORDER BY date DESC");
         $stmt_plans->execute(['user_id' => $user_id]);
         $results['plans'] = $stmt_plans->fetchAll();
+		
+		$results['notes'] = $pdo->query("SELECT id, title FROM notes WHERE user_id = $user_id ORDER BY created_at DESC")->fetchAll();
 
         // --- ДОБАВЛЕНО: Загрузка списка сделок для заметок ---
         // Формируем красивое название прямо в SQL: "ДД.ММ.ГГ - ПАРА (Направление)"
@@ -321,6 +323,11 @@ function savePlan($pdo) {
             $plan_id = $pdo->lastInsertId();
             $message = 'План создан!';
         }
+		
+		$pdo->prepare("DELETE FROM note_to_plan WHERE plan_id = ?")->execute([$plan_id]);
+        if (!empty($data['note_id'])) {
+            $pdo->prepare("INSERT INTO note_to_plan (note_id, plan_id) VALUES (?, ?)")->execute([$data['note_id'], $plan_id]);
+        }
 
         if (!empty($data['timeframes']) && is_array($data['timeframes'])) {
             $tf_stmt = $pdo->prepare("INSERT INTO trade_analysis_images (trade_id, image_url, notes, title, is_plan_image) VALUES (?, ?, ?, ?, 1)");
@@ -390,6 +397,10 @@ function getPlanDetails($pdo) {
         
         $plan['formatted_date'] = date('d F Y', strtotime($plan['date']));
         $plan['formatted_created_at'] = date('d F Y H:i', strtotime($plan['created_at']));
+		
+		$note = $pdo->query("SELECT n.id, n.title FROM note_to_plan np JOIN notes n ON np.note_id = n.id WHERE np.plan_id = $plan_id LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        $plan['note_id'] = $note['id'] ?? null;
+        $plan['note_title'] = $note['title'] ?? null;
             
         echo json_encode(['success' => true, 'data' => $plan]);
 
@@ -515,6 +526,10 @@ function getTradeDetails($pdo) {
         $stmt_images = $pdo->prepare("SELECT id, image_url, notes, title FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 0 ORDER BY id ASC");
         $stmt_images->execute([$trade_id]);
         $trade['trade_images'] = $stmt_images->fetchAll();
+		
+		$note = $pdo->query("SELECT n.id, n.title FROM note_to_trade nt JOIN notes n ON nt.note_id = n.id WHERE nt.trade_id = $trade_id LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        $trade['note_id'] = $note['id'] ?? null;
+        $trade['note_title'] = $note['title'] ?? null;
 
         echo json_encode(['success' => true, 'data' => $trade]);
 
@@ -592,6 +607,11 @@ function saveTrade($pdo) {
             $stmt->execute($insert_params);
             $trade_id = $pdo->lastInsertId();
             $message = 'Сделка создана!';
+        }
+		
+		$pdo->prepare("DELETE FROM note_to_trade WHERE trade_id = ?")->execute([$trade_id]);
+        if (!empty($data['note_id'])) {
+            $pdo->prepare("INSERT INTO note_to_trade (note_id, trade_id) VALUES (?, ?)")->execute([$data['note_id'], $trade_id]);
         }
 
         if (!empty($data['trade_images']) && is_array($data['trade_images'])) {
