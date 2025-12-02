@@ -715,9 +715,6 @@ function addTradeImage(data = null) {
                      <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">Таймфрейм / Контекст</label>
                      <input type="text" name="trade_images[${tradeImgCount-1}][title]" class="input-field" placeholder="Например: 4H, Entry, Setup" value="${title}">
                 </div>
-                <button type="button" class="btn-remove" style="margin-top: 25px;" onclick="document.getElementById('${imgId}').remove()">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
             
             <div class="form-group">
@@ -728,6 +725,12 @@ function addTradeImage(data = null) {
                 <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">Описание / Идея</label>
                 <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="Что происходит на скриншоте...">${notes}</textarea>
             </div>
+            
+            <div class="text-end mt-2">
+                <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${imgId}').remove()">
+                    <i class="fas fa-trash-alt me-2"></i> Удалить скриншот
+                </button>
+            </div>
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
 }
@@ -736,11 +739,20 @@ function getImageInputHtml(id, url, name) {
     return `
         <input type="hidden" name="${name}" value="${url}">
         <input type="file" id="${id}-file" class="input-field" style="display:none" onchange="previewImage(this, '${id}-preview')">
-        <button type="button" class="btn btn-outline w-100 mb-2" onclick="document.getElementById('${id}-file').click()">
-            <i class="fas fa-upload me-2"></i> Загрузить файл
-        </button>
+        
+        <div class="d-flex gap-2 mb-2">
+            <button type="button" class="btn btn-outline flex-grow-1" onclick="document.getElementById('${id}-file').click()">
+                <i class="fas fa-upload me-2"></i> Загрузить файл
+            </button>
+        </div>
+        
         <input type="text" id="${id}-url" class="input-field mb-2" placeholder="Или вставьте прямую ссылку на изображение" value="${url}" oninput="previewImage(this, '${id}-preview')">
-        <div id="${id}-preview" class="image-preview-box">${url ? `<img src="${url}">` : '<span class="image-preview-placeholder">Предпросмотр изображения</span>'}</div>
+        
+        <div id="${id}-preview" class="image-preview-box">
+            ${url ? `<img src="${url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                     <span class="image-preview-placeholder" style="display:none;">Ошибка загрузки</span>` 
+                  : '<span class="image-preview-placeholder">Предпросмотр изображения</span>'}
+        </div>
     `;
 }
 
@@ -753,17 +765,22 @@ function previewImage(input, previewId) {
     if (input.type === 'file' && input.files[0]) {
         const reader = new FileReader();
         reader.onload = e => { 
+            // При загрузке файла сразу показываем его
             preview.innerHTML = `<img src="${e.target.result}">`; 
             if (textUrlInput) textUrlInput.value = ''; 
-            // Файл будет загружен при отправке
         };
         reader.readAsDataURL(input.files[0]);
-    } else if (input.type === 'text' && input.value.trim()) {
-         preview.innerHTML = `<img src="${input.value.trim()}" onerror="this.onerror=null;this.src='';this.alt='Ошибка загрузки изображения'; preview.innerHTML='<span class=\"image-preview-placeholder\">Ошибка загрузки изображения</span>';">`;
-         if (hiddenUrlInput) hiddenUrlInput.value = input.value.trim();
-    } else {
-         preview.innerHTML = '<span class="image-preview-placeholder">Предпросмотр изображения</span>';
-         if (hiddenUrlInput) hiddenUrlInput.value = '';
+    } else if (input.type === 'text') {
+         const val = input.value.trim();
+         if (val) {
+             // При вставке ссылки используем более надежный способ
+             preview.innerHTML = `<img src="${val}" onerror="this.style.display='none'; this.parentElement.querySelector('.err-msg').style.display='block';">
+                                  <span class="image-preview-placeholder err-msg" style="display:none; color: var(--accent-red);">Не удалось загрузить изображение</span>`;
+             if (hiddenUrlInput) hiddenUrlInput.value = val;
+         } else {
+             preview.innerHTML = '<span class="image-preview-placeholder">Предпросмотр изображения</span>';
+             if (hiddenUrlInput) hiddenUrlInput.value = '';
+         }
     }
 }
 

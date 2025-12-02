@@ -1046,3 +1046,14 @@ h3 {
     opacity: 0.9;
     border-color: var(--glass-border-hover);
 }
+/* Исправление цвета иконки календаря в input type="datetime-local" и "date" */
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
