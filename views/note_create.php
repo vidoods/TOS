@@ -43,7 +43,8 @@ $page_title = $is_edit ? 'Редактировать Заметку' : 'Нова
 
                 <div class="mb-4">
                     <label class="form-label">Содержание</label>
-                    <textarea class="textarea-field" name="content" id="note-content" rows="15" placeholder="Пишите здесь..." style="line-height: 1.6;"></textarea>
+                    <div id="editor-container" style="height: 400px; background: rgba(0,0,0,0.2); border-radius: 0 0 8px 8px;"></div>
+                    <input type="hidden" name="content" id="note-content-hidden">
                 </div>
 
                 <div class="d-flex gap-2 pt-3 border-top border-secondary">
