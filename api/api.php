@@ -88,9 +88,7 @@ switch ($action) {
     case 'delete_trade':
         deleteTrade($conn);
         break;
-    case 'get_dashboard_metrics':
-        getDashboardMetrics($conn);
-        break;
+    case 'get_dashboard_metrics': getDashboardMetrics($conn); break;
 
     // --- ЗАГРУЗКА/СКАЧИВАНИЕ ИЗОБРАЖЕНИЙ ---
     case 'upload_image':
@@ -671,51 +669,186 @@ function deleteTrade($pdo) {
     }
 }
 
+// --- ФУНКЦИЯ МЕТРИК
 function getDashboardMetrics($pdo) {
     try {
         $user_id = $_SESSION['user_id'];
+        $account_id = $_GET['account_id'] ?? null;
+        $year = $_GET['year'] ?? null;
+        $month = $_GET['month'] ?? null;
+
+        // 1. Базовый фильтр (Пользователь + Счет)
+        $baseWhere = "WHERE user_id = ?";
+        $baseParams = [$user_id];
+        if (!empty($account_id)) {
+            $baseWhere .= " AND account_id = ?";
+            $baseParams[] = $account_id;
+        }
+
+        // 2. Фильтр периода (для метрик и выборки графика)
+        $periodWhere = $baseWhere;
+        $periodParams = $baseParams;
+
+        if (!empty($year)) {
+            $periodWhere .= " AND YEAR(entry_date) = ?";
+            $periodParams[] = $year;
+            if (!empty($month)) {
+                $periodWhere .= " AND MONTH(entry_date) = ?";
+                $periodParams[] = $month;
+            }
+        }
+
         $metrics = [];
 
-        $metrics['total_trades'] = $pdo->query("SELECT COUNT(id) FROM trades WHERE user_id = $user_id")->fetchColumn();
-        $metrics['total_pnl'] = (float)$pdo->query("SELECT SUM(pnl) FROM trades WHERE user_id = $user_id AND status IN ('win', 'loss', 'breakeven', 'partial')")->fetchColumn();
-        $metrics['total_rr'] = (float)$pdo->query("SELECT SUM(rr_achieved) FROM trades WHERE user_id = $user_id AND status IN ('win', 'loss', 'breakeven', 'partial')")->fetchColumn();
+        // --- МЕТРИКИ (С учетом фильтра периода) ---
         
-        $wins = $pdo->query("SELECT COUNT(id) FROM trades WHERE user_id = $user_id AND status = 'win'")->fetchColumn();
-        $closed = $pdo->query("SELECT COUNT(id) FROM trades WHERE user_id = $user_id AND status IN ('win', 'loss', 'breakeven', 'partial')")->fetchColumn();
-        $metrics['win_rate'] = ($closed > 0) ? round(($wins / $closed) * 100, 2) : 0;
-        $metrics['avg_rr_per_trade'] = ($closed > 0) ? round($metrics['total_rr'] / $closed, 2) : 0;
+        // Всего сделок, PnL, RR (только закрытые)
+        $stmtStats = $pdo->prepare("SELECT 
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) as wins,
+            SUM(CASE WHEN status = 'loss' THEN 1 ELSE 0 END) as losses,
+            SUM(CASE WHEN status = 'breakeven' THEN 1 ELSE 0 END) as breakeven,
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            COALESCE(SUM(pnl), 0) as total_pnl,
+            COALESCE(SUM(rr_achieved), 0) as total_rr
+        FROM trades $periodWhere"); // Используем periodWhere
+        $stmtStats->execute($periodParams);
+        $stats = $stmtStats->fetch();
+
+        $metrics['total_trades'] = $stats['total_trades'];
+        $metrics['wins'] = (int)$stats['wins'];
+        $metrics['losses'] = (int)$stats['losses'];
+        $metrics['breakeven'] = (int)$stats['breakeven'];
+        $metrics['pending'] = (int)$stats['pending'];
+        $metrics['total_pnl'] = round((float)$stats['total_pnl'], 2);
+        $metrics['total_rr'] = round((float)$stats['total_rr'], 2);
         
-        // --- РАСЧЕТ СРЕДНЕЙ ДЛИТЕЛЬНОСТИ ---
-        // Рассчитываем сумму всех длительностей (в секундах) для закрытых сделок
-        $stmt_duration = $pdo->prepare("
-            SELECT AVG(TIMESTAMPDIFF(SECOND, entry_date, exit_date)) AS avg_duration_seconds,
-                   COUNT(id) AS closed_count
-            FROM trades 
-            WHERE user_id = :user_id AND status IN ('win', 'loss', 'breakeven', 'partial') AND exit_date IS NOT NULL
-        ");
-        $stmt_duration->execute(['user_id' => $user_id]);
-        $duration_data = $stmt_duration->fetch();
+        // Винрейт (считаем только по закрытым в этом периоде)
+        $completed = $metrics['wins'] + $metrics['losses'] + $metrics['breakeven'];
+        $metrics['win_rate'] = ($completed > 0) ? round(($metrics['wins'] / $completed) * 100, 1) : 0;
+        $metrics['avg_rr_per_trade'] = ($completed > 0) ? round($metrics['total_rr'] / $completed, 2) : 0;
+
+        // Среднее время
+        $stmtTime = $pdo->prepare("SELECT AVG(TIMESTAMPDIFF(SECOND, entry_date, exit_date)) FROM trades $periodWhere AND exit_date IS NOT NULL");
+        $stmtTime->execute($periodParams);
+        $avg_sec = $stmtTime->fetchColumn();
+        if ($avg_sec) {
+            $d = floor($avg_sec/86400); $h = floor(($avg_sec%86400)/3600); $mn = floor(($avg_sec%3600)/60);
+            $metrics['avg_time_in_position'] = ($d?"{$d}д ":"").($h?"{$h}ч ":"")."{$mn}мин";
+        } else { $metrics['avg_time_in_position'] = "0мин"; }
+
+        // Среднемесячная прибыль (в рамках выбранного периода)
+        $stmtMonths = $pdo->prepare("SELECT COUNT(DISTINCT DATE_FORMAT(entry_date, '%Y-%m')) FROM trades $periodWhere AND entry_date IS NOT NULL AND status IN ('win', 'loss')");
+        $stmtMonths->execute($periodParams);
+        $months_count = $stmtMonths->fetchColumn();
+        $metrics['avg_monthly_profit'] = ($months_count > 0) ? round($metrics['total_pnl'] / $months_count, 2) : $metrics['total_pnl'];
+
+
+        // --- ДАННЫЕ ДЛЯ ГРАФИКА (EQUITY CURVE) ---
+
+        // 1. Определяем текущий баланс (на сегодня)
+        if ($account_id) {
+            $stmtBal = $pdo->prepare("SELECT balance FROM accounts WHERE id = ? AND user_id = ?");
+            $stmtBal->execute([$account_id, $user_id]);
+            $current_balance_end = (float)$stmtBal->fetchColumn();
+        } else {
+            $stmtBal = $pdo->prepare("SELECT SUM(balance) FROM accounts WHERE user_id = ?");
+            $stmtBal->execute([$user_id]);
+            $current_balance_end = (float)$stmtBal->fetchColumn();
+        }
+
+        // 2. Считаем PnL за ВСЕ время (чтобы найти "Изначальный депозит")
+        // Используем $baseWhere (без фильтра по дате)
+        $stmtAllPnl = $pdo->prepare("SELECT COALESCE(SUM(pnl), 0) FROM trades $baseWhere AND status IN ('win', 'loss', 'breakeven', 'partial')");
+        $stmtAllPnl->execute($baseParams);
+        $total_pnl_all_time = (float)$stmtAllPnl->fetchColumn();
         
-        $avg_seconds = round($duration_data['avg_duration_seconds'] ?? 0);
+        // Изначальный депозит (условный) = Текущий баланс - Весь заработанный PnL
+        $initial_deposit = $current_balance_end - $total_pnl_all_time;
+
+        // 3. Считаем PnL ДО начала выбранного периода (чтобы найти стартовую точку графика)
+        $start_balance = $initial_deposit;
         
-        // Преобразование секунд в формат "Xд Yч Zмин"
-        $days = floor($avg_seconds / (3600 * 24));
-        $hours = floor(($avg_seconds % (3600 * 24)) / 3600);
-        $minutes = floor(($avg_seconds % 3600) / 60);
+        if (!empty($year)) {
+            $startDateStr = "$year-01-01";
+            if (!empty($month)) $startDateStr = "$year-$month-01";
+            
+            // Суммируем всё, что было ДО этой даты
+            $beforeParams = $baseParams; 
+            $beforeParams[] = $startDateStr;
+            
+            $stmtBefore = $pdo->prepare("SELECT COALESCE(SUM(pnl), 0) FROM trades $baseWhere AND status IN ('win', 'loss', 'breakeven', 'partial') AND entry_date < ?");
+            $stmtBefore->execute($beforeParams);
+            $pnl_before = (float)$stmtBefore->fetchColumn();
+            
+            $start_balance += $pnl_before;
+        }
+
+        // 4. Формируем данные графика (Группировка)
+        $chartData = [];
+        $running_balance = $start_balance;
         
-        $duration_text = '';
-        if ($days > 0) $duration_text .= "{$days}д ";
-        if ($hours > 0) $duration_text .= "{$hours}ч ";
-        if ($minutes > 0) $duration_text .= "{$minutes}мин";
+        // Добавляем стартовую точку (начало периода)
+        $chartData[] = ['x' => !empty($year) ? "$year-" . ($month ?? '01') . "-01" : "Start", 'y' => round($running_balance, 2)];
+
+        if (!empty($year) && empty($month)) {
+            // --- РЕЖИМ ГОДА (Группировка по Месяцам) ---
+            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m') as date_label, SUM(pnl) as pnl 
+                         FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'partial') 
+                         GROUP BY date_label ORDER BY date_label ASC";
+            $stmtChart = $pdo->prepare($sqlChart);
+            $stmtChart->execute($periodParams);
+            
+        } elseif (!empty($year) && !empty($month)) {
+            // --- РЕЖИМ МЕСЯЦА (Группировка по Дням) ---
+            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m-%d') as date_label, SUM(pnl) as pnl 
+                         FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'partial') 
+                         GROUP BY date_label ORDER BY date_label ASC";
+            $stmtChart = $pdo->prepare($sqlChart);
+            $stmtChart->execute($periodParams);
+
+        } else {
+            // --- РЕЖИМ ВСЕ ВРЕМЯ (По каждой сделке, как было) ---
+            // Здесь мы берем каждую сделку, чтобы показать детальную историю
+            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m-%d') as date_label, pnl 
+                         FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'partial') 
+                         ORDER BY entry_date ASC, id ASC";
+            $stmtChart = $pdo->prepare($sqlChart);
+            $stmtChart->execute($periodParams);
+        }
+
+        $rows = $stmtChart->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            $running_balance += (float)$row['pnl'];
+            $chartData[] = ['x' => $row['date_label'], 'y' => round($running_balance, 2)];
+        }
         
-        $metrics['avg_time_in_position'] = trim($duration_text) ?: 'N/A';
-        // --- КОНЕЦ РАСЧЕТА СРЕДНЕЙ ДЛИТЕЛЬНОСТИ ---
+        $metrics['equity_chart'] = $chartData;
+
+        // 5. Расчет MDD (Макс просадка) - Считаем ее в рамках ВЫБРАННОГО периода по точкам графика
+        $peak = -999999999;
+        $max_dd_percent = 0;
+        $max_dd_abs = 0;
+        
+        foreach ($chartData as $pt) {
+            $val = $pt['y'];
+            if ($val > $peak) $peak = $val;
+            $dd = $peak - $val;
+            if ($peak > 0) {
+                $dd_pct = ($dd / $peak) * 100;
+                if ($dd_pct > $max_dd_percent) $max_dd_percent = $dd_pct;
+            }
+            if ($dd > $max_dd_abs) $max_dd_abs = $dd;
+        }
+        $metrics['max_drawdown_pct'] = round($max_dd_percent, 2);
+        $metrics['max_drawdown_abs'] = round($max_dd_abs, 2);
+
 
         echo json_encode(['success' => true, 'data' => $metrics]);
 
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Ошибка метрик: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
 
