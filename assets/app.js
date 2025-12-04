@@ -35,6 +35,22 @@ function showMessage(message, type = 'success') {
     alert(message);
 }
 
+async function loadUserInfo() {
+    const el = document.getElementById('sidebar-username');
+    if (!el) return; // Если мы на странице входа, элемента нет
+    
+    try {
+        const res = await fetch('api/api.php?action=get_user_info');
+        const data = await res.json();
+        if(data.success) {
+            el.textContent = data.username;
+        }
+    } catch(e) { 
+        console.error(e); 
+        el.textContent = 'User';
+    }
+}
+
 // ==================================================
 // ФУНКЦИИ АВТОРИЗАЦИИ
 // ==================================================
@@ -63,6 +79,57 @@ async function handleLoginSubmit(event) {
     } catch (error) {
         errorDiv.textContent = 'Ошибка сети. Попробуйте позже.';
         console.error('Login error:', error);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+}
+
+async function handleRegisterSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const pass = formData.get('password');
+    const passConfirm = formData.get('password_confirm');
+    const errorDiv = document.getElementById('register-error');
+    
+    if (pass !== passConfirm) {
+        errorDiv.textContent = 'Пароли не совпадают!';
+        return;
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    errorDiv.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Регистрация...';
+
+    try {
+        // Формируем JSON объект
+        const data = Object.fromEntries(formData.entries());
+        
+        // Отправляем запрос
+        // Обратите внимание: action=register передается в URL, а данные в body как JSON
+        const response = await fetch('api/api.php?action=register', { 
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data) 
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            window.location.href = 'index.php?view=dashboard';
+        } else {
+            errorDiv.textContent = result.message || 'Ошибка регистрации';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Ошибка сети.';
+        console.error('Register error:', error);
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
@@ -1368,4 +1435,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     setupLightbox();
+	loadUserInfo();
 });
