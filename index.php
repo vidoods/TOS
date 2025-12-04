@@ -131,6 +131,7 @@ $currentTitle = $pageTitles[$view] ?? 'TOS - Trading Operating System';
 		<div id="modal-caption"></div>
 	</div>
 	<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/app.js?v=<?php echo time(); ?>"></script>
 
 </body>
