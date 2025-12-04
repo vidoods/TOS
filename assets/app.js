@@ -1381,9 +1381,357 @@ function renderEquityChart(dataPoints) {
     });
 }
 
+// ==================================================
+// ФУНКЦИИ АККАУНТОВ
+// ==================================================
+
+function togglePropFields() {
+    const typeEl = document.getElementById('acc-type');
+    const propBlock = document.getElementById('prop-settings');
+    if (!typeEl || !propBlock) return;
+
+    const type = typeEl.value;
+    // Скрываем настройки проп-фирмы для Live и Demo
+    if (type === 'Live' || type === 'Demo') {
+        propBlock.style.display = 'none';
+        // Очищаем значения, чтобы не сохранять мусор
+        document.getElementById('acc-target').value = 0;
+        document.getElementById('acc-dd').value = 0;
+    } else {
+        propBlock.style.display = 'block';
+    }
+}
+
+async function loadAccounts() {
+    const container = document.getElementById('accounts-grid');
+    if(!container) return;
+    
+    container.innerHTML = '<div class="loading-spinner">Загрузка...</div>';
+    
+    try {
+        const res = await fetch('api/api.php?action=get_accounts_data');
+        const json = await res.json();
+        
+        if(json.success) {
+            if(json.data.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет счетов. Добавьте первый!</div>';
+                return;
+            }
+            
+            let html = '';
+            json.data.forEach(acc => {
+                // Данные из API
+                const startEquity = acc.starting_equity; // Например 100,000 (База)
+                const currentEquity = acc.calculated_balance; // Например 102,000 (Факт)
+                
+                const targetPct = acc.target_percent;   // Например 10%
+                const maxDDPct = acc.max_drawdown_percent; // Например 10%
+                
+                // 1. Считаем абсолютную прибыль/убыток относительно СТАРТОВОГО РАЗМЕРА
+                // (Не относительно начала журнала, а относительно размера челленджа)
+                const totalGainAbs = currentEquity - startEquity;
+                
+                // 2. Считаем, какой это процент от стартового капитала
+                const totalGainPct = (startEquity > 0) ? (totalGainAbs / startEquity) * 100 : 0;
+                
+                // Оформление текста
+                const profitClass = totalGainAbs >= 0 ? 'text-profit' : 'text-loss';
+                const profitSign = totalGainAbs >= 0 ? '+' : '';
+
+                // --- ЛОГИКА БАРА ---
+                let widthLoss = 0;
+                let widthProfit = 0;
+                let labelLeft = maxDDPct > 0 ? `Max DD: ${maxDDPct}%` : 'No Limit';
+                let labelRight = targetPct > 0 ? `Target: ${targetPct}%` : 'No Target';
+                
+                if (totalGainAbs >= 0) {
+                    // Мы в ПЛЮСЕ от Starting Equity -> Растем ВПРАВО
+                    if (targetPct > 0) {
+                        // Насколько мы заполнили цель?
+                        widthProfit = Math.min((totalGainPct / targetPct) * 100, 100);
+                    } else {
+                        // Если цели нет (Live), просто показываем небольшую полоску или 0
+                        widthProfit = 0; 
+                    }
+                } else {
+                    // Мы в МИНУСЕ от Starting Equity -> Растем ВЛЕВО
+                    const currentDrawdownPct = Math.abs(totalGainPct);
+                    
+                    if (maxDDPct > 0) {
+                        // Насколько мы близки к краху?
+                        widthLoss = Math.min((currentDrawdownPct / maxDDPct) * 100, 100);
+                    }
+                }
+                
+                const barHtml = `
+                    <div class="acc-split-bar-container">
+                        <div class="acc-split-divider"></div>
+                        <div class="acc-bar-left"><div class="acc-fill-loss" style="width: ${widthLoss}%"></div></div>
+                        <div class="acc-bar-right"><div class="acc-fill-profit" style="width: ${widthProfit}%"></div></div>
+                    </div>
+                    <div class="acc-split-labels">
+                        <span class="text-loss">${labelLeft}</span>
+                        <span style="color:#fff; opacity:0.5; font-size:0.65rem;">Start: $${startEquity.toLocaleString()}</span>
+                        <span class="text-profit">${labelRight}</span>
+                    </div>`;
+
+                html += `
+                <div class="account-card" onclick="window.location.href='index.php?view=account_create&id=${acc.id}'">
+                    <div class="acc-actions" onclick="event.stopPropagation()">
+                        <a href="index.php?view=account_create&id=${acc.id}" class="acc-btn d-inline-flex align-items-center justify-content-center" style="text-decoration:none;"><i class="fas fa-pen" style="font-size:0.8rem"></i></a>
+                        <button class="acc-btn delete" onclick="deleteAccount(${acc.id})"><i class="fas fa-trash" style="font-size:0.8rem"></i></button>
+                    </div>
+                
+                    <div class="acc-header">
+                        <div class="acc-name"><i class="fas fa-wallet" style="color:var(--accent-blue)"></i> ${acc.name}</div>
+                        <span class="acc-type-badge">${acc.type}</span>
+                    </div>
+                    
+                    <div class="acc-balance">$${currentEquity.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    
+                    <div style="font-size: 0.9rem; margin-bottom: 5px;" class="${profitClass}">
+                        ${profitSign}${totalGainAbs.toFixed(2)}$ (${profitSign}${totalGainPct.toFixed(2)}%)
+                    </div>
+                    
+                    ${barHtml}
+                    
+                    <div class="acc-stats-grid">
+                        <div class="acc-stat-row"><span>Trades:</span><span class="acc-stat-val">${acc.total_trades}</span></div>
+                        <div class="acc-stat-row"><span>Winrate:</span><span class="acc-stat-val">${acc.total_trades > 0 ? ((acc.wins/acc.total_trades)*100).toFixed(1) : 0}%</span></div>
+                        <div class="acc-stat-row"><span>Avg RR:</span><span class="acc-stat-val">${acc.avg_rr}R</span></div>
+                        <div class="acc-stat-row"><span>Journal PnL:</span><span class="acc-stat-val ${acc.profit >=0 ? 'text-profit':'text-loss'}">${acc.profit >=0?'+':''}${acc.profit.toFixed(2)}$</span></div>
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function deleteAccount(id) {
+    if(!confirm('Удалить этот счет и все связанные данные?')) return;
+    const fd = new FormData(); fd.append('id', id);
+    await fetch('api/api.php?action=delete_account', {method:'POST', body:fd});
+    loadAccounts(); // Перезагружаем список
+}
+
+// Инициализация формы создания/редактирования
+async function initAccountForm() {
+    const idEl = document.getElementById('edit-acc-id');
+    const form = document.getElementById('account-form');
+    
+    if(idEl && idEl.value) {
+        try {
+            const res = await fetch(`api/api.php?action=get_account_details&id=${idEl.value}`);
+            const json = await res.json();
+            if(json.success) {
+                const d = json.data;
+                document.getElementById('acc-name').value = d.name;
+                document.getElementById('acc-type').value = d.type;
+                // Заполняем Starting и Balance отдельно
+                document.getElementById('acc-starting').value = d.starting_equity;
+                document.getElementById('acc-balance').value = d.balance;
+                
+                document.getElementById('acc-target').value = d.target_percent;
+                document.getElementById('acc-dd').value = d.max_drawdown_percent;
+                
+                togglePropFields();
+            }
+        } catch(e) { console.error(e); }
+    } else {
+        togglePropFields();
+    }
+
+    if(form) {
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                id: document.getElementById('edit-acc-id').value,
+                name: document.getElementById('acc-name').value,
+                type: document.getElementById('acc-type').value,
+                // Отправляем оба значения
+                starting_equity: document.getElementById('acc-starting').value,
+                balance: document.getElementById('acc-balance').value,
+                
+                target_percent: document.getElementById('acc-target').value,
+                max_drawdown_percent: document.getElementById('acc-dd').value
+            };
+            
+            try {
+                const res = await fetch('api/api.php?action=save_account', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                const json = await res.json();
+                if(json.success) {
+                    window.location.href = 'index.php?view=accounts';
+                } else {
+                    showMessage('Ошибка: ' + json.message, 'error');
+                }
+            } catch(err) {
+                showMessage('Ошибка сети', 'error');
+            }
+        };
+    }
+}
+
+// ==================================================
+// ФУНКЦИИ ВЫПЛАТ (PAYOUTS)
+// ==================================================
+
+async function loadPayouts() {
+    const container = document.getElementById('payouts-list-container');
+    if (!container) return;
+
+    try {
+        const res = await fetch('api/api.php?action=get_payouts');
+        const json = await res.json();
+
+        if (json.success) {
+            if (json.data.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-panel p-4 text-center text-muted">
+                        <i class="fas fa-money-bill-wave mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
+                        <p>История выплат пуста</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `
+                <div class="glass-panel" style="overflow-x: auto; border-radius: 12px;">
+                    <table class="trades-table" style="margin: 0;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Account</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Amount</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            let totalPayouts = 0;
+
+            json.data.forEach(p => {
+                const date = new Date(p.payout_date).toLocaleDateString();
+                const amount = parseFloat(p.amount);
+                
+                // Считаем только оплаченные в общую сумму
+                if(p.confirmation_status === 'Paid') totalPayouts += amount;
+
+                let statusBadge = '';
+                if (p.confirmation_status === 'Paid') statusBadge = '<span class="status-tag status-win">Paid</span>';
+                else if (p.confirmation_status === 'Rejected') statusBadge = '<span class="status-tag status-loss">Rejected</span>';
+                else statusBadge = '<span class="status-tag status-pending">Requested</span>';
+
+                html += `
+                    <tr>
+                        <td>${date}</td>
+                        <td><strong>${p.account_name}</strong></td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--accent-green);">
+                            +$${amount.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                        </td>
+                        <td style="text-align: right;">
+                            <button class="btn-icon" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon" onclick="deletePayout(${p.id})" title="Delete" style="color: var(--accent-red);"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+            });
+
+            html += `</tbody></table>
+                     <div style="padding: 15px 20px; border-top: 1px solid var(--glass-border); text-align: right; font-size: 0.9rem; color: var(--text-secondary);">
+                        Total Paid: <span style="color: var(--text-main); font-weight: 700;">$${totalPayouts.toLocaleString()}</span>
+                     </div>
+                     </div>`;
+            
+            container.innerHTML = html;
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Модальное окно Выплат
+
+function openPayoutModal() {
+    const modal = document.getElementById('payout-modal');
+    if (modal) {
+        modal.style.display = 'flex'; // Используем flex для центрирования (если в CSS есть align-items: center)
+        // Или modal.style.display = 'block'; если flex не используется в CSS для .modal
+        
+        document.getElementById('payout-form').reset();
+        document.getElementById('payout-id').value = '';
+        document.getElementById('payout-date').valueAsDate = new Date();
+        document.getElementById('payout-modal-title').textContent = 'Добавить Выплату';
+        
+        // Загружаем список счетов в селект
+        loadLookups().then(data => {
+            if(data && data.accounts) {
+                populateSelect('payout-account', data.accounts, 'name');
+            }
+        });
+    }
+}
+
+function closePayoutModal() {
+    const modal = document.getElementById('payout-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Закрытие по клику вне окна
+window.onclick = function(event) {
+    const modal = document.getElementById('payout-modal');
+    if (event.target == modal) {
+        closePayoutModal();
+    }
+}
+
+function editPayout(id, accId, amount, date, status) {
+    openPayoutModal();
+    document.getElementById('payout-id').value = id;
+    // Ждем загрузки селекта (костыль, но быстрый), либо используем уже загруженный
+    setTimeout(() => { document.getElementById('payout-account').value = accId; }, 100);
+    document.getElementById('payout-amount').value = amount;
+    document.getElementById('payout-date').value = date;
+    document.getElementById('payout-status').value = status;
+    document.getElementById('payout-modal-title').textContent = 'Редактировать Выплату';
+}
+
+async function deletePayout(id) {
+    if(!confirm('Удалить запись о выплате?')) return;
+    const fd = new FormData(); fd.append('id', id);
+    await fetch('api/api.php?action=delete_payout', {method:'POST', body:fd});
+    loadPayouts();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view');
+	
+	const accForm = document.getElementById('account-form');
+    if(accForm) {
+        accForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                id: document.getElementById('acc-id').value,
+                name: document.getElementById('acc-name').value,
+                type: document.getElementById('acc-type').value,
+                balance: document.getElementById('acc-balance').value,
+                target_percent: document.getElementById('acc-target').value,
+                max_drawdown_percent: document.getElementById('acc-dd').value
+            };
+            
+            await fetch('api/api.php?action=save_account', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            closeAccountModal();
+            loadAccounts();
+        };
+    }
     
     document.getElementById('mobile-menu-toggle')?.addEventListener('click', toggleMenu);
     document.getElementById('login-form')?.addEventListener('submit', handleLoginSubmit);
@@ -1403,6 +1751,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (view === 'trade_details') { loadTradeDetails(); setTimeout(setupLightbox, 100); }
     if (view === 'notes') { loadNotes(); }
     if (view === 'note_details') { loadNoteDetails(); setTimeout(setupLightbox, 100); }
+	
+	if (view === 'accounts') { loadAccounts(); }
+	if (view === 'account_create') { initAccountForm(); }
     
     if (view === 'dashboard') { 
         populateDateFilters();
@@ -1432,6 +1783,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         
         document.getElementById('dashboard-account-select')?.addEventListener('change', loadDashboardMetrics);
+    }
+	
+	if (view === 'accounts') { 
+        loadAccounts(); 
+        loadPayouts(); // <--- ДОБАВИТЬ ЭТО
+    }
+    
+    // Обработчик формы выплат
+    const payoutForm = document.getElementById('payout-form');
+    if(payoutForm) {
+        payoutForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData(payoutForm);
+            const data = Object.fromEntries(fd.entries());
+            
+            await fetch('api/api.php?action=save_payout', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            closePayoutModal();
+            loadPayouts();
+        };
     }
     
     setupLightbox();

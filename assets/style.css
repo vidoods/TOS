@@ -1,6 +1,55 @@
 /* --- assets/style.css --- */
 
 /* =========================================
+   0. УТИЛИТЫ И ПОМОЩНИКИ (Helpers)
+   ========================================= */
+
+/* Выравнивание текста */
+.text-center { text-align: center; }
+.text-end    { text-align: right; }
+.text-start  { text-align: left; }
+
+/* Ширина */
+.w-100 { width: 100%; }
+
+/* Отступы (Margin Bottom) */
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: 5px; }
+.mb-2 { margin-bottom: 10px; }
+.mb-3 { margin-bottom: 15px; }
+.mb-4 { margin-bottom: 25px; }
+.mb-5 { margin-bottom: 40px; }
+
+/* Отступы (Margin Top) */
+.mt-1 { margin-top: 5px; }
+.mt-2 { margin-top: 10px; }
+.mt-3 { margin-top: 15px; }
+.mt-4 { margin-top: 25px; }
+.mt-auto { margin-top: auto; }
+
+/* Отступы (Margin End/Right) - для иконок в кнопках */
+.me-1 { margin-right: 5px; }
+.me-2 { margin-right: 10px; }
+.me-3 { margin-right: 15px; }
+
+/* Flexbox утилиты (если не используете Bootstrap) */
+.d-flex { display: flex; }
+.d-block { display: block; }
+.d-inline-flex { display: inline-flex; }
+.align-items-center { align-items: center; }
+.align-items-start { align-items: flex-start; }
+.justify-content-between { justify-content: space-between; }
+.justify-content-center { justify-content: center; }
+.justify-content-end { justify-content: flex-end; }
+.flex-grow-1 { flex-grow: 1; }
+.gap-2 { gap: 10px; }
+.gap-3 { gap: 15px; }
+
+/* Цвета текста (дополнительно) */
+.text-muted { color: var(--text-secondary); opacity: 0.8; }
+.fw-bold { font-weight: 700; }
+
+/* =========================================
    1. ПАЛИТРА И БАЗОВЫЕ СТИЛИ
    ========================================= */
 :root {
@@ -408,6 +457,52 @@ h3 {
     gap: 20px;
 }
 
+/* --- УЛУЧШЕНИЯ ДЛЯ ФОРМЫ СОЗДАНИЯ СЧЕТА --- */
+
+/* Контейнер настроек проп-фирмы */
+.prop-settings-box {
+    background: rgba(255, 255, 255, 0.02); /* Очень легкий фон */
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 25px 30px; /* Увеличенные внутренние отступы */
+    margin-top: 35px;   /* Отступ сверху от основных полей */
+    margin-bottom: 35px; /* Отступ снизу до кнопок */
+    transition: all 0.3s ease;
+}
+
+.prop-settings-box:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Заголовок секции внутри формы */
+.form-section-title {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* Тонкая линия подчеркивания */
+}
+
+/* Нижняя панель действий (кнопки) */
+.form-actions-footer {
+    display: flex;
+    gap: 20px;
+    margin-top: 40px;      /* Большой отступ сверху */
+    padding-top: 25px;     /* Внутренний отступ до линии */
+    border-top: 1px solid var(--glass-border); /* Разделительная линия */
+}
+
+/* Улучшение читаемости подсказок */
+.form-text {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
 /* =========================================
    6. СПИСКИ И КАРТОЧКИ (Планы и Сделки)
    ========================================= */
@@ -803,6 +898,30 @@ h3 {
 
 .modal-close:hover {
     color: var(--accent-blue);
+}
+
+/* Модальное окно (фон) */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.6); /* Полупрозрачный черный фон */
+    backdrop-filter: blur(5px);
+    
+    /* Для центрирования содержимого */
+    align-items: center; 
+    justify-content: center;
+}
+
+/* Содержимое модального окна */
+.modal-content {
+    margin: auto; /* Центрирование если flex не сработает */
+	padding:20px;
 }
 
 .lightbox-trigger {
@@ -1734,6 +1853,25 @@ a.info-badge:hover {
         background: rgba(255, 255, 255, 0.1);
         border-radius: 8px;
     }
+	
+	.acc-actions {
+        opacity: 1 !important; /* Принудительно показываем */
+        top: 60px;  /* <--- Сместили вниз (было 15px/20px). Теперь они на уровне баланса. */
+        right: 15px;
+    }
+
+    /* Увеличиваем размер кнопок для удобства нажатия */
+    .acc-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+    }
+	
+	.acc-balance {
+        font-size: 1.5rem; /* Чуть меньше чем на ПК */
+        max-width: 70%;    /* Оставляем место справа для кнопок */
+    }
 }
 
 /* --- СТРАНИЦЫ ВХОДА И РЕГИСТРАЦИИ --- */
@@ -1774,3 +1912,207 @@ a.info-badge:hover {
 .auth-switch-link a:hover {
     text-decoration: underline;
 }
+
+/* --- СТРАНИЦА АККАУНТОВ --- */
+
+.accounts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.account-card {
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    position: relative;
+    transition: all 0.3s ease;
+    min-height: 220px;
+	cursor:pointer;
+}
+
+.account-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
+}
+
+/* Шапка карточки */
+.acc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.acc-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.acc-type-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+/* Баланс */
+.acc-balance {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+/* Статус */
+.acc-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    width: fit-content;
+}
+.acc-status.active { background: rgba(0, 214, 111, 0.15); color: var(--accent-green); }
+
+/* --- BI-DIRECTIONAL PROGRESS BAR (Проп-стиль) --- */
+
+.acc-split-bar-container {
+    display: flex;
+    align-items: center;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin: 15px 0 5px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Разделитель посередине (Starting Equity) */
+.acc-split-divider {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #fff;
+    z-index: 5;
+    opacity: 0.5;
+}
+
+/* Левая часть (Убыток/Просадка) */
+.acc-bar-left {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end; /* Заполняется справа налево (от центра) */
+    background: transparent;
+}
+
+.acc-fill-loss {
+    height: 100%;
+    background: var(--accent-red);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    min-width: 0;
+    transition: width 0.5s ease;
+}
+
+/* Правая часть (Прибыль/Цель) */
+.acc-bar-right {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: flex-start; /* Заполняется слева направо (от центра) */
+    background: transparent;
+}
+
+.acc-fill-profit {
+    height: 100%;
+    background: var(--accent-green);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    min-width: 0;
+    transition: width 0.5s ease;
+}
+
+/* Метки под баром */
+.acc-split-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+/* Сетка статистики */
+.acc-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: auto; 
+    padding-top: 15px;
+    border-top: 1px solid var(--glass-border);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.acc-stat-row {
+    display: flex;
+    justify-content: space-between;
+}
+.acc-stat-val {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* Кнопки действий */
+.acc-actions {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.account-card:hover .acc-actions { opacity: 1; }
+
+.acc-btn {
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 5px;
+    
+    /* --- ИСПРАВЛЕНИЕ: Выравнивание и отображение --- */
+    display: inline-flex;       /* Делаем блочным элементом, чтобы работали width/height */
+    align-items: center;        /* Центрируем иконку по вертикали */
+    justify-content: center;    /* Центрируем иконку по горизонтали */
+    text-decoration: none;      /* Убираем подчеркивание, если это ссылка */
+    transition: background 0.2s ease;
+}
+
+.acc-btn:hover { background: var(--accent-blue); }
+.acc-btn.delete:hover { background: var(--accent-red); }
+
+/* Статусы выплат */
+.status-tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.status-win { color: var(--accent-green); background: rgba(0, 214, 111, 0.15); } /* Paid */
+.status-loss { color: var(--accent-red); background: rgba(255, 69, 58, 0.15); } /* Rejected */
+.status-pending { color: var(--text-secondary); background: rgba(255, 255, 255, 0.1); } /* Requested */
