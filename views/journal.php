@@ -2,7 +2,6 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="m-0" style="font-weight: 600;">Журнал Сделок</h2>
-            <p class="text-muted m-0">Ваша история торговли</p>
         </div>
         
         <div class="page-header-actions d-flex gap-2">
