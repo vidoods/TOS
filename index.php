@@ -79,7 +79,7 @@ $currentTitle = $pageTitles[$view] ?? 'TOS - Trading Operating System';
             <aside class="sidebar" id="sidebar">
                 <button id="sidebar-close-btn" onclick="closeMenu()">✕</button>
                 <div class="logo">
-                    <a href="index.php?view=dashboard" title="На главную">TOS</a>
+                    <a href="index.php?view=dashboard" title="Main page">TOS</a>
                 </div>
 				
 				<div class="user-profile-widget">
