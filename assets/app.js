@@ -7,6 +7,7 @@
 let menuOpen = false;
 let accountBalances = {};
 let quillEditor = null; // Глобальная переменная для редактора
+let equityChartInstance = null;
 
 function toggleMenu() {
     menuOpen = !menuOpen;
@@ -833,36 +834,85 @@ async function loadTrades(filters = {}) {
             
             let html = '';
             groupedTrades.forEach(group => {
+                const pnlClass = group.total_pnl >= 0 ? 'text-profit' : 'text-loss';
+                const pnlSign = group.total_pnl >= 0 ? '+' : '';
+                
                 html += `
                     <div class="month-group">
-                        <div class="month-header">
-                            <span class="month-label">${group.month_label}</span>
-                            <span class="month-summary">PnL: <span class="${group.total_pnl >= 0 ? 'text-profit' : 'text-loss'}">${group.total_pnl.toFixed(2)}</span> | RR: ${group.total_rr.toFixed(2)}R</span>
+                        <div class="month-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <div class="month-label">
+                                <i class="fas fa-chevron-right month-toggle-icon"></i>
+                                <i class="far fa-calendar-alt text-muted"></i> 
+                                ${group.month_label}
+                            </div>
+                            <div class="month-summary">
+                                <span class="${pnlClass}">
+                                    PnL: ${pnlSign}${group.total_pnl.toFixed(2)}
+                                </span>
+                                <span class="divider">|</span>
+                                <span class="text-main">
+                                    RR: ${group.total_rr.toFixed(2)}R
+                                </span>
+                            </div>
                         </div>
-                        <div class="trades-table-wrapper"><table class="trades-table">
-                            <thead><tr>
-                                <th>Date</th><th>Pair</th><th>Dir</th><th>Status</th><th>Risk</th><th>RR</th><th>PnL</th><th>Actions</th>
-                            </tr></thead><tbody>`;
+                        
+                        <div class="trades-list-wrapper">
+                            <div class="trades-inner">
+                                
+                                <div class="trade-row trade-header-row">
+                                    <div class="t-col t-date">Date</div>
+                                    <div class="t-col t-pair">Pair</div>
+                                    <div class="t-col t-dir">Dir</div>
+                                    <div class="t-col t-status">Status</div>
+                                    <div class="t-col t-risk">Risk</div>
+                                    <div class="t-col t-rr">RR</div>
+                                    <div class="t-col t-pnl">PnL</div>
+                                    <div class="t-col t-actions">Actions</div>
+                                </div>
+
+                                `;
                 
                 group.trades.forEach(trade => {
-                    const date = new Date(trade.entry_date).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit', year: '2-digit'});
-                    const statusClass = `status-${trade.status}`;
-                    html += `
-                        <tr onclick="window.location.href='index.php?view=trade_details&id=${trade.id}'">
-                            <td>${date}</td>
-                            <td><strong>${trade.pair_symbol}</strong></td>
-                            <td><span class="dir-tag dir-${trade.direction}">${trade.direction.toUpperCase()}</span></td>
-                            <td><span class="status-tag ${statusClass}">${trade.status.charAt(0).toUpperCase() + trade.status.slice(1)}</span></td>
-                            <td>${trade.risk_percent}%</td>
-                            <td>${Number(trade.rr_achieved).toFixed(2)}R</td>
-                            <td class="${Number(trade.pnl) >= 0 ? 'text-profit' : 'text-loss'}">${Number(trade.pnl).toFixed(2)}</td>
-                            <td class="actions-cell" onclick="event.stopPropagation()">
-                                <a href="index.php?view=trade_details&id=${trade.id}" class="btn-icon" title="Детали"><i class="fas fa-eye"></i></a>
-                                <a href="index.php?view=trade_create&id=${trade.id}" class="btn-icon" title="Редактировать"><i class="fas fa-edit"></i></a>
-                            </td>
-                        </tr>`;
+                     const date = new Date(trade.entry_date).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit', year: '2-digit'});
+                     const statusClass = `status-${trade.status}`;
+                     const pnlVal = Number(trade.pnl).toFixed(2);
+                     const pnlColor = Number(trade.pnl) >= 0 ? 'text-profit' : 'text-loss';
+                     const rrVal = Number(trade.rr_achieved).toFixed(2);
+                     
+                     html += `
+                        <div class="trade-row trade-item" onclick="window.location.href='index.php?view=trade_details&id=${trade.id}'">
+                            
+                            <div class="t-col t-date">
+                                <span class="mobile-label">Date:</span> ${date}
+                            </div>
+                            <div class="t-col t-pair">
+                                <span class="mobile-label">Pair:</span> <strong>${trade.pair_symbol}</strong>
+                            </div>
+                            
+                            <div class="t-col t-dir">
+                                <span class="mobile-label">Dir:</span> 
+                                <span class="dir-tag dir-${trade.direction}">${trade.direction.toUpperCase()}</span>
+                            </div>
+                            <div class="t-col t-status">
+                                <span class="mobile-label">Status:</span> 
+                                <span class="status-tag ${statusClass}">${trade.status.charAt(0).toUpperCase() + trade.status.slice(1)}</span>
+                            </div>
+                            
+                            <div class="t-col t-risk"><span class="mobile-label">Risk:</span> ${trade.risk_percent}%</div>
+                            <div class="t-col t-rr"><span class="mobile-label">RR:</span> ${rrVal}</div>
+                            
+                            <div class="t-col t-pnl ${pnlColor}">
+                                <span class="mobile-label">PnL:</span> ${pnlVal}
+                            </div>
+                            
+                            <div class="t-col t-actions" onclick="event.stopPropagation()">
+                                <a title="Просмотр" href="index.php?view=trade_details&id=${trade.id}" class="btn-icon"><i class="fas fa-eye"></i></a>
+                                <a title="Редактировать" href="index.php?view=trade_create&id=${trade.id}" class="btn-icon"><i class="fas fa-edit"></i></a>
+                            </div>
+                        </div>`;
                 });
-                html += '</tbody></table></div></div>';
+                
+                html += '</div></div></div>'; 
             });
             container.innerHTML = html;
         } else { container.innerHTML = `<div class="error-state">Ошибка: ${result.message}</div>`; }
@@ -1109,42 +1159,159 @@ function setupLightbox() {
 
 async function loadDashboardMetrics() {
     try {
-        const response = await fetch('api/api.php?action=get_dashboard_metrics');
+        const accountId = document.getElementById('dashboard-account-select')?.value || '';
+        const year = document.getElementById('dashboard-year-select')?.value || '';
+        const month = document.getElementById('dashboard-month-select')?.value || '';
+
+        // Формируем URL с параметрами
+        const params = new URLSearchParams({
+            action: 'get_dashboard_metrics',
+            account_id: accountId,
+            year: year,
+            month: month
+        });
+
+        const response = await fetch(`api/api.php?${params}`);
         const result = await response.json();
+        
         if (result.success) {
             const m = result.data;
             document.getElementById('total-trades-value').textContent = m.total_trades;
+            
+            document.getElementById('total-trades-breakdown').innerHTML = 
+                `<span class="text-profit">${m.wins} W</span> / 
+                 <span class="text-loss">${m.losses} L</span> / 
+                 <span class="text-warning">${m.breakeven} B</span> / 
+                 <span class="text-info">${m.pending} P</span>`;
+            
             document.getElementById('winning-ratio-value').textContent = m.win_rate + '%';
-            const winProgress = document.getElementById('winning-ratio-progress');
-            if (winProgress) winProgress.style.width = m.win_rate + '%';
+            document.getElementById('winning-ratio-progress').style.width = m.win_rate + '%';
             
-            // --- ИСПРАВЛЕНИЕ: Отображение среднего времени в позиции ---
-            const avgTimeEl = document.getElementById('avg-time-in-position-value');
-            if (avgTimeEl) {
-                // Если данные есть, присваиваем их элементу
-                avgTimeEl.textContent = m.avg_time_in_position; 
-                // Дополнительно обновляем класс для цвета, если нужно (например, если N/A)
-                avgTimeEl.classList.remove('text-profit', 'text-loss');
-            }
-            // --------------------------------------------------------
+            document.getElementById('avg-time-in-position-value').textContent = m.avg_time_in_position;
             
-            const setPnL = (id, val, suffix = ' $') => {
+            const dollarHtml = ' <i class="fas fa-dollar-sign" style="font-size: 0.85em; opacity: 0.8;"></i>';
+            const setPnL = (id, val, suffixHtml = '') => {
                 const el = document.getElementById(id);
                 if(el) {
-                    el.textContent = (val >= 0 ? '+ ' : '') + val.toFixed(2) + suffix;
-                    el.classList.toggle('text-profit', val >= 0);
-                    el.classList.toggle('text-loss', val < 0);
+                    const text = (val >= 0 ? '+ ' : '') + val.toFixed(2);
+                    el.innerHTML = text + suffixHtml;
+                    el.classList.remove('text-profit', 'text-loss');
+                    el.classList.add(val >= 0 ? 'text-profit' : 'text-loss');
                 }
             };
-            setPnL('net-profit-value', m.total_pnl);
-            setPnL('net-profit-rr-value', m.total_rr, '');
-            setPnL('average-rr-value', m.avg_rr_per_trade, '');
+            setPnL('net-profit-value', m.total_pnl, dollarHtml);
+            setPnL('average-rr-value', m.avg_rr_per_trade, ' R');
+            
+            document.getElementById('avg-monthly-profit').innerHTML = `Среднемес.: ${m.avg_monthly_profit}${dollarHtml}`;
+
+            const mddEl = document.getElementById('max-drawdown-value');
+            if(mddEl) {
+                mddEl.innerHTML = `-${m.max_drawdown_pct}% (-${m.max_drawdown_abs}${dollarHtml})`;
+                mddEl.className = 'metric-value text-loss';
+            }
+
+            // Обновляем график
+            if (m.equity_chart) {
+                renderEquityChart(m.equity_chart);
+            }
         }
-    } catch (e) { 
-        console.error(e); 
-        // В случае ошибки показываем, что данные недоступны
-        document.getElementById('avg-time-in-position-value').textContent = 'Ошибка';
+    } catch (e) { console.error(e); }
+}
+
+// Функция заполнения лет
+function populateDateFilters() {
+    const yearSelect = document.getElementById('dashboard-year-select');
+    if (!yearSelect) return;
+    
+    const currentYear = new Date().getFullYear();
+    // Очищаем, оставляя первую опцию
+    while (yearSelect.options.length > 1) yearSelect.remove(1);
+    
+    // Добавляем годы от текущего до 2020
+    for (let y = currentYear; y >= 2020; y--) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
     }
+}
+
+function renderEquityChart(dataPoints) {
+    const ctx = document.getElementById('equityChart');
+    if (!ctx) return;
+
+    if (equityChartInstance) {
+        equityChartInstance.destroy();
+    }
+
+    const labels = dataPoints.map(pt => pt.x);
+    const data = dataPoints.map(pt => pt.y);
+
+    const startBalance = data.length > 0 ? data[0] : 0;
+    const currentBalance = data.length > 0 ? data[data.length - 1] : 0;
+    const lineColor = currentBalance >= startBalance ? '#00d66f' : '#ff453a'; 
+    const areaColor = currentBalance >= startBalance ? 'rgba(0, 214, 111, 0.1)' : 'rgba(255, 69, 58, 0.1)';
+
+    equityChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Balance',
+                data: data,
+                borderColor: lineColor,
+                backgroundColor: areaColor,
+                borderWidth: 2,
+                pointRadius: 0, 
+                pointHoverRadius: 4,
+                fill: true,
+                tension: 0.4 
+            }]
+        },
+        options: {
+            // --- ВАЖНЫЕ НАСТРОЙКИ АДАПТИВНОСТИ ---
+            responsive: true, 
+            maintainAspectRatio: false, // <-- Это позволяет графику заполнять контейнер по высоте
+            // -------------------------------------
+            plugins: {
+                legend: { display: false }, 
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(9, 12, 20, 0.9)',
+                    titleColor: '#9ca3af',
+                    bodyColor: '#fff',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Balance: ' + context.parsed.y.toFixed(2) + ' $';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false, drawBorder: false },
+                    ticks: { 
+                        color: '#6b7280', 
+                        maxTicksLimit: 6, // Меньше подписей дат, чтобы не наезжали друг на друга на мобилке
+                        maxRotation: 0    // Чтобы текст не наклонялся
+                    } 
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                    ticks: { color: '#6b7280' }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1155,53 +1322,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('login-form')?.addEventListener('submit', handleLoginSubmit);
     document.getElementById('logout-btn')?.addEventListener('click', logout);
     
+    // ... (инициализация форм plan/trade/note без изменений) ...
     const planForm = document.getElementById('plan-form');
+    if (planForm) { initPlanForm(); planForm.addEventListener('submit', e => handleFormSubmit(e, 'save_plan', 'plan', 'plans')); }
     const tradeForm = document.getElementById('trade-form');
+    if (tradeForm) { initTradeForm(); tradeForm.addEventListener('submit', e => handleFormSubmit(e, 'save_trade', 'trade', 'journal')); const b=document.getElementById('add-trade-image-btn'); if(b) b.onclick=()=>addTradeImage(); }
     const noteForm = document.getElementById('note-form');
+    if (noteForm) { initNoteForm(); noteForm.addEventListener('submit', e => handleFormSubmit(e, 'save_note', 'note', 'notes')); }
 
-    if (planForm) {
-        initPlanForm();
-        planForm.addEventListener('submit', e => handleFormSubmit(e, 'save_plan', 'plan', 'plans'));
-    }
-    if (tradeForm) {
-        initTradeForm();
-        tradeForm.addEventListener('submit', e => handleFormSubmit(e, 'save_trade', 'trade', 'journal'));
-        
-        const addImgBtn = document.getElementById('add-trade-image-btn');
-        if (addImgBtn) addImgBtn.addEventListener('click', () => addTradeImage());
-    }
-
-    if (noteForm) {
-        initNoteForm();
-        noteForm.addEventListener('submit', e => handleFormSubmit(e, 'save_note', 'note', 'notes'));
-    }
-
-    // Логика страниц
-    if (view === 'plans') { 
-        loadPlans(); 
-        setupFiltersModal(loadPlans); 
-    }
-    if (view === 'plan_details') { 
-        loadPlanDetails(); 
-        setTimeout(setupLightbox, 100); 
-    }
-    if (view === 'journal') { 
-        loadTrades(); 
-        setupFiltersModal(loadTrades); 
-    }
-    if (view === 'trade_details') { 
-        loadTradeDetails(); 
-        setTimeout(setupLightbox, 100);
-    }
+    if (view === 'plans') { loadPlans(); setupFiltersModal(loadPlans); }
+    if (view === 'plan_details') { loadPlanDetails(); setTimeout(setupLightbox, 100); }
+    if (view === 'journal') { loadTrades(); setupFiltersModal(loadTrades); }
+    if (view === 'trade_details') { loadTradeDetails(); setTimeout(setupLightbox, 100); }
+    if (view === 'notes') { loadNotes(); }
+    if (view === 'note_details') { loadNoteDetails(); setTimeout(setupLightbox, 100); }
+    
     if (view === 'dashboard') { 
-        loadDashboardMetrics(); 
-    }
-    if (view === 'notes') {
-        loadNotes();
-    }
-    if (view === 'note_details') {
-        loadNoteDetails();
-        setTimeout(setupLightbox, 100);
+        populateDateFilters();
+        
+        // Логика показа месяца только если выбран год
+        const yearSelect = document.getElementById('dashboard-year-select');
+        const monthSelect = document.getElementById('dashboard-month-select');
+        
+        yearSelect.addEventListener('change', () => {
+            if (yearSelect.value) {
+                monthSelect.style.display = 'inline-block';
+            } else {
+                monthSelect.style.display = 'none';
+                monthSelect.value = ''; // Сброс месяца при сбросе года
+            }
+            loadDashboardMetrics();
+        });
+        
+        monthSelect.addEventListener('change', loadDashboardMetrics);
+        
+        // Загрузка счетов и первый рендер
+        loadLookups().then(data => {
+            if (data && data.accounts) {
+                populateSelect('dashboard-account-select', data.accounts, 'name', 'id', null, 'Все счета');
+            }
+            loadDashboardMetrics(); 
+        });
+        
+        document.getElementById('dashboard-account-select')?.addEventListener('change', loadDashboardMetrics);
     }
     
     setupLightbox();

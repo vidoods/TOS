@@ -76,6 +76,7 @@ body {
     flex-grow: 1;
     padding: 20px;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	min-width: 0;
 }
 
 .main-content-wrapper {
@@ -638,6 +639,16 @@ h3 {
     opacity: 0.8;
 }
 
+.text-warning {
+    color: #ffc107; /* Желтый для Breakeven */
+    font-weight: 600;
+}
+
+.text-info {
+    color: var(--accent-blue); /* Синий для Pending */
+    font-weight: 600;
+}
+
 .metric-content { flex-grow: 1; text-align: left; }
 .metric-label { font-size: 0.8em; color: var(--text-secondary); margin-bottom: 3px; font-weight: 500; }
 .metric-value { font-size: 1.6em; font-weight: 700; color: var(--text-main); line-height: 1.2; display: flex; align-items: baseline; gap: 5px; }
@@ -915,24 +926,27 @@ h3 {
 }
 
 .note-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 20px;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    color: var(--text-main);
+    /* Стиль как у metric-card */
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    text-decoration: none; /* Убираем подчеркивание ссылки */
     position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .note-card:hover {
+    /* Эффект наведения как у metric-card (без подпрыгивания) */
     background: var(--glass-bg-hover);
     border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
 }
 
 .note-header {
@@ -943,9 +957,18 @@ h3 {
 }
 
 .note-icon {
-    color: var(--text-main);
+    /* Стиль иконки как в metric-icon, но поменьше */
     font-size: 1.1rem;
-    margin-top: 2px;
+    color: var(--accent-blue);
+    background: rgba(41, 151, 255, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: -2px; /* Небольшая коррекция по вертикали */
 }
 
 .note-title {
@@ -956,7 +979,7 @@ h3 {
 }
 
 .note-meta {
-    margin-top: auto;
+    margin-top: auto; /* Прижимаем к низу */
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -1192,4 +1215,431 @@ a.info-badge:hover {
 /* Корректировка detail-item для выравнивания */
 .detail-item {
     justify-content: flex-end; /* Прижимаем контент к низу, если заголовки разной высоты */
+}
+
+/* --- СТИЛИ ДЛЯ ГРАФИКА --- */
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 350px; /* Высота для ПК */
+    overflow: hidden; /* Обрезаем лишнее, если вдруг вылезет */
+}
+
+/* Заставляем canvas растягиваться, но не вылезать */
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .chart-wrapper {
+        height: 250px; /* Уменьшенная высота для мобильных */
+    }
+    
+    /* Уменьшаем отступы на мобильных для карточки графика, чтобы было больше места */
+    .charts-area .card-body, 
+    .charts-area .card {
+        padding: 15px !important; 
+    }
+}
+
+/* --- СТИЛИ ДЛЯ ЖУРНАЛА СДЕЛОК (Месячные разделители) --- */
+
+/* Контейнер месяца */
+.month-group {
+    margin-bottom: 30px; /* Отступ между месяцами */
+}
+
+/* Заголовок месяца */
+.month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin-top: 20px; /* Отступ сверху от кнопок или предыдущего месяца */
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.03); /* Легкий фон */
+    border-radius: 12px; /* Закругленные углы */
+    border: 1px solid var(--glass-border);
+}
+
+/* Название месяца */
+.month-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-transform: capitalize;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Блок с итогами месяца (PnL / RR) */
+.month-summary {
+    display: flex;
+    gap: 15px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.2); /* Темная подложка */
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+
+/* Отдельные значения в итогах */
+.month-summary span {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Разделитель между PnL и RR */
+.month-summary .divider {
+    color: var(--glass-border-hover);
+    margin: 0 5px;
+}
+
+/* --- СТИЛЬНЫЙ РАЗДЕЛИТЕЛЬ МЕЖДУ МЕСЯЦАМИ --- */
+
+/* Сбрасываем margin-bottom, чтобы управлять отступами точнее */
+.month-group {
+    margin-bottom: 0 !important;
+}
+
+/* Применяем стили ко всем месяцам, кроме первого (которые идут следом за другим) */
+.month-group + .month-group {
+    margin-top: 20px; /* Увеличиваем расстояние между таблицами */
+    position: relative;
+}
+
+/* Рисуем градиентную линию */
+.month-group + .month-group::before {
+    content: "";
+    position: absolute;
+    top: -10px; /* Располагаем линию ровно посередине отступа (20px / 2) */
+    left: 15%;  /* Отступ слева (линия не во всю ширину) */
+    width: 70%; /* Ширина линии */
+    height: 1px;
+    
+    /* Градиент: Прозрачный -> Белый (полупрозрачный) -> Прозрачный */
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+}
+
+/* --- СТИЛИ ДЛЯ ЖУРНАЛА СДЕЛОК (С АНИМАЦИЕЙ) --- */
+
+/* Контейнер месяца - Карточка */
+.month-group {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 10px !important;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.month-group:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Заголовок месяца */
+.month-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: transparent;
+    border: none;
+    padding: 0 0 15px 0;
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--glass-border);
+    transition: border-bottom 0.3s ease, padding 0.3s ease; /* Плавное исчезновение линии */
+}
+
+.month-header:hover {
+    opacity: 0.8;
+}
+
+.month-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.month-summary {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* --- ТАБЛИЦА И АНИМАЦИЯ (CSS Grid Method) --- */
+
+.trades-table-wrapper {
+    /* Используем Grid для анимации высоты от 0fr до 1fr */
+    display: grid;
+    grid-template-rows: 1fr;
+    
+    margin-top: 10px;
+    opacity: 1;
+    
+    /* Анимация всех свойств синхронно */
+    transition: 
+        grid-template-rows 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.8s ease-in-out,
+        margin-top 0.8s ease-in-out;
+}
+
+/* Внутренний контейнер, который будет скрываться */
+.trades-inner {
+    overflow: hidden;
+    min-height: 0; /* Обязательно для работы grid-сжатия */
+}
+
+/* --- СОСТОЯНИЕ "СВЕРНУТО" --- */
+
+.month-group.collapsed .trades-table-wrapper {
+    grid-template-rows: 0fr; /* Сжимаем высоту в ноль */
+    opacity: 0;              /* Исчезаем */
+    margin-top: 0;           /* Убираем отступ */
+}
+
+.month-group.collapsed {
+    padding-bottom: 0;
+}
+
+.month-group.collapsed .month-header {
+    border-bottom-color: transparent;
+    padding-bottom: 20px;
+    margin-bottom: 0;
+}
+}
+
+/* --- НОВАЯ СИСТЕМА СПИСКА СДЕЛОК (GRID / DIVS) --- */
+
+/* Обертка для анимации сворачивания */
+.trades-list-wrapper {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.5s ease-out, opacity 0.5s ease;
+    opacity: 1;
+    margin-top: 10px;
+}
+
+.trades-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Состояние "Свернуто" */
+.month-group.collapsed .trades-list-wrapper {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-top: 0;
+}
+
+/* --- СЕТКА ДЛЯ ПК (Строка как в таблице) --- */
+.trade-row {
+    display: grid;
+    /* Определяем колонки: Дата, Пара, Dir, Stat, Risk, RR, PnL, Actions */
+    grid-template-columns: 0.8fr 1fr 0.8fr 1fr 0.8fr 0.8fr 1fr 80px; 
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--glass-border);
+    transition: background 0.2s;
+    text-decoration: none;
+    color: var(--text-main);
+}
+
+/* Заголовок списка */
+.trade-header-row {
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    border-bottom: 2px solid var(--glass-border); /* Чуть жирнее линия под шапкой */
+    background: transparent !important; /* У шапки нет фона при наведении */
+}
+
+/* Обычная строка-карточка */
+.trade-item {
+    cursor: pointer;
+}
+.trade-item:hover {
+    background: var(--glass-bg-hover);
+}
+.trade-item:last-child {
+    border-bottom: none; /* Убираем линию у последней */
+}
+
+/* Ячейки */
+.t-col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+}
+.t-pnl { font-weight: 700; }
+.t-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.mobile-label { display: none; } /* Скрываем подписи "Risk:", "RR:" на ПК */
+
+
+/* --- НОВАЯ СИСТЕМА СПИСКА СДЕЛОК (GRID / DIVS) --- */
+
+/* Обертка для анимации сворачивания */
+.trades-list-wrapper {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.5s ease-out, opacity 0.5s ease;
+    opacity: 1;
+    margin-top: 5px;
+}
+
+.trades-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+
+.month-group.collapsed .trades-list-wrapper {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-top: 0;
+}
+
+.month-header .month-toggle-icon {
+    /* Добавляем плавный переход для вращения */
+    transition: transform 0.3s ease; 
+    /* Иконка смотрит ВНИЗ (90 градусов) в развернутом состоянии */
+    transform: rotate(90deg); 
+    display: inline-block;
+    margin-right: 5px; /* Небольшой отступ от текста */
+}
+
+.month-group.collapsed .month-toggle-icon {
+    /* При добавлении класса collapsed иконка смотрит ВПРАВО (0 градусов) */
+    transform: rotate(0deg); 
+}
+
+/* --- СЕТКА ДЛЯ ПК --- */
+.trade-row {
+    display: grid;
+    /* 8 колонок для ПК */
+    grid-template-columns: 0.8fr 1fr 0.8fr 1fr 0.8fr 0.8fr 1fr 80px; 
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--glass-border);
+    transition: background 0.2s;
+    text-decoration: none;
+    color: var(--text-main);
+}
+
+.trade-header-row {
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    border-bottom: 2px solid var(--glass-border);
+    background: transparent !important;
+}
+
+.trade-item { cursor: pointer; }
+.trade-item:hover { background: var(--glass-bg-hover); }
+.trade-item:last-child { border-bottom: none; }
+
+.t-col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+    display: flex;
+    align-items: center;
+}
+.t-pnl { font-weight: 700; }
+.t-actions { justify-content: flex-end; gap: 8px; }
+
+/* СКРЫВАЕМ ПОДПИСИ НА ПК */
+.mobile-label { display: none; } 
+
+
+/* --- АДАПТИВНОСТЬ: ПЛИТКА НА ТЕЛЕФОНЕ --- */
+@media (max-width: 900px) {
+    
+    .trade-header-row { display: none; }
+
+    .trade-item {
+        display: grid;
+        /* Сетка 2 колонки */
+        grid-template-columns: 1fr 1fr; 
+        grid-template-areas: 
+            "date pair"
+            "dir status"
+            "risk rr"
+            "pnl actions";
+        gap: 8px 15px;
+        
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 15px;
+    }
+
+    /* ПОКАЗЫВАЕМ ПОДПИСИ */
+    .mobile-label {
+        display: inline-block;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-right: 8px;
+        min-width: 40px; /* Выравнивание */
+    }
+
+    /* Назначаем области и стили ячеек */
+    .t-col {
+        white-space: normal; /* Разрешаем перенос */
+        overflow: visible;
+        padding: 0;
+    }
+
+    .t-date   { grid-area: date; font-size: 0.9rem; color: var(--text-secondary); }
+    .t-pair   { grid-area: pair; justify-self: end; font-size: 1.1rem; }
+    /* Для пары скрываем лейбл, чтобы она была крупной справа */
+    /*.t-pair .mobile-label { display: none; } */
+    
+    .t-dir    { grid-area: dir; }
+    .t-status { grid-area: status; justify-self: end; }
+    /* Для статуса тоже можно скрыть лейбл, так как бейдж понятен */
+    /*.t-status .mobile-label { display: none; }*/
+
+    .t-risk   { grid-area: risk; font-size: 0.9rem; }
+    .t-rr     { grid-area: rr; justify-self: end; font-size: 0.9rem; }
+    
+    .t-pnl    { grid-area: pnl; font-size: 0.9rem; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; width: 100%;}
+    /* Для PnL лейбл скрываем, цифра говорит сама за себя */
+    /*.t-pnl .mobile-label { display: none; }*/
+
+    .t-actions { 
+        grid-area: actions; 
+        justify-self: end; 
+        margin-top: 8px; 
+        border-top: 1px solid rgba(255,255,255,0.05); 
+        padding-top: 8px; 
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .btn-icon {
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+    }
 }
