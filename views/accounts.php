@@ -2,7 +2,6 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="m-0" style="font-weight: 600;">Торговые Счета</h2>
-            <p class="text-muted m-0">Управление капиталом и статистика</p>
         </div>
         
         <a href="index.php?view=account_create" class="btn btn-primary">
@@ -25,7 +24,7 @@
         </button>
     </div>
     
-    <div id="payouts-list-container">
+    <div id="payouts-list-container" class="payout-table-border">
         <div class="glass-panel p-4 text-center text-muted">
             <div class="loading-spinner">Загрузка выплат...</div>
         </div>
