@@ -2116,3 +2116,119 @@ a.info-badge:hover {
 .status-win { color: var(--accent-green); background: rgba(0, 214, 111, 0.15); } /* Paid */
 .status-loss { color: var(--accent-red); background: rgba(255, 69, 58, 0.15); } /* Rejected */
 .status-pending { color: var(--text-secondary); background: rgba(255, 255, 255, 0.1); } /* Requested */
+
+/* --- СПИСОК ВЫПЛАТ (PAYOUTS) - Блочная верстка --- */
+
+.payouts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Шапка списка (только для ПК) */
+.payout-header-row {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr 1fr 80px; /* Колонка Actions фиксированная */
+    padding: 10px 20px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 5px;
+}
+
+/* Карточка выплаты */
+.payout-card {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr 1fr 80px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px 20px;
+    transition: all 0.2s ease;
+}
+
+.payout-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
+}
+
+.payout-col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.payout-table-border {
+	border:1px solid var(--glass-border);
+	border-radius:12px;
+	padding:5px;
+}
+
+/* АДАПТИВНОСТЬ ВЫПЛАТ (Мобильные) */
+@media (max-width: 768px) {
+    /* Скрываем шапку */
+    .payout-header-row { display: none; }
+
+    /* Перестраиваем карточку в вертикальный блок */
+    .payout-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 20px;
+        position: relative; /* Важно для позиционирования кнопок */
+        padding-top: 25px;  /* Чуть больше места сверху */
+    }
+
+    .payout-col {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+        white-space: normal;
+    }
+
+    /* --- ИСПРАВЛЕНИЕ НАЛОЖЕНИЯ --- */
+    /* Добавляем отступ справа для первой строки (Дата), чтобы текст не налез на кнопки */
+    .payout-col:first-child {
+        padding-right: 90px; /* Место под кнопки */
+    }
+
+    /* Добавляем подписи (Label) слева */
+    .payout-col::before {
+        content: attr(data-label);
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-right: 15px;
+    }
+
+    /* Кнопки действий на мобильном: в правом верхнем углу */
+    .payout-actions {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: auto !important;
+        justify-content: flex-end;
+        display: flex;
+        gap: 8px;
+    }
+    
+    /* Скрываем лейбл для кнопок */
+    .payout-actions::before { display: none; }
+	.payout-table-border { border:none; }
+    
+    /* Делаем кнопки чуть крупнее для пальцев */
+    .payout-actions .acc-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.1);
+    }
+}

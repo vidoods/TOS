@@ -1478,8 +1478,8 @@ async function loadAccounts() {
                 html += `
                 <div class="account-card" onclick="window.location.href='index.php?view=account_create&id=${acc.id}'">
                     <div class="acc-actions" onclick="event.stopPropagation()">
-                        <a href="index.php?view=account_create&id=${acc.id}" class="acc-btn d-inline-flex align-items-center justify-content-center" style="text-decoration:none;"><i class="fas fa-pen" style="font-size:0.8rem"></i></a>
-                        <button class="acc-btn delete" onclick="deleteAccount(${acc.id})"><i class="fas fa-trash" style="font-size:0.8rem"></i></button>
+                        <a title="Edit" href="index.php?view=account_create&id=${acc.id}" class="acc-btn d-inline-flex align-items-center justify-content-center" style="text-decoration:none;"><i class="fas fa-pen" style="font-size:0.8rem"></i></a>
+                        <button title="Delete" class="acc-btn delete" onclick="deleteAccount(${acc.id})"><i class="fas fa-trash" style="font-size:0.8rem"></i></button>
                     </div>
                 
                     <div class="acc-header">
@@ -1598,27 +1598,24 @@ async function loadPayouts() {
                 return;
             }
 
+            // Шапка (видна только на ПК благодаря CSS)
             let html = `
-                <div class="glass-panel" style="overflow-x: auto; border-radius: 12px;">
-                    <table class="trades-table" style="margin: 0;">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Account</th>
-                                <th>Status</th>
-                                <th style="text-align: right;">Amount</th>
-                                <th style="text-align: right;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                <div class="payouts-grid">
+                    <div class="payout-header-row">
+                        <div>Date</div>
+                        <div>Account</div>
+                        <div>Status</div>
+                        <div style="text-align: right;">Amount</div>
+                        <div style="text-align: right;">Actions</div>
+                    </div>`;
 
             let totalPayouts = 0;
 
             json.data.forEach(p => {
-                const date = new Date(p.payout_date).toLocaleDateString();
+                const dateObj = new Date(p.payout_date);
+                const date = dateObj.toLocaleDateString();
                 const amount = parseFloat(p.amount);
                 
-                // Считаем только оплаченные в общую сумму
                 if(p.confirmation_status === 'Paid') totalPayouts += amount;
 
                 let statusBadge = '';
@@ -1626,26 +1623,46 @@ async function loadPayouts() {
                 else if (p.confirmation_status === 'Rejected') statusBadge = '<span class="status-tag status-loss">Rejected</span>';
                 else statusBadge = '<span class="status-tag status-pending">Requested</span>';
 
+                // Генерируем КАРТОЧКУ (DIV)
                 html += `
-                    <tr>
-                        <td>${date}</td>
-                        <td><strong>${p.account_name}</strong></td>
-                        <td>${statusBadge}</td>
-                        <td style="text-align: right; font-weight: bold; color: var(--accent-green);">
-                            +$${amount.toLocaleString(undefined, {minimumFractionDigits: 2})}
-                        </td>
-                        <td style="text-align: right;">
-                            <button class="btn-icon" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button class="btn-icon" onclick="deletePayout(${p.id})" title="Delete" style="color: var(--accent-red);"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                    <div class="payout-card">
+                        
+                        <div class="payout-col" data-label="Date">
+                            <span class="text-muted"><i class="far fa-calendar-alt me-2"></i> ${date}</span>
+                        </div>
+                        
+                        <div class="payout-col" data-label="Account">
+                            <strong>${p.account_name}</strong>
+                        </div>
+                        
+                        <div class="payout-col" data-label="Status">
+                            ${statusBadge}
+                        </div>
+                        
+                        <div class="payout-col" data-label="Amount" style="text-align: right;">
+                            <span style="color: var(--accent-green); font-weight: 700; font-size: 1.1rem;">
+                                +$${amount.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                            </span>
+                        </div>
+                        
+                        <div class="payout-col payout-actions" style="text-align: right;">
+                            <button class="acc-btn" style="width:32px; height:32px;" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')" title="Edit">
+                                <i class="fas fa-pen" style="font-size: 0.8rem;"></i>
+                            </button>
+                            <button class="acc-btn delete" style="width:32px; height:32px;" onclick="deletePayout(${p.id})" title="Delete">
+                                <i class="fas fa-trash" style="font-size: 0.8rem;"></i>
+                            </button>
+                        </div>
+                        
+                    </div>`;
             });
 
-            html += `</tbody></table>
-                     <div style="padding: 15px 20px; border-top: 1px solid var(--glass-border); text-align: right; font-size: 0.9rem; color: var(--text-secondary);">
-                        Total Paid: <span style="color: var(--text-main); font-weight: 700;">$${totalPayouts.toLocaleString()}</span>
-                     </div>
-                     </div>`;
+            // Футер с итогом
+            html += `
+                <div style="padding: 20px; text-align: right; font-size: 0.95rem; color: var(--text-secondary); margin-top: 10px;">
+                    Total Paid: <span style="color: var(--text-main); font-weight: 700; font-size: 1.2rem;">$${totalPayouts.toLocaleString()}</span>
+                </div>
+            </div>`; // Закрываем payouts-grid
             
             container.innerHTML = html;
         }
@@ -1790,21 +1807,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadPayouts(); // <--- ДОБАВИТЬ ЭТО
     }
     
-    // Обработчик формы выплат
+    // Обработчик формы выплат (ИСПРАВЛЕННЫЙ)
     const payoutForm = document.getElementById('payout-form');
     if(payoutForm) {
         payoutForm.onsubmit = async (e) => {
             e.preventDefault();
+            
+            // Блокируем кнопку, чтобы не было двойных нажатий
+            const btn = payoutForm.querySelector('button[type="submit"]');
+            const oldText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Сохранение...';
+
             const fd = new FormData(payoutForm);
             const data = Object.fromEntries(fd.entries());
             
-            await fetch('api/api.php?action=save_payout', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            closePayoutModal();
-            loadPayouts();
+            try {
+                const response = await fetch('api/api.php?action=save_payout', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closePayoutModal();
+                    loadPayouts(); // Перезагружаем таблицу
+                } else {
+                    // ВОТ ЗДЕСЬ МЫ УВИДИМ РЕАЛЬНУЮ ОШИБКУ
+                    alert('Ошибка сохранения: ' + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Произошла ошибка сети или сервера. Проверьте консоль (F12).');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = oldText;
+            }
         };
     }
     
