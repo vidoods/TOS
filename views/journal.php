@@ -15,6 +15,7 @@
             </a>
         </div>
     </div>
+	</br>
 
     <div id="trades-list-container">
         <div class="loading-spinner">Загрузка сделок...</div>

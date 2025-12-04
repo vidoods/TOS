@@ -1,5 +1,31 @@
-<div class="content-header">
-    <h1>Обзор эффективности</h1>
+<div class="content-header d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0" style="font-weight: 600;">Обзор эффективности</h1>
+    
+    <div class="dashboard-actions d-flex gap-2">
+        <select id="dashboard-account-select" class="select-field" style="min-width: 150px; cursor: pointer;">
+            <option value="">Все счета</option>
+        </select>
+        
+        <select id="dashboard-year-select" class="select-field" style="min-width: 100px; cursor: pointer;">
+            <option value="">Весь период</option>
+        </select>
+
+        <select id="dashboard-month-select" class="select-field" style="min-width: 120px; cursor: pointer; display: none;">
+            <option value="">Весь год</option>
+            <option value="01">Январь</option>
+            <option value="02">Февраль</option>
+            <option value="03">Март</option>
+            <option value="04">Апрель</option>
+            <option value="05">Май</option>
+            <option value="06">Июнь</option>
+            <option value="07">Июль</option>
+            <option value="08">Август</option>
+            <option value="09">Сентябрь</option>
+            <option value="10">Октябрь</option>
+            <option value="11">Ноябрь</option>
+            <option value="12">Декабрь</option>
+        </select>
+    </div>
 </div>
 
 <div class="dashboard-grid">
@@ -57,5 +83,14 @@
     </div>
 </div>
 
-<div class="charts-area">
+<div class="charts-area mt-4">
+    <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; padding: 20px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0" style="font-size: 1.2rem; font-weight: 600; color: var(--text-main);">Equity Curve (Кривая Капитала)</h3>
+        </div>
+        
+        <div class="chart-wrapper">
+            <canvas id="equityChart"></canvas>
+        </div>
     </div>
+</div>
