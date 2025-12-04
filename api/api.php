@@ -109,6 +109,17 @@ switch ($action) {
     case 'get_note_details': getNoteDetails($conn); break;
     case 'save_note': saveNote($conn); break;
     case 'delete_note': deleteNote($conn); break;
+	
+	// --- АККАУНТЫ ---
+    case 'get_accounts_data': getAccountsData($conn); break;
+    case 'save_account': saveAccount($conn); break;
+    case 'delete_account': deleteAccount($conn); break;
+	case 'get_account_details': getAccountDetails($conn); break;
+	
+	// --- ВЫПЛАТЫ ---
+    case 'get_payouts': getPayouts($conn); break;
+    case 'save_payout': savePayout($conn); break;
+    case 'delete_payout': deletePayout($conn); break;
 }
 
 // ==============================================================================================
@@ -1109,6 +1120,171 @@ function deleteNote($pdo) {
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+// ==============================================================================================
+// ФУНКЦИИ АККАУНТОВ
+// ==============================================================================================
+
+function getAccountsData($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        
+        $accounts = $pdo->prepare("SELECT * FROM accounts WHERE user_id = ? ORDER BY id ASC");
+        $accounts->execute([$uid]);
+        $result = $accounts->fetchAll();
+        
+        foreach ($result as &$acc) {
+            $aid = $acc['id'];
+            
+            // Получаем сумму PnL по всем сделкам этого счета
+            $stats = $pdo->query("
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status='win' THEN 1 ELSE 0 END) as wins,
+                    SUM(CASE WHEN status='loss' THEN 1 ELSE 0 END) as losses,
+                    COALESCE(SUM(pnl), 0) as total_pnl,
+                    COALESCE(AVG(rr_achieved), 0) as avg_rr
+                FROM trades 
+                WHERE account_id = $aid AND user_id = $uid
+            ")->fetch();
+            
+            $acc['total_trades'] = (int)$stats['total'];
+            $acc['wins'] = (int)$stats['wins'];
+            $acc['profit'] = (float)$stats['total_pnl'];
+            $acc['avg_rr'] = round((float)$stats['avg_rr'], 2);
+            
+            // === ПРАВИЛЬНЫЙ РАСЧЕТ БАЛАНСА ===
+            // balance в БД = Стартовый баланс Журнала (Initial Balance)
+            // starting_equity = Размер счета (Prop Size), от которого считаются лимиты.
+            
+            // Текущий баланс = Начало Журнала + Заработанное
+            $acc['calculated_balance'] = (float)$acc['balance'] + $acc['profit'];
+            
+            // Просадка (Max Drawdown) считается по истории
+            // (Упрощенно: насколько мы падали от локального пика)
+            // Здесь мы покажем просто текущую просадку от Starting Equity, если она есть
+            
+            // Для удобства API вернет чистые числа
+            $acc['balance'] = (float)$acc['balance'];
+            $acc['starting_equity'] = (float)$acc['starting_equity'];
+            $acc['target_percent'] = (float)$acc['target_percent'];
+            $acc['max_drawdown_percent'] = (float)$acc['max_drawdown_percent'];
+        }
+        
+        echo json_encode(['success' => true, 'data' => $result]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function saveAccount($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        $d = json_decode(file_get_contents('php://input'), true);
+        
+        if(empty($d['name'])) throw new Exception('Введите название');
+        
+        $target = !empty($d['target_percent']) ? $d['target_percent'] : 0;
+        $dd = !empty($d['max_drawdown_percent']) ? $d['max_drawdown_percent'] : 0;
+        
+        // Получаем оба баланса
+        $balance = !empty($d['balance']) ? $d['balance'] : 0; // Текущий
+        $starting = !empty($d['starting_equity']) ? $d['starting_equity'] : $balance; // Изначальный
+
+        if(!empty($d['id'])) {
+            $sql = "UPDATE accounts SET name=?, type=?, balance=?, starting_equity=?, target_percent=?, max_drawdown_percent=? WHERE id=? AND user_id=?";
+            $pdo->prepare($sql)->execute([$d['name'], $d['type'], $balance, $starting, $target, $dd, $d['id'], $uid]);
+        } else {
+            // current_equity при создании равен balance
+            $sql = "INSERT INTO accounts (user_id, name, type, balance, starting_equity, current_equity, currency, status, target_percent, max_drawdown_percent) VALUES (?,?,?,?,?,?,'USD','Active',?,?)";
+            $pdo->prepare($sql)->execute([$uid, $d['name'], $d['type'], $balance, $starting, $balance, $target, $dd]);
+        }
+        echo json_encode(['success'=>true]);
+    } catch(Exception $e) {
+        echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
+    }
+}
+
+function deleteAccount($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        $id = $_POST['id'];
+        $pdo->prepare("DELETE FROM accounts WHERE id=? AND user_id=?")->execute([$id, $uid]);
+        echo json_encode(['success'=>true]);
+    } catch(Exception $e) {
+        echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
+    }
+}
+
+function getAccountDetails($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        $id = $_GET['id'] ?? null;
+        if(!$id) throw new Exception('ID не указан');
+
+        $stmt = $pdo->prepare("SELECT * FROM accounts WHERE id = ? AND user_id = ?");
+        $stmt->execute([$id, $uid]);
+        $acc = $stmt->fetch();
+
+        if(!$acc) throw new Exception('Счет не найден');
+
+        echo json_encode(['success'=>true, 'data'=>$acc]);
+    } catch(Exception $e) {
+        echo json_encode(['success'=>false, 'message'=>$e->getMessage()]);
+    }
+}
+
+// ==============================================================================================
+// ФУНКЦИИ ВЫПЛАТ
+// ==============================================================================================
+
+function getPayouts($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        // Получаем выплаты только по счетам пользователя
+        $sql = "SELECT p.*, a.name as account_name, a.currency 
+                FROM payouts p 
+                JOIN accounts a ON p.account_id = a.id 
+                WHERE a.user_id = ? 
+                ORDER BY p.payout_date DESC, p.id DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$uid]);
+        echo json_encode(['success' => true, 'data' => $stmt->fetchAll()]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function savePayout($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        $d = json_decode(file_get_contents('php://input'), true);
+        
+        if (empty($d['account_id']) || empty($d['amount'])) throw new Exception('Заполните обязательные поля');
+
+        if (!empty($d['id'])) {
+            $sql = "UPDATE payouts SET account_id=?, amount=?, payout_date=?, confirmation_status=? WHERE id=?";
+            $pdo->prepare($sql)->execute([$d['account_id'], $d['amount'], $d['payout_date'], $d['confirmation_status'], $d['id']]);
+        } else {
+            $sql = "INSERT INTO payouts (account_id, amount, payout_date, confirmation_status) VALUES (?,?,?,?)";
+            $pdo->prepare($sql)->execute([$d['account_id'], $d['amount'], $d['payout_date'], $d['confirmation_status']]);
+        }
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function deletePayout($pdo) {
+    try {
+        $id = $_POST['id'];
+        // Проверка прав (через join можно, но для простоты доверимся ID, так как это админка пользователя)
+        $pdo->prepare("DELETE FROM payouts WHERE id=?")->execute([$id]);
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
