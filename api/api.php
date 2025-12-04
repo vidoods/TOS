@@ -33,6 +33,7 @@ switch ($action) {
     case 'logout':
         handleLogout();
         break;
+	case 'get_user_info': getUserInfo($conn); break;
     case 'register':
         handleRegister($conn);
         break;
@@ -113,6 +114,18 @@ switch ($action) {
 // ==============================================================================================
 // ФУНКЦИИ АВТОРИЗАЦИИ
 // ==============================================================================================
+
+function getUserInfo($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
+        $stmt->execute([$uid]);
+        $user = $stmt->fetch();
+        echo json_encode(['success' => true, 'username' => $user['username'] ?? 'Trader']);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 
 function handleRegister($pdo) {
     $data = json_decode(file_get_contents('php://input'), true);
