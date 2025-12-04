@@ -81,26 +81,52 @@ $currentTitle = $pageTitles[$view] ?? 'TOS - Trading Operating System';
                 <div class="logo">
                     <a href="index.php?view=dashboard" title="На главную">TOS</a>
                 </div>
+				
+				<div class="user-profile-widget">
+					<div class="user-avatar">
+						<i class="fas fa-user"></i>
+					</div>
+				<div class="user-info">
+					<span class="user-welcome">Welcome back,</span>
+					<span class="user-name" id="sidebar-username">Loading...</span>
+				</div>
+				</div>
                 
                 <nav class="nav-menu">
                     <h3>ROUTINE</h3>
                     <div class="nav-links">
-                        <a href="index.php?view=dashboard" class="<?= $view === 'dashboard' ? 'active' : '' ?>">📊 Dashboard</a>
-                        <a href="index.php?view=plans" class="<?= strpos($view, 'plan') !== false ? 'active' : '' ?>">📄 Trading Plan</a>
-                        <a href="index.php?view=journal" class="<?= strpos($view, 'trade') !== false || $view === 'journal' ? 'active' : '' ?>"><i class="fas fa-book-open"></i> Trading Journal</a>
-                        <a href="index.php?view=notes" class="<?= $view === 'notes' ? 'active' : '' ?>">🗒️ Notes</a>
-                        <a href="index.php?view=strategy" class="<?= $view === 'strategy' ? 'active' : '' ?>">⚙️ Trading Strategy</a>
+                        <a href="index.php?view=dashboard" class="<?= $view === 'dashboard' ? 'active' : '' ?>">
+                            <i class="fas fa-th-large"></i> Dashboard
+                        </a>
+                        <a href="index.php?view=plans" class="<?= strpos($view, 'plan') !== false ? 'active' : '' ?>">
+                            <i class="fas fa-file-contract"></i> Trading Plan
+                        </a>
+                        <a href="index.php?view=journal" class="<?= strpos($view, 'trade') !== false || $view === 'journal' ? 'active' : '' ?>">
+                            <i class="fas fa-book"></i> Trading Journal
+                        </a>
+                        <a href="index.php?view=notes" class="<?= $view === 'notes' ? 'active' : '' ?>">
+                            <i class="fas fa-sticky-note"></i> Notes
+                        </a>
+                        <a href="index.php?view=strategy" class="<?= $view === 'strategy' ? 'active' : '' ?>">
+                            <i class="fas fa-chess-knight"></i> Trading Strategy
+                        </a>
                     </div>
 
                     <h3>PERFORMANCE</h3>
                     <div class="nav-links">
-                        <a href="index.php?view=mpa" class="<?= $view === 'mpa' ? 'active' : '' ?>">🗓️ MPA</a>
-                        <a href="index.php?view=qpa" class="<?= $view === 'qpa' ? 'active' : '' ?>">📈 QPA</a>
+                        <a href="index.php?view=mpa" class="<?= $view === 'mpa' ? 'active' : '' ?>">
+                            <i class="fas fa-calendar-check"></i> MPA
+                        </a>
+                        <a href="index.php?view=qpa" class="<?= $view === 'qpa' ? 'active' : '' ?>">
+                            <i class="fas fa-chart-line"></i> QPA
+                        </a>
                     </div>
 
                     <h3>DATA</h3>
                     <div class="nav-links">
-                        <a href="index.php?view=accounts" class="<?= $view === 'accounts' ? 'active' : '' ?>">👤 Accounts</a>
+                        <a href="index.php?view=accounts" class="<?= $view === 'accounts' ? 'active' : '' ?>">
+                            <i class="fas fa-wallet"></i> Accounts
+                        </a>
                     </div>
                     
                     <div class="nav-links mt-auto" style="margin-top: 40px;">
