@@ -2232,3 +2232,124 @@ a.info-badge:hover {
         background: rgba(255, 255, 255, 0.1);
     }
 }
+
+@media (max-width: 768px) {
+    .content-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+
+    .dashboard-actions {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+    }
+
+    .dashboard-actions select {
+        width: 100% !important;
+    }
+}
+
+
+/* =========================================
+   11. СТИЛИ ДЛЯ СТРАНИЦЫ АККАУНТА И ВКЛАДОК
+   ========================================= */
+
+.account-tabs-nav {
+    display: flex;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 5px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tab-btn:hover {
+    color: var(--text-main);
+}
+
+/* Активная вкладка */
+.tab-btn.active {
+    color: var(--accent-blue);
+}
+
+/* Синяя линия под активной вкладкой */
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-blue);
+    box-shadow: 0 0 10px rgba(41, 151, 255, 0.5);
+}
+
+/* Контент вкладок */
+.tab-content {
+    display: none; /* Скрыто по умолчанию */
+    animation: fadeIn 0.3s ease;
+}
+
+/* Показать активный контент */
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- assets/style.css --- */
+
+/* ... (предыдущий код) ... */
+
+/* =========================================
+   12. АДАПТИВНОСТЬ ШАПОК (RESPONSIVE HEADERS)
+   ========================================= */
+
+@media (max-width: 768px) {
+    /* Превращаем строку в колонку на мобильных */
+    .responsive-header {
+        flex-direction: column !important;
+        align-items: stretch !important; /* Растягиваем элементы на всю ширину */
+        gap: 15px !important;
+    }
+
+    /* Блок с кнопками растягиваем на 100% и разрешаем перенос */
+    .responsive-header .d-flex {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 10px !important;
+    }
+
+    /* Кнопки делаем резиновыми (flex-grow: 1), чтобы их было удобно нажимать */
+    .responsive-header .btn {
+        flex-grow: 1; 
+        display: flex;
+        justify-content: center; /* Центрируем текст и иконку */
+        white-space: nowrap; /* Запрещаем перенос текста внутри кнопки */
+        min-width: 100px; /* Минимальная ширина, чтобы совсем не сжались */
+    }
+    
+    /* Убираем марджины у заголовка, чтобы не было лишних отступов */
+    .responsive-header h2 {
+        font-size: 1.5rem !important; /* Чуть уменьшаем шрифт заголовка */
+        margin-bottom: 5px !important;
+    }
+}

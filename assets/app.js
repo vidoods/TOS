@@ -1224,13 +1224,22 @@ function setupLightbox() {
     modal.onclick = e => { if(e.target === modal) close(); };
 }
 
-async function loadDashboardMetrics() {
+// Обновленная функция метрик
+async function loadDashboardMetrics(overrideAccountId = null, isDetailedView = false) {
     try {
-        const accountId = document.getElementById('dashboard-account-select')?.value || '';
-        const year = document.getElementById('dashboard-year-select')?.value || '';
-        const month = document.getElementById('dashboard-month-select')?.value || '';
+        let accountId, year, month;
 
-        // Формируем URL с параметрами
+        // Если это детальный просмотр, берем переданный ID, иначе берем из фильтров дашборда
+        if (isDetailedView && overrideAccountId) {
+            accountId = overrideAccountId;
+            year = ''; 
+            month = '';
+        } else {
+            accountId = document.getElementById('dashboard-account-select')?.value || '';
+            year = document.getElementById('dashboard-year-select')?.value || '';
+            month = document.getElementById('dashboard-month-select')?.value || '';
+        }
+
         const params = new URLSearchParams({
             action: 'get_dashboard_metrics',
             account_id: accountId,
@@ -1243,43 +1252,75 @@ async function loadDashboardMetrics() {
         
         if (result.success) {
             const m = result.data;
-            document.getElementById('total-trades-value').textContent = m.total_trades;
             
-            document.getElementById('total-trades-breakdown').innerHTML = 
-                `<span class="text-profit">${m.wins} W</span> / 
-                 <span class="text-loss">${m.losses} L</span> / 
-                 <span class="text-warning">${m.breakeven} B</span> / 
-                 <span class="text-info">${m.pending} P</span>`;
-            
-            document.getElementById('winning-ratio-value').textContent = m.win_rate + '%';
-            document.getElementById('winning-ratio-progress').style.width = m.win_rate + '%';
-            
-            document.getElementById('avg-time-in-position-value').textContent = m.avg_time_in_position;
-            
-            const dollarHtml = ' <i class="fas fa-dollar-sign" style="font-size: 0.85em; opacity: 0.8;"></i>';
-            const setPnL = (id, val, suffixHtml = '') => {
-                const el = document.getElementById(id);
-                if(el) {
-                    const text = (val >= 0 ? '+ ' : '') + val.toFixed(2);
-                    el.innerHTML = text + suffixHtml;
-                    el.classList.remove('text-profit', 'text-loss');
-                    el.classList.add(val >= 0 ? 'text-profit' : 'text-loss');
-                }
+            // Карта ID элементов: (Детальный просмотр -> Главный дашборд)
+            const idMap = isDetailedView ? {
+                total_trades: 'ad-total-trades',
+                breakdown: 'ad-trades-breakdown',
+                win_rate: 'ad-winrate',
+                win_bar: 'ad-winrate-bar',
+                avg_rr: 'ad-avg-rr',
+                pnl: 'ad-pnl-value', // ID для новой страницы
+                chart: 'accountEquityChart'
+            } : {
+                total_trades: 'total-trades-value',
+                breakdown: 'total-trades-breakdown',
+                win_rate: 'winning-ratio-value',
+                win_bar: 'winning-ratio-progress',
+                avg_rr: 'average-rr-value',
+                pnl: 'net-profit-value',
+                chart: 'equityChart',
+                // Эти поля есть только на главном дашборде
+                monthly: 'avg-monthly-profit',
+                mdd: 'max-drawdown-value',
+                avg_time: 'avg-time-in-position-value'
             };
-            setPnL('net-profit-value', m.total_pnl, dollarHtml);
-            setPnL('average-rr-value', m.avg_rr_per_trade, ' R');
-            
-            document.getElementById('avg-monthly-profit').innerHTML = `Среднемес.: ${m.avg_monthly_profit}${dollarHtml}`;
 
-            const mddEl = document.getElementById('max-drawdown-value');
-            if(mddEl) {
-                mddEl.innerHTML = `-${m.max_drawdown_pct}% (-${m.max_drawdown_abs}${dollarHtml})`;
-                mddEl.className = 'metric-value text-loss';
+            // Обновляем значения в HTML
+            if(document.getElementById(idMap.total_trades)) 
+                document.getElementById(idMap.total_trades).textContent = m.total_trades;
+
+            if(document.getElementById(idMap.breakdown))
+                document.getElementById(idMap.breakdown).innerHTML = 
+                    `<span class="text-profit">${m.wins} W</span> / 
+                     <span class="text-loss">${m.losses} L</span> / 
+                     <span class="text-warning">${m.breakeven} B</span>`;
+            
+            if(document.getElementById(idMap.win_rate))
+                document.getElementById(idMap.win_rate).textContent = m.win_rate + '%';
+            
+            if(document.getElementById(idMap.win_bar))
+                document.getElementById(idMap.win_bar).style.width = m.win_rate + '%';
+
+            if(document.getElementById(idMap.avg_rr))
+                document.getElementById(idMap.avg_rr).textContent = m.avg_rr_per_trade + ' R';
+
+            // PnL
+            if(document.getElementById(idMap.pnl)) {
+                 const dollarHtml = ' <i class="fas fa-dollar-sign" style="font-size: 0.85em; opacity: 0.8;"></i>';
+                 const val = m.total_pnl;
+                 const el = document.getElementById(idMap.pnl);
+                 const text = (val >= 0 ? '+ ' : '') + val.toFixed(2);
+                 el.innerHTML = text + (isDetailedView ? '$' : dollarHtml);
+                 el.classList.remove('text-profit', 'text-loss');
+                 el.classList.add(val >= 0 ? 'text-profit' : 'text-loss');
             }
 
-            // Обновляем график
+            // Дополнительные поля только для Главного дашборда
+            if (!isDetailedView) {
+                const dollarHtml = ' <i class="fas fa-dollar-sign" style="font-size: 0.85em; opacity: 0.8;"></i>';
+                document.getElementById(idMap.monthly).innerHTML = `Среднемес.: ${m.avg_monthly_profit}${dollarHtml}`;
+                document.getElementById(idMap.avg_time).textContent = m.avg_time_in_position;
+                const mddEl = document.getElementById(idMap.mdd);
+                if(mddEl) {
+                    mddEl.innerHTML = `-${m.max_drawdown_pct}% (-${m.max_drawdown_abs}${dollarHtml})`;
+                    mddEl.className = 'metric-value text-loss';
+                }
+            }
+
+            // Рисуем график
             if (m.equity_chart) {
-                renderEquityChart(m.equity_chart);
+                renderEquityChart(m.equity_chart, idMap.chart);
             }
         }
     } catch (e) { console.error(e); }
@@ -1303,12 +1344,17 @@ function populateDateFilters() {
     }
 }
 
-function renderEquityChart(dataPoints) {
-    const ctx = document.getElementById('equityChart');
-    if (!ctx) return;
+// Исправленная функция рендера графика
+function renderEquityChart(dataPoints, canvasId = 'equityChart') {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return; // Если канвас не найден, выходим
 
-    if (equityChartInstance) {
-        equityChartInstance.destroy();
+    // Управление экземплярами графиков, чтобы они не накладывались
+    // Сохраняем инстанс в глобальный объект window под уникальным именем
+    const chartInstanceName = canvasId + 'Instance';
+
+    if (window[chartInstanceName]) {
+        window[chartInstanceName].destroy();
     }
 
     const labels = dataPoints.map(pt => pt.x);
@@ -1319,7 +1365,7 @@ function renderEquityChart(dataPoints) {
     const lineColor = currentBalance >= startBalance ? '#00d66f' : '#ff453a'; 
     const areaColor = currentBalance >= startBalance ? 'rgba(0, 214, 111, 0.1)' : 'rgba(255, 69, 58, 0.1)';
 
-    equityChartInstance = new Chart(ctx, {
+    window[chartInstanceName] = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -1336,10 +1382,8 @@ function renderEquityChart(dataPoints) {
             }]
         },
         options: {
-            // --- ВАЖНЫЕ НАСТРОЙКИ АДАПТИВНОСТИ ---
             responsive: true, 
-            maintainAspectRatio: false, // <-- Это позволяет графику заполнять контейнер по высоте
-            // -------------------------------------
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false }, 
                 tooltip: {
@@ -1363,8 +1407,8 @@ function renderEquityChart(dataPoints) {
                     grid: { display: false, drawBorder: false },
                     ticks: { 
                         color: '#6b7280', 
-                        maxTicksLimit: 6, // Меньше подписей дат, чтобы не наезжали друг на друга на мобилке
-                        maxRotation: 0    // Чтобы текст не наклонялся
+                        maxTicksLimit: 6, 
+                        maxRotation: 0
                     } 
                 },
                 y: {
@@ -1476,7 +1520,7 @@ async function loadAccounts() {
                     </div>`;
 
                 html += `
-                <div class="account-card" onclick="window.location.href='index.php?view=account_create&id=${acc.id}'">
+                <div class="account-card" onclick="window.location.href='index.php?view=account_details&id=${acc.id}'">
                     <div class="acc-actions" onclick="event.stopPropagation()">
                         <a title="Edit" href="index.php?view=account_create&id=${acc.id}" class="acc-btn d-inline-flex align-items-center justify-content-center" style="text-decoration:none;"><i class="fas fa-pen" style="font-size:0.8rem"></i></a>
                         <button title="Delete" class="acc-btn delete" onclick="deleteAccount(${acc.id})"><i class="fas fa-trash" style="font-size:0.8rem"></i></button>
@@ -1487,7 +1531,7 @@ async function loadAccounts() {
                         <span class="acc-type-badge">${acc.type}</span>
                     </div>
                     
-                    <div class="acc-balance">$${currentEquity.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    <div class="acc-balance">$${parseFloat(currentEquity).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
                     
                     <div style="font-size: 0.9rem; margin-bottom: 5px;" class="${profitClass}">
                         ${profitSign}${totalGainAbs.toFixed(2)}$ (${profitSign}${totalGainPct.toFixed(2)}%)
@@ -1510,10 +1554,22 @@ async function loadAccounts() {
 }
 
 async function deleteAccount(id) {
-    if(!confirm('Удалить этот счет и все связанные данные?')) return;
+    if(!confirm('Удалить этот счет и все связанные данные? Это действие нельзя отменить.')) return;
     const fd = new FormData(); fd.append('id', id);
-    await fetch('api/api.php?action=delete_account', {method:'POST', body:fd});
-    loadAccounts(); // Перезагружаем список
+    try {
+        const res = await fetch('api/api.php?action=delete_account', {method:'POST', body:fd});
+        const json = await res.json();
+        if(json.success) {
+            // Если мы на странице деталей, редиректим, иначе обновляем список
+            if (window.location.search.includes('view=account_details')) {
+                window.location.href = 'index.php?view=accounts';
+            } else {
+                loadAccounts();
+            }
+        } else {
+            alert('Ошибка удаления: ' + json.message);
+        }
+    } catch(e) { console.error(e); }
 }
 
 // Инициализация формы создания/редактирования
@@ -1724,6 +1780,146 @@ async function deletePayout(id) {
     loadPayouts();
 }
 
+// --- ЛОГИКА СТРАНИЦЫ ДЕТАЛЕЙ АККАУНТА ---
+
+async function loadAccountDetailsPage(id) {
+    if (!id) return;
+    try {
+        // 1. Загружаем инфо об аккаунте
+        const res = await fetch(`api/api.php?action=get_account_details&id=${id}`);
+        const json = await res.json();
+        
+        if (json.success) {
+            const d = json.data;
+            document.getElementById('ad-name').textContent = d.name;
+            document.getElementById('ad-type').textContent = d.type;
+            
+            // Получаем баланс и PnL из общего списка (для точности расчета)
+            const resStats = await fetch('api/api.php?action=get_accounts_data');
+            const jsonStats = await resStats.json();
+            const accStats = jsonStats.data.find(a => a.id == id);
+            
+            if (accStats) {
+                const bal = parseFloat(accStats.calculated_balance);
+                const start = parseFloat(accStats.starting_equity);
+                const profitAbs = bal - start;
+                const profitPct = start > 0 ? (profitAbs / start) * 100 : 0;
+                
+                document.getElementById('ad-balance').textContent = '$' + bal.toLocaleString('en-US', {minimumFractionDigits: 2});
+                const profAbsEl = document.getElementById('ad-profit-abs');
+                profAbsEl.textContent = (profitAbs >= 0 ? '+' : '') + profitAbs.toFixed(2) + '$';
+                profAbsEl.className = profitAbs >= 0 ? 'text-profit' : 'text-loss';
+                document.getElementById('ad-profit-pct').textContent = `(${profitPct.toFixed(2)}%)`;
+                
+                // Рендер бара прогресса (используем HTML строку, как в списке)
+                renderAccountProgressBarDOM(accStats, 'ad-progress-container');
+            }
+
+            // Кнопки
+            document.getElementById('btn-edit-account').onclick = () => window.location.href = `index.php?view=account_create&id=${d.id}`;
+            document.getElementById('btn-add-trade-account').onclick = () => window.location.href = `index.php?view=trade_create&account_id=${d.id}`;
+        }
+        
+        // 2. Загружаем Метрики и График (для этого аккаунта)
+        loadDashboardMetrics(id, true);
+        
+        // 3. Загружаем Трейды (фильтруем по этому аккаунту)
+        loadTrades({ account_id: id });
+        
+    } catch (e) { console.error(e); }
+}
+
+function initAccountTabs(accountId) {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    let payoutsLoaded = false; // Флаг, чтобы не грузить выплаты сто раз
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            
+            tab.classList.add('active');
+            const targetId = tab.getAttribute('data-tab');
+            document.getElementById(`tab-${targetId}`).classList.add('active');
+            
+            // Если нажали "Выплаты" и еще не грузили их
+            if (targetId === 'payouts' && !payoutsLoaded) {
+                loadAccountPayouts(accountId);
+                payoutsLoaded = true;
+            }
+        });
+    });
+}
+
+// Загрузка выплат с фильтром на клиенте
+async function loadAccountPayouts(accountId) {
+    const container = document.getElementById('account-payouts-list-container');
+    if (!container) return;
+
+    try {
+        const res = await fetch('api/api.php?action=get_payouts');
+        const json = await res.json();
+
+        if (json.success) {
+            // ФИЛЬТР: Берем только выплаты текущего аккаунта
+            const accountPayouts = json.data.filter(p => p.account_id == accountId);
+
+            if (accountPayouts.length === 0) {
+                container.innerHTML = `<div class="glass-panel p-4 text-center text-muted"><p>Нет выплат</p></div>`;
+                return;
+            }
+
+            let html = '<div class="payouts-grid">';
+            accountPayouts.forEach(p => {
+                const date = new Date(p.payout_date).toLocaleDateString();
+                const amount = parseFloat(p.amount);
+                let statusBadge = '<span class="status-tag status-pending">Requested</span>';
+                if (p.confirmation_status === 'Paid') statusBadge = '<span class="status-tag status-win">Paid</span>';
+                else if (p.confirmation_status === 'Rejected') statusBadge = '<span class="status-tag status-loss">Rejected</span>';
+
+                html += `
+                    <div class="payout-card" style="grid-template-columns: 1fr 1fr 1fr 80px;">
+                        <div class="payout-col"><span class="text-muted">${date}</span></div>
+                        <div class="payout-col">${statusBadge}</div>
+                        <div class="payout-col" style="text-align: right;"><span style="color: var(--accent-green); font-weight: 700;">+$${amount.toLocaleString()}</span></div>
+                         <div class="payout-col payout-actions" style="text-align: right;">
+                            <button class="acc-btn" style="width:32px; height:32px;" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')"><i class="fas fa-pen" style="font-size: 0.8rem;"></i></button>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+    } catch (e) { container.innerHTML = '<div class="error-state">Ошибка</div>'; }
+}
+
+function renderAccountProgressBarDOM(acc, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const start = parseFloat(acc.starting_equity);
+    const target = parseFloat(acc.target_percent);
+    const maxDD = parseFloat(acc.max_drawdown_percent);
+    const bal = parseFloat(acc.calculated_balance);
+    const gainAbs = bal - start;
+    const gainPct = start > 0 ? (gainAbs / start) * 100 : 0;
+    
+    let wLoss = 0, wProfit = 0;
+    if (gainAbs >= 0) { if (target > 0) wProfit = Math.min((gainPct / target) * 100, 100); }
+    else { const dd = Math.abs(gainPct); if (maxDD > 0) wLoss = Math.min((dd / maxDD) * 100, 100); }
+    
+    container.innerHTML = `
+        <div class="acc-split-bar-container">
+            <div class="acc-split-divider"></div>
+            <div class="acc-bar-left"><div class="acc-fill-loss" style="width: ${wLoss}%"></div></div>
+            <div class="acc-bar-right"><div class="acc-fill-profit" style="width: ${wProfit}%"></div></div>
+        </div>
+        <div class="acc-split-labels">
+            <span class="text-loss">${maxDD > 0 ? 'Max DD: '+maxDD+'%' : ''}</span>
+            <span class="text-profit">${target > 0 ? 'Target: '+target+'%' : ''}</span>
+        </div>`;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view');
@@ -1805,6 +2001,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 	if (view === 'accounts') { 
         loadAccounts(); 
         loadPayouts(); // <--- ДОБАВИТЬ ЭТО
+    }
+	
+	if (view === 'account_details') { 
+        const accId = document.getElementById('current-account-view-id')?.value;
+        if(accId) {
+            // Загружаем данные страницы
+            loadAccountDetailsPage(accId); 
+            // Инициализируем переключение вкладок
+            initAccountTabs(accId);
+            // Загружаем справочники для модального окна выплат
+            loadLookups().then(data => {
+                if(data && data.accounts) populateSelect('payout-account', data.accounts, 'name');
+            });
+
+            // Кнопка "Добавить выплату" на этой странице
+            const btn = document.getElementById('btn-add-account-payout');
+            if(btn) {
+                btn.onclick = () => {
+                    openPayoutModal();
+                    // Предустанавливаем текущий счет
+                    const sel = document.getElementById('payout-account');
+                    if(sel) sel.value = accId;
+                }
+            }
+        }
     }
     
     // Обработчик формы выплат (ИСПРАВЛЕННЫЙ)
