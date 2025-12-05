@@ -120,6 +120,9 @@ switch ($action) {
     case 'get_payouts': getPayouts($conn); break;
     case 'save_payout': savePayout($conn); break;
     case 'delete_payout': deletePayout($conn); break;
+	
+	// ... inside switch($action) ...
+    case 'get_data_analysis': getDataAnalysis($conn); break;
 }
 
 // ==============================================================================================
@@ -139,6 +142,10 @@ function getUserInfo($pdo) {
 }
 
 function handleRegister($pdo) {
+	// --- START BLOCK ---
+    echo json_encode(['success' => false, 'message' => 'Registration is temporarily disabled.']);
+    exit;
+    // --- END BLOCK ---
     $data = json_decode(file_get_contents('php://input'), true);
     $username = $data['username'] ?? '';
     $password = $data['password'] ?? '';
@@ -504,12 +511,20 @@ function getTrades($pdo) {
             if (!isset($groupedTrades[$monthKey])) {
                 $groupedTrades[$monthKey] = [
                     'month_label' => date('F Y', strtotime($trade['entry_date'])),
-                    'trades' => [], 'total_pnl' => 0.0, 'total_rr' => 0.0
+                    'trades' => [], 
+                    'total_pnl' => 0.0, 
+                    'total_rr' => 0.0,
+                    'total_percent' => 0.0 // Инициализируем счетчик процентов
                 ];
             }
             $groupedTrades[$monthKey]['trades'][] = $trade;
             $groupedTrades[$monthKey]['total_pnl'] += (float)$trade['pnl'];
             $groupedTrades[$monthKey]['total_rr'] += (float)$trade['rr_achieved'];
+            
+            // Расчет процентов: RR * Риск%
+            // Например: 2R * 1% Риска = 2% Прибыли
+            $trade_pct = (float)$trade['rr_achieved'] * (float)$trade['risk_percent'];
+            $groupedTrades[$monthKey]['total_percent'] += $trade_pct;
         }
         echo json_encode(['success' => true, 'data' => array_values($groupedTrades)]);
 
@@ -1284,6 +1299,116 @@ function deletePayout($pdo) {
         // Проверка прав (через join можно, но для простоты доверимся ID, так как это админка пользователя)
         $pdo->prepare("DELETE FROM payouts WHERE id=?")->execute([$id]);
         echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+function getDataAnalysis($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+        
+        // 1. ЛОГИКА ДЛЯ СПРАВОЧНИКОВ (Пары, Стили, Модели)
+        // Берем ВСЕ строки из справочника и приклеиваем статистику
+        $getRefStats = function($refTable, $refNameCol, $tradeFkCol) use ($pdo, $uid) {
+            $sql = "SELECT 
+                        r.$refNameCol as label,
+                        COUNT(t.id) as total_trades,
+                        SUM(CASE WHEN t.status = 'win' THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN t.status IN ('win', 'loss', 'breakeven') THEN 1 ELSE 0 END) as completed
+                    FROM $refTable r
+                    LEFT JOIN trades t ON t.$tradeFkCol = r.id AND t.user_id = ? AND t.status != 'cancelled'
+                    GROUP BY r.id, r.$refNameCol
+                    ORDER BY total_trades DESC, label ASC";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$uid]);
+            $rows = $stmt->fetchAll();
+            
+            return array_map(function($row) {
+                $comp = (int)$row['completed'];
+                $row['win_rate'] = $comp > 0 ? round(($row['wins'] / $comp) * 100) : 0;
+                return $row;
+            }, $rows);
+        };
+
+        // 2. ЛОГИКА ДЛЯ ПРОСТЫХ ПОЛЕЙ (Direction)
+        $getSimpleStats = function($col) use ($pdo, $uid) {
+            $sql = "SELECT 
+                        $col as label,
+                        COUNT(*) as total_trades,
+                        SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN status IN ('win', 'loss', 'breakeven') THEN 1 ELSE 0 END) as completed
+                    FROM trades
+                    WHERE user_id = ? AND status != 'cancelled'
+                    GROUP BY $col
+                    HAVING label IS NOT NULL AND label != ''
+                    ORDER BY total_trades DESC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$uid]);
+            $rows = $stmt->fetchAll();
+             return array_map(function($row) {
+                $comp = (int)$row['completed'];
+                $row['win_rate'] = $comp > 0 ? round(($row['wins'] / $comp) * 100) : 0;
+                return $row;
+            }, $rows);
+        };
+
+        // 3. НОВАЯ ЛОГИКА ДЛЯ ТАЙМФРЕЙМОВ (Фиксированный список)
+        $getTimeframeStats = function() use ($pdo, $uid) {
+            // Список всех таймфреймов в нужном порядке
+            $masterList = ['1D', 'H4', 'H1', 'M15', 'M5']; 
+            
+            // Получаем реальные данные из базы
+            $sql = "SELECT 
+                        entry_tf as label,
+                        COUNT(*) as total_trades,
+                        SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN status IN ('win', 'loss', 'breakeven') THEN 1 ELSE 0 END) as completed
+                    FROM trades
+                    WHERE user_id = ? AND status != 'cancelled'
+                    GROUP BY entry_tf";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$uid]);
+            // Получаем массив, где ключи - это названия таймфреймов (label)
+            $dbStats = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_UNIQUE); 
+            
+            $result = [];
+            foreach ($masterList as $tf) {
+                if (isset($dbStats[$tf])) {
+                    // Если есть данные в базе - берем их
+                    $row = $dbStats[$tf];
+                    $comp = (int)$row['completed'];
+                    $winRate = $comp > 0 ? round(($row['wins'] / $comp) * 100) : 0;
+                    
+                    $result[] = [
+                        'label' => $tf,
+                        'total_trades' => (int)$row['total_trades'],
+                        'win_rate' => $winRate
+                    ];
+                } else {
+                    // Если данных нет - выводим нули
+                    $result[] = [
+                        'label' => $tf,
+                        'total_trades' => 0,
+                        'win_rate' => 0
+                    ];
+                }
+            }
+            return $result;
+        };
+
+        $data = [
+            'direction' => $getSimpleStats('direction'),
+            'timeframe' => $getTimeframeStats(), // Используем новую функцию
+            'style'     => $getRefStats('ref_styles', 'name', 'style_id'),
+            'model'     => $getRefStats('ref_models', 'name', 'model_id'),
+            'pairs'     => $getRefStats('ref_pairs', 'symbol', 'pair_id')
+        ];
+
+        echo json_encode(['success' => true, 'data' => $data]);
+
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
