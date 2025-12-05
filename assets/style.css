@@ -2353,3 +2353,184 @@ a.info-badge:hover {
         margin-bottom: 5px !important;
     }
 }
+
+/* =========================================
+   13. DATA ANALYSIS STYLES
+   ========================================= */
+
+/* Grid for 4 columns on large screens */
+.data-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+/* Padding utility (p-4) if not exists */
+.p-4 { padding: 25px !important; }
+
+.data-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.data-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ДОБАВЛЕНО: Красим иконку в заголовке в акцентный цвет */
+.data-header i {
+    color: var(--accent-blue);
+    font-size: 1.1rem;
+    /* Убираем opacity, если он наследовался */
+    opacity: 1; 
+}
+
+/* Individual Data Row */
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.data-label-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.data-stats-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.data-count {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.data-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
+}
+
+/* --- CIRCULAR PROGRESS BAR (CSS Only) --- */
+.circular-chart {
+    display: block;
+    margin: 0;
+    width: 24px;
+    height: 24px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 3;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    /* Stroke dasharray calculated in JS */
+    transition: stroke-dasharray 0.5s ease;
+}
+
+/* Pairs Grid */
+.pairs-grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.pair-stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pair-stat-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
+}
+
+/* Responsive: 2 cols on tablet, 1 on mobile */
+@media (max-width: 1200px) {
+    .data-grid-4 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+    .data-grid-4 { grid-template-columns: 1fr; }
+}
+
+/* --- TOOLTIP FOR WINRATE --- */
+
+/* Контейнер, на который наводим */
+.winrate-tooltip-wrapper {
+    position: relative;
+    cursor: help; /* Курсор со знаком вопроса */
+}
+
+/* Сама подсказка */
+.winrate-tooltip-wrapper::after {
+    content: attr(data-tooltip); /* Берет текст из атрибута html */
+    position: absolute;
+    bottom: 120%; /* Показываем над элементом */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, bottom 0.2s ease;
+    z-index: 100;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* Стрелочка вниз у подсказки */
+.winrate-tooltip-wrapper::before {
+    content: '';
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+}
+
+/* Показ при наведении */
+.winrate-tooltip-wrapper:hover::after {
+    opacity: 1;
+    bottom: 125%; /* Легкая анимация всплытия */
+}
+.winrate-tooltip-wrapper:hover::before {
+    opacity: 1;
+}

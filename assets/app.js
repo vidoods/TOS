@@ -904,6 +904,10 @@ async function loadTrades(filters = {}) {
                 const pnlClass = group.total_pnl >= 0 ? 'text-profit' : 'text-loss';
                 const pnlSign = group.total_pnl >= 0 ? '+' : '';
                 
+                // Проценты
+                const pctVal = group.total_percent || 0; // Защита если API еще не обновился
+                const pctSign = pctVal >= 0 ? '+' : '';
+                
                 html += `
                     <div class="month-group">
                         <div class="month-header" onclick="this.parentElement.classList.toggle('collapsed')">
@@ -915,8 +919,12 @@ async function loadTrades(filters = {}) {
                             <div class="month-summary">
                                 <span class="${pnlClass}">
                                     PnL: ${pnlSign}${group.total_pnl.toFixed(2)}
+                                    <span style="color: var(--text-secondary); margin: 0 15px; opacity: 0.4;">|</span>
+                                    ${pctSign}${pctVal.toFixed(2)}%
                                 </span>
-                                <span class="divider">|</span>
+                                
+                                <span class="divider" style="margin: 0 15px; color: var(--glass-border-hover);">|</span>
+                                
                                 <span class="text-main">
                                     RR: ${group.total_rr.toFixed(2)}R
                                 </span>
@@ -1920,6 +1928,131 @@ function renderAccountProgressBarDOM(acc, containerId) {
         </div>`;
 }
 
+// --- DATA ANALYSIS FUNCTIONS ---
+
+async function loadDataAnalysis() {
+    try {
+        const res = await fetch('api/api.php?action=get_data_analysis');
+        const json = await res.json();
+
+        if (json.success) {
+            const d = json.data;
+            renderDataList('list-direction', d.direction);
+            renderDataList('list-style', d.style);
+            renderDataList('list-timeframe', d.timeframe);
+            renderDataList('list-model', d.model);
+            renderPairsGrid('list-pairs', d.pairs);
+        }
+    } catch (e) { console.error(e); }
+}
+
+function renderDataList(containerId, items) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="text-muted small">No data available</div>';
+        return;
+    }
+
+    let html = '';
+    items.forEach(item => {
+        const label = item.label || 'N/A';
+        const count = item.total_trades;
+        const winrate = parseInt(item.win_rate);
+        
+        // Логика цвета: серый если 0 сделок или 0% винрейт, красный если убыток, зеленый если > 50%
+        // Если сделок 0, цвет круга будет серым
+        let color = '#6b7280'; // gray default
+        if (count > 0) {
+             if (winrate >= 50) color = '#00d66f'; // green
+             else color = '#ff453a'; // red
+        }
+
+        const strokeDash = `${winrate}, 100`;
+        // Подсказка для тултипа
+        const tooltipText = `Winrate: ${winrate}%`;
+
+        html += `
+        <div class="data-row">
+            <div class="data-label-group">
+                ${getLabelIcon(label)}
+                <span>${label}</span>
+            </div>
+            <div class="data-stats-group">
+                <span class="data-count">${count} Trades</span>
+                
+                <div class="winrate-tooltip-wrapper" data-tooltip="${tooltipText}" style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-weight:700; font-size:0.8rem; color:${color}; width: 35px; text-align:right;">${winrate}%</span>
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" stroke="${color}" stroke-dasharray="${strokeDash}" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                </div>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderPairsGrid(containerId, items) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="text-muted small">No trades yet</div>';
+        return;
+    }
+
+    let html = '';
+    items.forEach(item => {
+        const winrate = parseInt(item.win_rate);
+        const count = item.total_trades;
+        
+        let color = '#6b7280';
+        if (count > 0) {
+            if (winrate >= 50) color = '#00d66f';
+            else color = '#ff453a';
+        }
+        
+        const strokeDash = `${winrate}, 100`;
+        const tooltipText = `Winrate: ${winrate}%`;
+
+        html += `
+        <div class="pair-stat-card">
+            <div style="font-weight:700; font-size: 1rem;">${item.label}</div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="data-count">${count} T</span>
+                
+                <div class="winrate-tooltip-wrapper" data-tooltip="${tooltipText}" style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-weight:700; font-size:0.8rem; color:${color};">${winrate}%</span>
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" stroke="${color}" stroke-dasharray="${strokeDash}" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                </div>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function getLabelIcon(label) {
+    const l = label.toLowerCase();
+    if(l === 'long') return '<i class="fas fa-arrow-up text-profit" style="font-size: 0.8rem;"></i>';
+    if(l === 'short') return '<i class="fas fa-arrow-down text-loss" style="font-size: 0.8rem;"></i>';
+    return '';
+}
+
+function getIconForLabel(label) {
+    const l = label.toLowerCase();
+    if(l === 'long') return '<i class="fas fa-arrow-up text-profit small"></i>';
+    if(l === 'short') return '<i class="fas fa-arrow-down text-loss small"></i>';
+    if(l.includes('day')) return '<i class="fas fa-sun text-warning small"></i>'; // Intraday
+    if(l.includes('swing')) return '<i class="fas fa-history text-info small"></i>'; // Swing
+    return '';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view');
@@ -1967,6 +2100,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 	
 	if (view === 'accounts') { loadAccounts(); }
 	if (view === 'account_create') { initAccountForm(); }
+	
+	if (view === 'data') {
+        loadDataAnalysis();
+    }
     
     if (view === 'dashboard') { 
         populateDateFilters();
