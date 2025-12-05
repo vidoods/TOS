@@ -127,6 +127,9 @@ $currentTitle = $pageTitles[$view] ?? 'TOS - Trading Operating System';
                         <a href="index.php?view=accounts" class="<?= $view === 'accounts' ? 'active' : '' ?>">
                             <i class="fas fa-wallet"></i> Accounts
                         </a>
+						<a href="index.php?view=data" class="<?= $view === 'data' ? 'active' : '' ?>">
+                            <i class="fas fa-database"></i> Data Analysis
+                        </a>
                     </div>
                     
                     <div class="nav-links mt-auto" style="margin-top: 40px;">
