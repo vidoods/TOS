@@ -10,7 +10,7 @@
             </button>
             
             <a href="index.php?view=trade_create" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i> Новая Сделка
+                <i class="fas fa-plus me-2"></i> New Trade
             </a>
         </div>
     </div>

@@ -20,10 +20,17 @@ if (!$plan_id) {
 
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
     <h1 id="plan-details-title" class="page-title" style="margin: 0;">Загрузка плана...</h1>
+    
     <div class="plan-actions" style="display: flex; gap: 10px;">
-        <button class="btn btn-secondary" onclick="alert('Функция редактирования находится в разработке.')">✏️ Редактировать</button>
-        <button class="btn btn-danger" onclick="alert('Функция удаления находится в разработке.')">🗑️ Удалить</button>
-        <button class="btn btn-outline" onclick="window.location.href='index.php?view=plans'">← Назад к списку</button>
+		<a href="index.php?view=plans" class="btn btn-outline">
+            <i class="fas fa-arrow-left me-2"></i> Назад
+        </a>
+        <button class="btn btn-secondary" onclick="window.location.href='index.php?view=plan_create&id=<?= $plan_id ?>'">
+            <i class="fas fa-edit me-2"></i> Редактировать
+        </button>
+        <button class="btn btn-danger" onclick="deleteEntity(<?= $plan_id ?>, 'delete_plan', 'plans')">
+            <i class="fas fa-trash-alt me-2"></i> Удалить
+        </button>
     </div>
 </div>
 

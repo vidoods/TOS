@@ -7,15 +7,15 @@
         </h1>
         
         <div class="trade-actions" style="display: flex; gap: 10px;">
+			<a href="index.php?view=journal" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
             <button class="btn btn-secondary">
                 <i class="fas fa-edit"></i> Редактировать
             </button>
             <button class="btn btn-danger">
                 <i class="fas fa-trash-alt"></i> Удалить
             </button>
-            <a href="index.php?view=journal" class="btn btn-outline">
-                <i class="fas fa-arrow-left"></i> Назад к списку
-            </a>
         </div>
     </div>
 

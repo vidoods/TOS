@@ -5,7 +5,7 @@
 <div class="fade-in">
     <input type="hidden" id="current-note-id" value="<?php echo isset($_GET['id']) ? htmlspecialchars($_GET['id']) : ''; ?>">
 
-    <div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex justify-content-between align-items-start mb-4 responsive-header">
         <div>
             <h2 class="m-0 fw-bold" id="note-details-title" style="color: var(--text-primary);">Загрузка...</h2>
             <div class="text-muted small mt-1" id="note-date-info">-</div>

@@ -6,7 +6,7 @@
 <div class="fade-in">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="m-0" style="font-weight: 600;">Торговые Планы</h2>
+            <h2 class="m-0" style="font-weight: 600;">Trading plans</h2>
         </div>
         
         <div class="page-header-actions d-flex gap-2">
@@ -21,7 +21,7 @@
     </div>
 
     <div id="plans-list-container">
-        <div class="loading-spinner">Загрузка планов...</div>
+        <div class="loading-spinner">Loading plans...</div>
     </div>
 </div>
 
@@ -29,20 +29,20 @@
 <div id="filters-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(5px);">
     <div class="modal-content glass-panel" style="background: var(--glass-bg); margin: 10vh auto; padding: 30px; border: 1px solid var(--glass-border); width: 90%; max-width: 500px; border-radius: 16px; position: relative; box-shadow: var(--glass-shadow);">
         <span class="modal-close" id="filters-close-btn" style="position: absolute; top: 15px; right: 20px; color: var(--text-secondary); font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-        <h2 style="margin-top: 0; margin-bottom: 25px; text-align: center; color: var(--text-primary);">Фильтрация Планов</h2>
+        <h2 style="margin-top: 0; margin-bottom: 25px; text-align: center; color: var(--text-primary);">Filter Plans</h2>
         
         <form id="filters-form">
             <div class="form-group" style="margin-bottom: 20px;">
-                <label for="filter-pair" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Инструмент (Pair)</label>
+                <label for="filter-pair" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Instrument (Pair)</label>
                 <select class="select-field" id="filter-pair" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; outline: none;">
-                    <option value="">Все инструменты</option>
+                    <option value="">All instruments</option>
                 </select>
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">
-                <label for="filter-type" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Тип Плана</label>
+                <label for="filter-type" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Plan Type</label>
                 <select class="select-field" id="filter-type" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; outline: none;">
-                    <option value="">Все типы</option>
+                    <option value="">All types</option>
                     <option value="Weekly">Weekly</option>
                     <option value="Daily">Daily</option>
                     <option value="Monthly">Monthly</option>
@@ -51,7 +51,7 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 30px;">
-                <label for="filter-bias" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Нарратив (Bias)</label>
+                <label for="filter-bias" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Narrative (Bias)</label>
                 <select class="select-field" id="filter-bias" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; outline: none;">
                     <option value="">Любой нарратив</option>
                     <option value="Bullish">Bullish</option>
