@@ -56,23 +56,27 @@
                         <input type="datetime-local" class="form-control" id="trade-entry-date" name="entry_date" required>
                     </div>
                      <div class="col-md-4">
-                         <label class="form-label fw-bold d-block">Направление *</label>
-                        <div class="btn-group w-100" role="group">
-                            <input type="radio" class="btn-check" name="direction" id="dir-long" value="long" required checked>
-                            <label class="btn btn-outline-success" for="dir-long">🔼 Long</label>
-                            <input type="radio" class="btn-check" name="direction" id="dir-short" value="short">
-                            <label class="btn btn-outline-danger" for="dir-short">🔽 Short</label>
-                        </div>
-                    </div>
-                     <div class="col-md-4">
+						<label class="form-label fw-bold d-block">Direction *</label>
+						<div class="btn-group w-100" role="group">
+							<input type="radio" class="btn-check" name="direction" id="dir-long" value="Long" required checked>
+								<label class="btn btn-outline-success d-flex align-items-center justify-content-center gap-2 text-profit" for="dir-long">
+								<i class="fas fa-arrow-up"></i> Long
+								</label>
+        
+							<input type="radio" class="btn-check" name="direction" id="dir-short" value="Short">
+								<label class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2 text-loss" for="dir-short">
+								<i class="fas fa-arrow-down"></i> Short
+								</label>
+						</div>
+					</div>
+                    <div class="col-md-4">
                         <label for="trade-entry-tf" class="form-label">Таймфрейм Входа</label>
                          <select class="form-select" id="trade-entry-tf" name="entry_timeframe">
                             <option value="">Select</option>
-                            <option value="5m">5 минут</option>
-                            <option value="15m">15 минут</option>
-                            <option value="30m">30 минут</option>
-                            <option value="1h">1 час</option>
-                            <option value="4h">4 часа</option>
+                            <option value="M5">5 минут</option>
+                            <option value="M15">15 минут</option>
+                            <option value="H1">1 час</option>
+                            <option value="H4">4 часа</option>
                              <option value="1D">1 День</option>
                         </select>
                     </div>
