@@ -2534,3 +2534,282 @@ a.info-badge:hover {
 .winrate-tooltip-wrapper:hover::before {
     opacity: 1;
 }
+
+/* =========================================
+   14. STRATEGY PAGE STYLES (Note-like Style)
+   ========================================= */
+
+.strategy-grid {
+    display: grid;
+    /* Используем тот же грид, что и в заметках */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 20px;
+}
+
+.strategy-card {
+    /* --- Копируем стиль .note-card --- */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 25px; /* Чуть больше отступ, как просили ранее */
+    border-radius: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    text-decoration: none;
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    min-height: 160px; /* Фиксированная минимальная высота для красоты */
+}
+
+.strategy-card:hover {
+    /* Эффект наведения как у заметок */
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none;
+}
+
+/* Шапка карточки (Иконка + Заголовок) */
+.st-card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Иконка (стилизованная под скриншот, но с "стеклянным" оттенком) */
+.st-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px; /* Мягкий квадрат */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    /* Добавляем легкую тень иконке */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+}
+
+/* Цвета иконок (более насыщенные, как на скриншоте) */
+.st-icon.green { background: #bbf7d0; color: #14532d; } 
+.st-icon.yellow { background: #fef08a; color: #713f12; }
+.st-icon.blue { background: #bfdbfe; color: #1e3a8a; } 
+
+/* Заголовок */
+.st-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    color: var(--text-main);
+}
+
+/* Описание (нижняя часть) */
+.st-desc {
+    margin-top: auto; /* Прижимаем к низу */
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    /* Добавим верхнюю границу для разделения, если текста много, или уберем для чистоты */
+    /* border-top: 1px solid var(--glass-border); */
+    /* padding-top: 10px; */
+}
+
+/* =========================================
+   15. QUILL EDITOR ADVANCED STYLES & TOOLTIPS
+   ========================================= */
+
+/* --- 1. Адаптация выпадающих списков под темную тему --- */
+
+/* Цвет иконок в выпадающих списках (выравнивание, цвет) */
+.ql-snow .ql-picker {
+    color: var(--text-secondary) !important;
+}
+.ql-snow .ql-picker-label:hover {
+    color: var(--text-main) !important;
+}
+.ql-snow .ql-picker-label:hover .ql-stroke {
+    stroke: var(--text-main) !important;
+}
+
+/* Сами выпадающие меню (options) */
+.ql-snow .ql-picker-options {
+    background-color: #1a1d24 !important; /* Темный фон */
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    padding: 10px !important;
+}
+
+/* Элементы внутри выпадающего списка */
+.ql-snow .ql-picker-item {
+    color: var(--text-secondary) !important;
+}
+.ql-snow .ql-picker-item:hover {
+    color: var(--accent-blue) !important;
+}
+.ql-snow .ql-picker-item.ql-selected {
+    color: var(--accent-green) !important;
+    font-weight: bold;
+}
+
+/* Фикс для иконок выравнивания */
+.ql-snow .ql-picker.ql-align .ql-picker-label svg,
+.ql-snow .ql-picker.ql-align .ql-picker-item svg {
+    filter: invert(1) opacity(0.7); /* Делаем их светлыми */
+}
+.ql-snow .ql-picker.ql-align .ql-picker-item:hover svg {
+    filter: invert(1) opacity(1);
+}
+
+/* --- 2. Красивые Tooltips (Подсказки) для кнопок --- */
+
+/* База для кнопки, чтобы подсказка позиционировалась относительно неё */
+.ql-toolbar button, .ql-toolbar .ql-picker-label {
+    position: relative;
+}
+
+/* Общий стиль подсказки */
+.ql-toolbar button::after, 
+.ql-toolbar .ql-picker-label::after {
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+    border: 1px solid var(--glass-border);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: none; /* Скрыто по умолчанию */
+}
+
+/* Показываем при наведении */
+.ql-toolbar button:hover::after,
+.ql-toolbar .ql-picker-label:hover::after {
+    display: block;
+    opacity: 1;
+}
+
+/* --- Тексты подсказок для каждой кнопки --- */
+
+/* Форматирование */
+.ql-bold:hover::after { content: "Bold (Жирный)"; }
+.ql-italic:hover::after { content: "Italic (Курсив)"; }
+.ql-underline:hover::after { content: "Underline (Подчеркнутый)"; }
+.ql-strike:hover::after { content: "Strike (Зачеркнутый)"; }
+
+/* Списки */
+.ql-list[value="ordered"]:hover::after { content: "Numbered List (Нумерация)"; }
+.ql-list[value="bullet"]:hover::after { content: "Bullet List (Маркеры)"; }
+
+/* Медиа */
+.ql-link:hover::after { content: "Insert Link (Ссылка)"; }
+.ql-image:hover::after { content: "Upload Image (Картинка)"; }
+.ql-clean:hover::after { content: "Clear Formatting (Очистить)"; }
+
+/* Заголовки (они в выпадающем списке, но Quill делает их кнопками в коде иногда) */
+.ql-header[value="1"]:hover::after { content: "Header 1"; }
+.ql-header[value="2"]:hover::after { content: "Header 2"; }
+
+/* Выпадающие списки (Pickers) */
+.ql-color .ql-picker-label:hover::after { content: "Text Color (Цвет текста)"; }
+.ql-background .ql-picker-label:hover::after { content: "Background Color (Фон)"; }
+.ql-align .ql-picker-label:hover::after { content: "Alignment (Выравнивание)"; }
+.ql-header .ql-picker-label:hover::after { content: "Header Size (Заголовок)"; }
+
+.ql-blockquote:hover::after { content: "Quote (Цитата)"; }
+.ql-code-block:hover::after { content: "Code Block (Код)"; }
+
+.ql-script[value="sub"]:hover::after { content: "Subscript (Нижний индекс)"; }
+.ql-script[value="super"]:hover::after { content: "Superscript (Верхний индекс)"; }
+
+.ql-indent[value="-1"]:hover::after { content: "Decrease Indent (Убрать отступ)"; }
+.ql-indent[value="+1"]:hover::after { content: "Increase Indent (Добавить отступ)"; }
+
+.ql-direction:hover::after { content: "Text Direction (Направление)"; }
+.ql-video:hover::after { content: "Insert Video (Видео)"; }
+
+/* Выпадающие списки */
+.ql-size .ql-picker-label:hover::after { content: "Font Size (Размер)"; }
+.ql-font .ql-picker-label:hover::after { content: "Font Family (Шрифт)"; }
+
+/* Исправление ширины выпадающих списков, чтобы текст влезал */
+.ql-snow .ql-picker.ql-font { width: 120px !important; }
+.ql-snow .ql-picker.ql-size { width: 90px !important; }
+
+/* =========================================
+   16. НАСТРОЙКА ШРИФТОВ РЕДАКТОРА
+   ========================================= */
+
+/* 1. Применяем реальные шрифты к контенту */
+.ql-font-inter { font-family: 'Inter', sans-serif; }
+.ql-font-roboto { font-family: 'Roboto', sans-serif; }
+.ql-font-serif { font-family: 'Georgia', serif; }
+.ql-font-monospace { font-family: 'Courier New', monospace; }
+
+/* 2. Названия в выпадающем списке (Label - то что выбрано) */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="inter"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="inter"]::before {
+    content: 'Inter (Site Default)';
+    font-family: 'Inter', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="roboto"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="roboto"]::before {
+    content: 'Roboto';
+    font-family: 'Roboto', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before {
+    content: 'Serif';
+    font-family: 'Georgia', serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before {
+    content: 'Monospace (Code)';
+    font-family: 'Courier New', monospace;
+}
+
+/* Исправляем ширину выпадающего списка шрифтов, чтобы названия влезали */
+.ql-snow .ql-picker.ql-font {
+    width: 150px !important;
+}
+
+/* =========================================
+   17. ПОДКЛЮЧЕНИЕ СВОЕГО ШРИФТА
+   ========================================= */
+
+/* 1. Загружаем файл шрифта */
+@font-face {
+    font-family: 'Montserrat'; /* Имя для CSS */
+    src: url('fonts/Montserrat-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 2. Класс, который Quill будет вешать на текст */
+/* ВАЖНО: имя класса должно быть .ql-font-{название_в_js} */
+.ql-font-Montserrat { 
+    font-family: 'Montserrat', sans-serif; 
+}
+
+/* 3. Красивое название в выпадающем списке */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Montserrat"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Montserrat"]::before {
+    content: 'Montserrat'; /* То, что вы увидите в меню */
+    font-family: 'Montserrat', sans-serif; /* Чтобы название было написано этим же шрифтом */
+}

@@ -9,6 +9,15 @@ let accountBalances = {};
 let quillEditor = null; // Глобальная переменная для редактора
 let equityChartInstance = null;
 
+// --- 1. Регистрация шрифтов (в начало файла assets/app.js) ---
+
+// Получаем объект Font из Quill
+const Font = Quill.import('formats/font');
+// Задаем список разрешенных шрифтов (названия классов CSS)
+// Важно: Первым должен идти шрифт по умолчанию (пустая строка или 'inter')
+Font.whitelist = ['inter', 'roboto', 'serif', 'monospace', 'Montserrat']; 
+Quill.register(Font, true);
+
 function toggleMenu() {
     menuOpen = !menuOpen;
     const sidebar = document.getElementById('sidebar');
@@ -214,13 +223,18 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span>⏳</span> Сохранение...';
+    submitBtn.innerHTML = '<span>⏳</span> Saving...';
 
-    // --- Если это заметка, переносим HTML из редактора в скрытое поле ---
-    if (entityName === 'note' && quillEditor) {
-        document.getElementById('note-content-hidden').value = quillEditor.root.innerHTML;
+    // 1. Переносим HTML из редактора
+    if (quillEditor) {
+        if (entityName === 'note') {
+            const el = document.getElementById('note-content-hidden');
+            if(el) el.value = quillEditor.root.innerHTML;
+        } else if (entityName === 'strategy') {
+            const el = document.getElementById('st-content-hidden');
+            if(el) el.value = quillEditor.root.innerHTML;
+        }
     }
-    // -------------------------------------------------------------------
 
     try {
         const formData = new FormData(form);
@@ -236,7 +250,7 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             }
         });
         
-        // Добавляем ID, если это редактирование (поля часто вне формы)
+        // 2. Добавляем ID если это редактирование
         if (entityName === 'plan' && document.getElementById('edit-plan-id')) {
             const idVal = document.getElementById('edit-plan-id').value;
             if (idVal) data['id'] = idVal;
@@ -249,7 +263,12 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
             const idVal = document.getElementById('edit-note-id').value;
             if (idVal) data['id'] = idVal;
         }
+        if (entityName === 'strategy' && document.getElementById('edit-strategy-id')) {
+            const idVal = document.getElementById('edit-strategy-id').value;
+            if (idVal) data['id'] = idVal;
+        }
         
+        // 3. Обработка изображений (как было)
         ['timeframes', 'trade_images'].forEach(arrKey => {
              if (data[arrKey]) data[arrKey] = data[arrKey].filter(item => item && (item.url || item.notes || item.title));
         });
@@ -278,6 +297,7 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
 
         await Promise.all(imagePromises);
 
+        // 4. Отправка запроса
         const response = await fetch(`api/api.php?action=${action}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -286,13 +306,20 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
         const result = await response.json();
 
         if (result.success) {
-            window.location.href = `index.php?view=${redirectView}`;
+            // --- ЛОГИКА РЕДИРЕКТА ---
+            // Если это стратегия и сервер вернул ID -> идем на страницу просмотра
+            if (entityName === 'strategy' && result.id) {
+                window.location.href = `index.php?view=strategy_details&id=${result.id}`;
+            } else {
+                // Иначе идем на общий список (как было раньше)
+                window.location.href = `index.php?view=${redirectView}`;
+            }
         } else {
-            showMessage('Ошибка сохранения: ' + result.message, 'error');
+            showMessage('Error saving: ' + result.message, 'error');
         }
     } catch (error) {
-        console.error('Ошибка при сохранении:', error);
-        showMessage('Произошла ошибка при сохранении. Проверьте консоль.', 'error');
+        console.error('Save error:', error);
+        showMessage('An error occurred while saving.', 'error');
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;
@@ -372,11 +399,32 @@ async function loadNotes() {
     } catch (e) { console.error(e); }
 }
 
+// Конфигурация "Полный фарш Quill"
+const fullToolbarOptions = [
+    ['bold', 'italic', 'underline', 'strike'],        				// Жирный, курсив, подчеркивание, зачеркивание
+    ['blockquote', 'code-block'],                     				// Цитата, Блок кода
+
+    [{ 'header': 1 }, { 'header': 2 }],               				// Заголовки H1, H2 кнопками
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],     				// Списки
+    [{ 'script': 'sub'}, { 'script': 'super' }],      				// Индексы (нижний/верхний)
+    [{ 'indent': '-1'}, { 'indent': '+1' }],          				// Отступы
+    [{ 'direction': 'rtl' }],                         				// Направление текста
+
+    [{ 'size': ['small', false, 'large', 'huge'] }],  				// Размер шрифта
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],        				// Заголовки списком
+
+    [{ 'color': [] }, { 'background': [] }],          				// Цвет текста и фона
+    [{ 'font': ['inter', 'roboto', 'serif', 'monospace', 'Montserrat'] }],        // Шрифт
+    [{ 'align': [] }],                                				// Выравнивание
+
+    ['clean'],                                        				// Очистить формат
+    ['link', 'image', 'video']                        				// Ссылки, Картинки, Видео
+];
+
 async function initNoteForm() {
     const idEl = document.getElementById('edit-note-id');
     await loadLookups();
     
-    // Инициализация редактора Quill
     if (document.getElementById('editor-container')) {
         document.getElementById('editor-container').innerHTML = ''; 
         quillEditor = new Quill('#editor-container', {
@@ -384,12 +432,7 @@ async function initNoteForm() {
             placeholder: 'Пишите здесь...',
             modules: {
                 toolbar: {
-                    container: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link', 'image', 'clean']
-                    ],
+                    container: fullToolbarOptions, // Используем полную конфигурацию
                     handlers: {
                         'image': function() {
                             const input = document.createElement('input');
@@ -401,7 +444,6 @@ async function initNoteForm() {
                                 const file = input.files[0];
                                 if (file && /^image\//.test(file.type)) {
                                     try {
-                                        // Загружаем в папку notes
                                         const url = await uploadFile(file, 'notes'); 
                                         const range = quillEditor.getSelection();
                                         quillEditor.insertEmbed(range.index, 'image', url);
@@ -426,9 +468,7 @@ async function initNoteForm() {
         if(j.success) {
             const n = j.data;
             document.getElementById('note-title').value = n.title;
-            // Вставляем HTML в редактор
             if(quillEditor) quillEditor.clipboard.dangerouslyPasteHTML(n.content || '');
-            
             if(n.trade && n.trade.id) document.getElementById('note-trade').value = n.trade.id;
             if(n.plan && n.plan.id) document.getElementById('note-plan').value = n.plan.id;
         }
@@ -2053,6 +2093,115 @@ function getIconForLabel(label) {
     return '';
 }
 
+// ==================================================
+// STRATEGY FUNCTIONS
+// ==================================================
+
+async function loadStrategies() {
+    const container = document.getElementById('strategy-grid');
+    if (!container) return;
+    container.innerHTML = '<div class="loading-spinner">Loading system...</div>';
+
+    try {
+        const res = await fetch('api/api.php?action=get_strategies');
+        const json = await res.json();
+
+        if (json.success) {
+            if (json.data.length === 0) {
+                container.innerHTML = '<div class="empty-state">No strategy modules yet. Add one!</div>';
+                return;
+            }
+
+            let html = '';
+            json.data.forEach(item => {
+                // Выбираем цвет иконки рандомно или на основе названия (для красоты)
+                let iconColorClass = 'green';
+                if(item.title.includes('Risk')) iconColorClass = 'yellow';
+                if(item.title.includes('Execution') || item.title.includes('Trade')) iconColorClass = 'blue';
+
+                html += `
+                <a href="index.php?view=strategy_details&id=${item.id}" class="strategy-card">
+                    <div class="st-card-header">
+                        <div class="st-icon ${iconColorClass}">
+                            <i class="${item.icon}"></i>
+                        </div>
+                        <div class="st-title">${item.title}</div>
+                    </div>
+                    <div class="st-desc">${item.description || ''}</div>
+                </a>`;
+            });
+            container.innerHTML = html;
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function initStrategyForm() {
+    const idEl = document.getElementById('edit-strategy-id');
+    
+    if (document.getElementById('editor-container')) {
+        document.getElementById('editor-container').innerHTML = ''; 
+        quillEditor = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Describe your strategy rules here...',
+            modules: {
+                toolbar: fullToolbarOptions // Используем ту же полную конфигурацию
+            }
+        });
+    }
+
+    if(idEl && idEl.value) {
+        const res = await fetch(`api/api.php?action=get_strategy_details&id=${idEl.value}`);
+        const json = await res.json();
+        if(json.success) {
+            const d = json.data;
+            document.getElementById('st-title').value = d.title;
+            document.getElementById('st-icon').value = d.icon;
+            document.getElementById('st-desc').value = d.description;
+            if(quillEditor) quillEditor.clipboard.dangerouslyPasteHTML(d.content || '');
+        }
+    }
+    
+    const form = document.getElementById('strategy-form');
+    if(form) {
+        form.onsubmit = (e) => handleFormSubmit(e, 'save_strategy', 'strategy', 'strategy');
+    }
+}
+
+async function loadStrategyDetails() {
+    const id = document.getElementById('current-strategy-id')?.value;
+    if (!id) return;
+
+    try {
+        const res = await fetch(`api/api.php?action=get_strategy_details&id=${id}`);
+        const json = await res.json();
+        if (json.success) {
+            const d = json.data;
+            document.getElementById('st-detail-title').textContent = d.title;
+            document.getElementById('st-detail-desc').textContent = d.description;
+            document.getElementById('st-content-display').innerHTML = d.content;
+            
+            // Иконка
+            const iconContainer = document.getElementById('st-detail-icon');
+            iconContainer.innerHTML = `<i class="${d.icon}"></i>`;
+            // Цвет иконки
+            iconContainer.classList.remove('green', 'yellow', 'blue');
+            if(d.title.includes('Risk')) iconContainer.classList.add('yellow');
+            else if(d.title.includes('Execution')) iconContainer.classList.add('blue');
+            else iconContainer.classList.add('green');
+
+            document.getElementById('btn-edit-strategy').onclick = () => window.location.href = `index.php?view=strategy_create&id=${d.id}`;
+			document.getElementById('btn-delete-strategy').onclick = () => deleteStrategy(d.id);
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function deleteStrategy(id) {
+    if(!confirm('Are you sure you want to delete this module?')) return;
+    const fd = new FormData(); fd.append('id', id);
+    await fetch('api/api.php?action=delete_strategy', {method:'POST', body:fd});
+    window.location.href='index.php?view=strategy';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get('view');
@@ -2104,6 +2253,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 	if (view === 'data') {
         loadDataAnalysis();
     }
+	
+	if (view === 'strategy') { loadStrategies(); }
+    if (view === 'strategy_create') { initStrategyForm(); }
+    if (view === 'strategy_details') { loadStrategyDetails(); setTimeout(setupLightbox, 100); }
     
     if (view === 'dashboard') { 
         populateDateFilters();
