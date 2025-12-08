@@ -1609,12 +1609,6 @@ a.info-badge:hover {
         margin-top 0.8s ease-in-out;
 }
 
-/* Внутренний контейнер, который будет скрываться */
-.trades-inner {
-    overflow: hidden;
-    min-height: 0; /* Обязательно для работы grid-сжатия */
-}
-
 /* --- СОСТОЯНИЕ "СВЕРНУТО" --- */
 
 .month-group.collapsed .trades-table-wrapper {
@@ -1637,13 +1631,6 @@ a.info-badge:hover {
 /* --- НОВАЯ СИСТЕМА СПИСКА СДЕЛОК (GRID / DIVS) --- */
 
 /* Обертка для анимации сворачивания */
-.trades-list-wrapper {
-    display: grid;
-    grid-template-rows: 1fr;
-    transition: grid-template-rows 0.5s ease-out, opacity 0.5s ease;
-    opacity: 1;
-    margin-top: 10px;
-}
 
 .trades-inner {
     overflow: hidden;
@@ -1657,27 +1644,15 @@ a.info-badge:hover {
     margin-top: 0;
 }
 
-/* --- СЕТКА ДЛЯ ПК (Строка как в таблице) --- */
-.trade-row {
-    display: grid;
-    /* Определяем колонки: Дата, Пара, Dir, Stat, Risk, RR, PnL, Actions */
-    grid-template-columns: 0.8fr 1fr 0.8fr 1fr 0.8fr 0.8fr 1fr 80px; 
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid var(--glass-border);
-    transition: background 0.2s;
-    text-decoration: none;
-    color: var(--text-main);
-}
-
 /* Заголовок списка */
 .trade-header-row {
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-secondary) !important;
     text-transform: uppercase;
-    font-size: 0.8rem;
-    border-bottom: 2px solid var(--glass-border); /* Чуть жирнее линия под шапкой */
-    background: transparent !important; /* У шапки нет фона при наведении */
+    font-size: 0.75rem; 
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--glass-border);
+    background: transparent !important;
 }
 
 /* Обычная строка-карточка */
@@ -1698,6 +1673,14 @@ a.info-badge:hover {
     text-overflow: ellipsis;
     padding-right: 10px;
 }
+
+.t-account {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Обрезает длинные названия с троеточием */
+    padding-right: 10px;
+}
+
 .t-pnl { font-weight: 700; }
 .t-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .mobile-label { display: none; } /* Скрываем подписи "Risk:", "RR:" на ПК */
@@ -1719,12 +1702,6 @@ a.info-badge:hover {
     min-height: 0;
 }
 
-.month-group.collapsed .trades-list-wrapper {
-    grid-template-rows: 0fr;
-    opacity: 0;
-    margin-top: 0;
-}
-
 .month-header .month-toggle-icon {
     /* Добавляем плавный переход для вращения */
     transition: transform 0.3s ease; 
@@ -1742,43 +1719,18 @@ a.info-badge:hover {
 /* --- СЕТКА ДЛЯ ПК --- */
 .trade-row {
     display: grid;
-    /* 8 колонок для ПК */
-    grid-template-columns: 0.8fr 1fr 0.8fr 1fr 0.8fr 0.8fr 1fr 80px; 
+    /* 9 КОЛОНОК В РЯД:
+       Date (0.65fr) | Pair (0.6fr) | Account (1.2fr) | Dir (0.5fr) | Status (0.7fr) | Risk (0.5fr) | RR (0.5fr) | PnL (0.8fr) | Actions (70px)
+    */
+    grid-template-columns: 0.55fr 0.6fr 1.2fr 0.5fr 0.7fr 0.5fr 0.5fr 0.6fr 90px; 
     align-items: center;
-    padding: 15px;
+    padding: 12px 15px; 
     border-bottom: 1px solid var(--glass-border);
     transition: background 0.2s;
     text-decoration: none;
     color: var(--text-main);
+    font-size: 0.9rem; /* Чуть компактнее шрифт */
 }
-
-.trade-header-row {
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    border-bottom: 2px solid var(--glass-border);
-    background: var(--glass-bg) !important;
-}
-
-.trade-item { cursor: pointer; }
-.trade-item:hover { background: var(--glass-bg-hover); }
-.trade-item:last-child { border-bottom: none; }
-
-.t-col {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-right: 10px;
-    display: flex;
-    align-items: center;
-}
-.t-pnl { font-weight: 700; }
-.t-actions { justify-content: flex-end; gap: 8px; }
-
-/* СКРЫВАЕМ ПОДПИСИ НА ПК */
-.mobile-label { display: none; } 
-
 
 /* --- АДАПТИВНОСТЬ: ПЛИТКА НА ТЕЛЕФОНЕ --- */
 @media (max-width: 900px) {
@@ -1787,10 +1739,11 @@ a.info-badge:hover {
 
     .trade-item {
         display: grid;
-        /* Сетка 2 колонки */
         grid-template-columns: 1fr 1fr; 
+        /* Схема расположения элементов */
         grid-template-areas: 
             "date pair"
+            "account account"  /* Аккаунт на всю ширину */
             "dir status"
             "risk rr"
             "pnl actions";
@@ -1803,7 +1756,6 @@ a.info-badge:hover {
         padding: 15px;
     }
 
-    /* ПОКАЗЫВАЕМ ПОДПИСИ */
     .mobile-label {
         display: inline-block;
         font-size: 0.8rem;
@@ -1811,32 +1763,44 @@ a.info-badge:hover {
         font-weight: 600;
         text-transform: uppercase;
         margin-right: 8px;
-        min-width: 40px; /* Выравнивание */
+        min-width: 40px;
     }
 
-    /* Назначаем области и стили ячеек */
+    /* Сброс стилей ячеек для мобильного */
     .t-col {
-        white-space: normal; /* Разрешаем перенос */
+        white-space: normal;
         overflow: visible;
         padding: 0;
     }
 
+    /* Привязка полей к областям */
     .t-date   { grid-area: date; font-size: 0.9rem; color: var(--text-secondary); }
-    .t-pair   { grid-area: pair; justify-self: end; font-size: 1.1rem; }
-    /* Для пары скрываем лейбл, чтобы она была крупной справа */
-    /*.t-pair .mobile-label { display: none; } */
+    .t-pair   { grid-area: pair; justify-self: end; font-size: 1.1rem; font-weight: 700; }
     
+    /* Аккаунт на мобильном */
+    .t-account { 
+        grid-area: account; 
+        font-size: 0.85rem; 
+        color: var(--text-secondary);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05); /* Линия разделитель */
+        padding-bottom: 8px;
+        margin-bottom: 5px;
+        padding-right: 0;
+    }
+
     .t-dir    { grid-area: dir; }
     .t-status { grid-area: status; justify-self: end; }
-    /* Для статуса тоже можно скрыть лейбл, так как бейдж понятен */
-    /*.t-status .mobile-label { display: none; }*/
-
     .t-risk   { grid-area: risk; font-size: 0.9rem; }
     .t-rr     { grid-area: rr; justify-self: end; font-size: 0.9rem; }
     
-    .t-pnl    { grid-area: pnl; font-size: 0.9rem; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; width: 100%;}
-    /* Для PnL лейбл скрываем, цифра говорит сама за себя */
-    /*.t-pnl .mobile-label { display: none; }*/
+    .t-pnl    { 
+        grid-area: pnl; 
+        font-size: 0.9rem; 
+        margin-top: 8px; 
+        border-top: 1px solid rgba(255,255,255,0.05); 
+        padding-top: 8px; 
+        width: 100%;
+    }
 
     .t-actions { 
         grid-area: actions; 
@@ -2812,4 +2776,43 @@ a.info-badge:hover {
 .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Montserrat"]::before {
     content: 'Montserrat'; /* То, что вы увидите в меню */
     font-family: 'Montserrat', sans-serif; /* Чтобы название было написано этим же шрифтом */
+}
+
+/* =========================================
+   18. КНОПКИ В ЖУРНАЛЕ (БЕЗ ФОНА)
+   ========================================= */
+
+/* 1. Базовое состояние */
+.btn-icon,
+.btn-icon:visited {
+    color: var(--accent-blue) !important; /* Синий цвет */
+    background: transparent !important;    /* Фона нет */
+    border: none;
+    
+    /* Анимация только для трансформации (размера) */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Убираем внутренние отступы, если они мешают */
+}
+
+/* 2. Наведение (Hover) - Только увеличение */
+.btn-icon:hover {
+    transform: scale(1.05); /* Увеличиваем иконку чуть сильнее (на 20%) */
+    color: var(--accent-blue) !important;
+    background: transparent !important; /* Фон не появляется */
+    box-shadow: none;
+    filter: drop-shadow(0 0 5px rgba(41, 151, 255, 0.5)); /* Легкое свечение самой иконки (по желанию) */
+}
+
+/* 3. Клик (Active) */
+.btn-icon:active,
+.btn-icon:focus {
+    transform: scale(0.9); /* Сжатие при клике */
+    color: var(--accent-blue) !important;
+    background: transparent !important;
+    outline: none;
 }

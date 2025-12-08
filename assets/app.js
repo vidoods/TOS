@@ -943,9 +943,7 @@ async function loadTrades(filters = {}) {
             groupedTrades.forEach(group => {
                 const pnlClass = group.total_pnl >= 0 ? 'text-profit' : 'text-loss';
                 const pnlSign = group.total_pnl >= 0 ? '+' : '';
-                
-                // Проценты
-                const pctVal = group.total_percent || 0; // Защита если API еще не обновился
+                const pctVal = group.total_percent || 0;
                 const pctSign = pctVal >= 0 ? '+' : '';
                 
                 html += `
@@ -957,17 +955,15 @@ async function loadTrades(filters = {}) {
                                 ${group.month_label}
                             </div>
                             <div class="month-summary">
-                                <span class="${pnlClass}">
+                                <div class="sum-item ${pnlClass}">
                                     PnL: ${pnlSign}${group.total_pnl.toFixed(2)}
-                                    <span style="color: var(--text-secondary); margin: 0 15px; opacity: 0.4;">|</span>
+                                </div>
+                                <div class="sum-item ${pnlClass}">
                                     ${pctSign}${pctVal.toFixed(2)}%
-                                </span>
-                                
-                                <span class="divider" style="margin: 0 15px; color: var(--glass-border-hover);">|</span>
-                                
-                                <span class="text-main">
-                                    RR: ${group.total_rr.toFixed(2)}R
-                                </span>
+                                </div>
+                                <div class="sum-item text-main">
+                                    RR: ${group.total_rr.toFixed(2)}
+                                </div>
                             </div>
                         </div>
                         
@@ -977,14 +973,14 @@ async function loadTrades(filters = {}) {
                                 <div class="trade-row trade-header-row">
                                     <div class="t-col t-date">Date</div>
                                     <div class="t-col t-pair">Pair</div>
-                                    <div class="t-col t-dir">Dir</div>
+                                    <div class="t-col t-account">Account</div>
+									<div class="t-col t-dir">Dir</div>
                                     <div class="t-col t-status">Status</div>
                                     <div class="t-col t-risk">Risk</div>
                                     <div class="t-col t-rr">RR</div>
                                     <div class="t-col t-pnl">PnL</div>
                                     <div class="t-col t-actions">Actions</div>
                                 </div>
-
                                 `;
                 
                 group.trades.forEach(trade => {
@@ -1004,9 +1000,13 @@ async function loadTrades(filters = {}) {
                                 <span class="mobile-label">Pair:</span> <strong>${trade.pair_symbol}</strong>
                             </div>
                             
+                            <div class="t-col t-account">
+                                <span class="mobile-label">Acc:</span> <strong>${trade.account_name}</strong>
+                            </div>
+                            
                             <div class="t-col t-dir">
                                 <span class="mobile-label">Dir:</span> 
-                                <span class="dir-tag dir-${trade.direction}">${trade.direction.toUpperCase()}</span>
+                                <span class="dir-tag dir-${trade.direction} status-tag ${statusClass}">${trade.direction.toUpperCase()}</span>
                             </div>
                             <div class="t-col t-status">
                                 <span class="mobile-label">Status:</span> 
