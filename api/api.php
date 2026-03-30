@@ -153,10 +153,6 @@ switch ($action) {
     case 'save_strategy': saveStrategy($conn); break;
     case 'delete_strategy': deleteStrategy($conn); break;
 	case 'get_mpa_analysis': getMPAAnalysis($conn); break;
-	
-	case 'get_mpa_analysis': 
-        getMPAAnalysis($conn); 
-        break;
 		
 	case 'get_mpa_month_details': getMPAMonthDetails($conn); break;
     case 'save_mpa_report':
@@ -197,7 +193,7 @@ function handleRegister($pdo) {
 
     // Проверяем валидность Email
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+        echo json_encode(['success' => false, 'message' => 'Invalid email address. Please enter a valid email.']);
         return;
     }
 
