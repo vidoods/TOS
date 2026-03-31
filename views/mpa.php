@@ -13,6 +13,14 @@
             <select id="mpa-year-select" class="form-select form-select-sm" style="width: 100px; background: rgba(255,255,255,0.1); border:none; color:white;">
                 </select>
 
+            <select id="mpa-quarter-select" class="form-select form-select-sm" style="width: 100px; background: rgba(255,255,255,0.1); border:none; color:white;">
+                <option value="all">All</option>
+                <option value="1">Q1</option>
+                <option value="2">Q2</option>
+                <option value="3">Q3</option>
+                <option value="4">Q4</option>
+            </select>
+
             <div class="mpa-filter-group">
                 <button id="by-quarter-btn" class="mpa-filter-btn active"><i class="fas fa-th-large"></i> By Quarter</button>
                 </div>
@@ -29,11 +37,14 @@
 
 <script>
 document.getElementById('by-quarter-btn').addEventListener('click', function() {
-    // Fetch the data from the server
-    fetch('/api/get_analysis_data')
+    const year = document.getElementById('mpa-year-select').value;
+    const quarter = document.getElementById('mpa-quarter-select').value;
+
+    // Fetch the data from the server with query parameters
+    fetch(`/api/get_analysis_data?year=${year}&quarter=${quarter}`)
         .then(response => response.json())
         .then(data => {
-            // Sort the data by quarters
+            // Sort the data by quarters if needed
             const sortedData = sortDataByQuarter(data);
             // Update the UI with the sorted data
             updateUI(sortedData);
