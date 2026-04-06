@@ -12,13 +12,13 @@
         <div class="d-flex flex-wrap gap-3 align-items-center">
             
             <div>
-                <label class="small text-muted mb-1 d-block">Year</label>
+                <label for="mpa-year-select" class="small text-muted mb-1 d-block">Year</label>
                 <select id="mpa-year-select" class="form-select form-select-sm" style="width: 120px; background: rgba(255,255,255,0.1); border:none; color:white;">
-                    </select>
+                </select>
             </div>
 
             <div>
-                <label class="small text-muted mb-1 d-block">Quarter</label>
+                <label for="mpa-quarter-select" class="small text-muted mb-1 d-block">Quarter</label>
                 <select id="mpa-quarter-select" class="form-select form-select-sm" style="width: 120px; background: rgba(255,255,255,0.1); border:none; color:white;">
                     <option value="all">All Year</option>
                     <option value="1">Q1</option>
