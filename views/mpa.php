@@ -21,10 +21,10 @@
                 <label class="small text-muted mb-1 d-block">Quarter</label>
                 <select id="mpa-quarter-select" class="form-select form-select-sm" style="width: 120px; background: rgba(255,255,255,0.1); border:none; color:white;">
                     <option value="all">All Year</option>
-                    <option value="1">Q1 (Jan - Mar)</option>
-                    <option value="2">Q2 (Apr - Jun)</option>
-                    <option value="3">Q3 (Jul - Sep)</option>
-                    <option value="4">Q4 (Oct - Dec)</option>
+                    <option value="1">Q1</option>
+                    <option value="2">Q2</option>
+                    <option value="3">Q3</option>
+                    <option value="4">Q4</option>
                 </select>
             </div>
 
