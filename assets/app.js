@@ -2334,16 +2334,6 @@ async function deleteStrategy(id) {
     window.location.href='index.php?view=strategy';
 }
 
-;
-        opt.textContent = y;
-        yearSelect.appendChild(opt);
-    }
-
-    // При смене года перезагружаем
-    yearSelect.addEventListener('change', () => {
-        loadMPAData(yearSelect.value);
-    });
-
 // ==================================================
 // ЛОГИКА MPA (Monthly Performance Analysis)
 // ==================================================
@@ -2424,7 +2414,7 @@ function renderMPAGrid(quartersData, container, year) {
     const selectedQ = quarterSelect ? quarterSelect.value : 'all';
 
     for (let q = 1; q <= 4; q++) {
-        // Фильтр
+        // Фильтр по кварталам
         if (selectedQ !== 'all' && selectedQ != q) continue;
 
         const qData = quartersData[q];
