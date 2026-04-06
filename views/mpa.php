@@ -28,12 +28,6 @@
                 </select>
             </div>
 
-            <div class="mt-4">
-                <button class="mpa-filter-btn active bg-transparent border-0 text-primary" style="cursor: default;">
-                    <i class="fas fa-filter"></i> Filtered View
-                </button>
-            </div>
-
         </div>
     </div>
 
