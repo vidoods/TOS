@@ -2334,24 +2334,7 @@ async function deleteStrategy(id) {
     window.location.href='index.php?view=strategy';
 }
 
-// --- ЛОГИКА MPA (Monthly Performance Analysis) ---
-
-// 1. Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('mpa-dynamic-container')) {
-        initMPA();
-    }
-});
-
-function initMPA() {
-    // Заполняем селект годами
-    const yearSelect = document.getElementById('mpa-year-select');
-    const currentYear = new Date().getFullYear();
-    
-    yearSelect.innerHTML = '';
-    for (let y = currentYear; y >= currentYear - 3; y--) {
-        const opt = document.createElement('option');
-        opt.value = y;
+;
         opt.textContent = y;
         yearSelect.appendChild(opt);
     }
@@ -2361,72 +2344,106 @@ function initMPA() {
         loadMPAData(yearSelect.value);
     });
 
-    // Загружаем данные сразу
+  // --- ЛОГИКА MPA (Monthly Performance Analysis) ---
+
+let currentMpaData = null; // Глобальная переменная для хранения данных загруженного года
+
+// 1. Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('mpa-dynamic-container')) {
+        initMPA();
+    }
+});
+
+function initMPA() {
+    const yearSelect = document.getElementById('mpa-year-select');
+    const quarterSelect = document.getElementById('mpa-quarter-select');
+    const currentYear = new Date().getFullYear();
+    
+    // Заполняем селект годами
+    if (yearSelect) {
+        yearSelect.innerHTML = '';
+        for (let y = currentYear; y >= currentYear - 3; y--) {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            yearSelect.appendChild(opt);
+        }
+        
+        // Слушатель: при смене года грузим данные с сервера
+        yearSelect.addEventListener('change', (e) => loadMPAData(e.target.value));
+    }
+
+    // Слушатель: при смене квартала просто перерисовываем уже загруженные данные
+    if (quarterSelect) {
+        quarterSelect.addEventListener('change', () => {
+            if (currentMpaData && yearSelect) {
+                renderMPAGrid(currentMpaData, document.getElementById('mpa-dynamic-container'), yearSelect.value);
+            }
+        });
+    }
+
+    // Первичная загрузка
     loadMPAData(currentYear);
 }
 
-// 2. Функция загрузки и рендеринга
-
+// 2. Функция загрузки
 async function loadMPAData(year) {
     const container = document.getElementById('mpa-dynamic-container');
-    container.innerHTML = `<div class="row">${getSkeletonHtml('card', 4)}</div>`;
+    container.innerHTML = `<div class="text-center py-5"><div class="loading-spinner"></div> Loading Analysis...</div>`;
 
     try {
-        // Запрашиваем данные
         const response = await fetch(`api/api.php?action=get_mpa_analysis&year=${year}`);
-        
-        // Сначала получаем текст, чтобы увидеть ошибку PHP, если она есть
         const text = await response.text(); 
 
         let result;
         try {
-            try { result = JSON.parse(text); } catch (e) { /* ... */ return; }
+            result = JSON.parse(text); 
         } catch (e) {
-            // Если упало здесь — значит сервер вернул ошибку текстом (Fatal Error)
             console.error("Server response:", text);
-            container.innerHTML = `
-                <div class="alert alert-danger" style="white-space: pre-wrap; text-align: left;">
-                    <strong>Server error (PHP):</strong><br>
-                    ${text.substring(0, 300)}... 
-                    <br><br><small>Open console (F12), to see error.</small>
-                </div>`;
+            container.innerHTML = `<div class="alert alert-danger"><strong>Server error:</strong><br>${text.substring(0, 300)}</div>`;
             return;
         }
 
-        // Если JSON валидный, проверяем success
         if (result.success) {
-            renderMPAGrid(result.data, container, year);
+            currentMpaData = result.data; // Сохраняем в память
+            renderMPAGrid(result.data, container, year); // Рисуем
         } else {
             container.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
         }
-
     } catch (e) {
         console.error(e);
         container.innerHTML = `<div class="text-danger">Network Error: ${e.message}</div>`;
     }
 }
 
-// 3. Генерация HTML (Точно по вашему дизайну)
-
+// 3. Генерация HTML (С ФИЛЬТРОМ)
 function renderMPAGrid(quartersData, container, year) {
     container.innerHTML = '';
     const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+    // Узнаем, какой квартал сейчас выбран
+    const quarterSelect = document.getElementById('mpa-quarter-select');
+    const selectedQ = quarterSelect ? quarterSelect.value : 'all';
+
     for (let q = 1; q <= 4; q++) {
+        // ФИЛЬТРАЦИЯ: пропускаем ненужные кварталы
+        if (selectedQ !== 'all' && selectedQ != q) {
+            continue;
+        }
+
         const qData = quartersData[q];
+        if (!qData) continue; // Защита от пустых данных
         
-        // Данные квартала
         const qPnl = parseFloat(qData.pnl);
         const qPercent = parseFloat(qData.percent || 0);
         
         const pnlSign = qPnl > 0 ? '+' : '';
         const pnlClass = qPnl >= 0 ? 'text-profit' : 'text-loss';
 
-        // Создаем секцию
         const section = document.createElement('div');
         section.className = 'quarter-section'; 
         
-        // Заголовок Квартала
         section.innerHTML = `
             <div class="quarter-header" onclick="this.parentElement.classList.toggle('collapsed')">
                 <i class="fas fa-chevron-down quarter-toggle-icon"></i>
@@ -2446,23 +2463,18 @@ function renderMPAGrid(quartersData, container, year) {
             const hasTrades = m.count_total > 0;
             const closedTrades = m.count_total - m.count_pending;
             
-            // Средний RR (считаем только для закрытых, чтобы не портить статистику)
             const avgRR = closedTrades > 0 ? (m.rr_total / closedTrades).toFixed(2) : '0.00';
             const winRate = m.winrate;
             
-            // Цвета
             let profitColorClass = m.pnl_total >= 0 ? 'text-profit' : 'text-loss';
             const profitSign = m.pnl_total > 0 ? '+' : '';
 
-            // Цвет прогресс бара
             let progressColor = '#4caf50';
             if (m.pnl_total < 0) progressColor = '#f44336';
             if (!hasTrades) progressColor = 'rgba(255,255,255,0.1)';
 
-            // --- HTML КАРТОЧКИ ---
             const cardHTML = `
                 <div class="mpa-card" onclick="window.location.href='index.php?view=mpa_details&year=${year}&month=${m.month_num}'">
-                    
                     <div class="mpa-card-title">
                         <span>${monthNames[m.month_num]} ${year}</span>
                     </div>

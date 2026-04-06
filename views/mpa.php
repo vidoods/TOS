@@ -8,16 +8,33 @@
         <h2 class="m-0 page-title-text">Monthly Performance Analysis</h2>
     </div>
 
-    <div class="mpa-toolbar">
-        <div class="d-flex gap-3 align-items-center">
-            <select id="mpa-year-select" class="form-select form-select-sm" style="width: 100px; background: rgba(255,255,255,0.1); border:none; color:white;">
+    <div class="mpa-toolbar mb-4">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            
+            <div>
+                <label class="small text-muted mb-1 d-block">Year</label>
+                <select id="mpa-year-select" class="form-select form-select-sm" style="width: 120px; background: rgba(255,255,255,0.1); border:none; color:white;">
+                    </select>
+            </div>
+
+            <div>
+                <label class="small text-muted mb-1 d-block">Quarter</label>
+                <select id="mpa-quarter-select" class="form-select form-select-sm" style="width: 120px; background: rgba(255,255,255,0.1); border:none; color:white;">
+                    <option value="all">All Year</option>
+                    <option value="1">Q1 (Jan - Mar)</option>
+                    <option value="2">Q2 (Apr - Jun)</option>
+                    <option value="3">Q3 (Jul - Sep)</option>
+                    <option value="4">Q4 (Oct - Dec)</option>
                 </select>
+            </div>
 
-            <div class="mpa-filter-group">
-                <button class="mpa-filter-btn active"><i class="fas fa-th-large"></i> By Quarter</button>
-                </div>
+            <div class="mt-4">
+                <button class="mpa-filter-btn active bg-transparent border-0 text-primary" style="cursor: default;">
+                    <i class="fas fa-filter"></i> Filtered View
+                </button>
+            </div>
+
         </div>
-
     </div>
 
     <div id="mpa-dynamic-container">
