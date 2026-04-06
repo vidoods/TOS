@@ -2344,11 +2344,12 @@ async function deleteStrategy(id) {
         loadMPAData(yearSelect.value);
     });
 
-  // --- ЛОГИКА MPA (Monthly Performance Analysis) ---
+// ==================================================
+// ЛОГИКА MPA (Monthly Performance Analysis)
+// ==================================================
 
-let currentMpaData = null; // Глобальная переменная для хранения данных загруженного года
+let currentMpaData = null; 
 
-// 1. Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('mpa-dynamic-container')) {
         initMPA();
@@ -2360,7 +2361,7 @@ function initMPA() {
     const quarterSelect = document.getElementById('mpa-quarter-select');
     const currentYear = new Date().getFullYear();
     
-    // Заполняем селект годами
+    // 1. Заполняем селект годами
     if (yearSelect) {
         yearSelect.innerHTML = '';
         for (let y = currentYear; y >= currentYear - 3; y--) {
@@ -2370,11 +2371,10 @@ function initMPA() {
             yearSelect.appendChild(opt);
         }
         
-        // Слушатель: при смене года грузим данные с сервера
         yearSelect.addEventListener('change', (e) => loadMPAData(e.target.value));
     }
 
-    // Слушатель: при смене квартала просто перерисовываем уже загруженные данные
+    // 2. Слушатель смены квартала
     if (quarterSelect) {
         quarterSelect.addEventListener('change', () => {
             if (currentMpaData && yearSelect) {
@@ -2383,11 +2383,10 @@ function initMPA() {
         });
     }
 
-    // Первичная загрузка
+    // 3. Загрузка данных
     loadMPAData(currentYear);
 }
 
-// 2. Функция загрузки
 async function loadMPAData(year) {
     const container = document.getElementById('mpa-dynamic-container');
     container.innerHTML = `<div class="text-center py-5"><div class="loading-spinner"></div> Loading Analysis...</div>`;
@@ -2406,8 +2405,8 @@ async function loadMPAData(year) {
         }
 
         if (result.success) {
-            currentMpaData = result.data; // Сохраняем в память
-            renderMPAGrid(result.data, container, year); // Рисуем
+            currentMpaData = result.data; 
+            renderMPAGrid(result.data, container, year); 
         } else {
             container.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
         }
@@ -2417,25 +2416,21 @@ async function loadMPAData(year) {
     }
 }
 
-// 3. Генерация HTML (С ФИЛЬТРОМ)
 function renderMPAGrid(quartersData, container, year) {
     container.innerHTML = '';
     const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    // Узнаем, какой квартал сейчас выбран
     const quarterSelect = document.getElementById('mpa-quarter-select');
     const selectedQ = quarterSelect ? quarterSelect.value : 'all';
 
     for (let q = 1; q <= 4; q++) {
-        // ФИЛЬТРАЦИЯ: пропускаем ненужные кварталы
-        if (selectedQ !== 'all' && selectedQ != q) {
-            continue;
-        }
+        // Фильтр
+        if (selectedQ !== 'all' && selectedQ != q) continue;
 
         const qData = quartersData[q];
-        if (!qData) continue; // Защита от пустых данных
+        if (!qData || !qData.months) continue; 
         
-        const qPnl = parseFloat(qData.pnl);
+        const qPnl = parseFloat(qData.pnl || 0);
         const qPercent = parseFloat(qData.percent || 0);
         
         const pnlSign = qPnl > 0 ? '+' : '';
@@ -2458,19 +2453,17 @@ function renderMPAGrid(quartersData, container, year) {
         container.appendChild(section);
         const grid = section.querySelector('.quarter-grid');
 
-        // Карточки месяцев
         qData.months.forEach(m => {
             const hasTrades = m.count_total > 0;
             const closedTrades = m.count_total - m.count_pending;
             
             const avgRR = closedTrades > 0 ? (m.rr_total / closedTrades).toFixed(2) : '0.00';
-            const winRate = m.winrate;
+            const winRate = m.winrate || 0;
             
-            let profitColorClass = m.pnl_total >= 0 ? 'text-profit' : 'text-loss';
+            const profitColorClass = m.pnl_total >= 0 ? 'text-profit' : 'text-loss';
             const profitSign = m.pnl_total > 0 ? '+' : '';
 
-            let progressColor = '#4caf50';
-            if (m.pnl_total < 0) progressColor = '#f44336';
+            let progressColor = m.pnl_total < 0 ? '#f44336' : '#4caf50';
             if (!hasTrades) progressColor = 'rgba(255,255,255,0.1)';
 
             const cardHTML = `
