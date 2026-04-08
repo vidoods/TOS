@@ -1,0 +1,81 @@
+/* =========================================
+   14. STRATEGY PAGE STYLES (Note-like Style)
+   ========================================= */
+
+.strategy-grid {
+    display: grid;
+    /* Используем тот же грид, что и в заметках */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 20px;
+}
+
+.strategy-card {
+    /* --- Копируем стиль .note-card --- */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 25px; /* Чуть больше отступ, как просили ранее */
+    border-radius: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    text-decoration: none;
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    min-height: 160px; /* Фиксированная минимальная высота для красоты */
+}
+
+.strategy-card:hover {
+    /* Эффект наведения как у заметок */
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none;
+}
+
+/* Шапка карточки (Иконка + Заголовок) */
+.st-card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Иконка (стилизованная под скриншот, но с "стеклянным" оттенком) */
+.st-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px; /* Мягкий квадрат */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    /* Добавляем легкую тень иконке */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+}
+
+/* Цвета иконок (более насыщенные, как на скриншоте) */
+.st-icon.green { background: #bbf7d0; color: #14532d; } 
+.st-icon.yellow { background: #fef08a; color: #713f12; }
+.st-icon.blue { background: #bfdbfe; color: #1e3a8a; } 
+
+/* Заголовок */
+.st-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    color: var(--text-main);
+}
+
+/* Описание (нижняя часть) */
+.st-desc {
+    margin-top: auto; /* Прижимаем к низу */
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    /* Добавим верхнюю границу для разделения, если текста много, или уберем для чистоты */
+    /* border-top: 1px solid var(--glass-border); */
+    /* padding-top: 10px; */
+}

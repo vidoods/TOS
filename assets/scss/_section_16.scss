@@ -1,0 +1,39 @@
+/* =========================================
+   16. НАСТРОЙКА ШРИФТОВ РЕДАКТОРА
+   ========================================= */
+
+/* 1. Применяем реальные шрифты к контенту */
+.ql-font-inter { font-family: 'Inter', sans-serif; }
+.ql-font-roboto { font-family: 'Roboto', sans-serif; }
+.ql-font-serif { font-family: 'Georgia', serif; }
+.ql-font-monospace { font-family: 'Courier New', monospace; }
+
+/* 2. Названия в выпадающем списке (Label - то что выбрано) */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="inter"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="inter"]::before {
+    content: 'Inter (Site Default)';
+    font-family: 'Inter', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="roboto"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="roboto"]::before {
+    content: 'Roboto';
+    font-family: 'Roboto', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before {
+    content: 'Serif';
+    font-family: 'Georgia', serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before {
+    content: 'Monospace (Code)';
+    font-family: 'Courier New', monospace;
+}
+
+/* Исправляем ширину выпадающего списка шрифтов, чтобы названия влезали */
+.ql-snow .ql-picker.ql-font {
+    width: 150px !important;
+}

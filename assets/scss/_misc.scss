@@ -1,0 +1,126 @@
+/* =========================================
+   13. DATA ANALYSIS STYLES
+   ========================================= */
+
+/* Grid for 4 columns on large screens */
+.data-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+/* Padding utility (p-4) if not exists */
+.p-4 { padding: 25px !important; }
+
+.data-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.data-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ДОБАВЛЕНО: Красим иконку в заголовке в акцентный цвет */
+.data-header i {
+    color: var(--accent-blue);
+    font-size: 1.1rem;
+    /* Убираем opacity, если он наследовался */
+    opacity: 1; 
+}
+
+/* Individual Data Row */
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.data-label-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.data-stats-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.data-count {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.data-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
+}
+
+/* --- CIRCULAR PROGRESS BAR (CSS Only) --- */
+.circular-chart {
+    display: block;
+    margin: 0;
+    width: 24px;
+    height: 24px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 3;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    /* Stroke dasharray calculated in JS */
+    transition: stroke-dasharray 0.5s ease;
+}
+
+/* Pairs Grid */
+.pairs-grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.pair-stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pair-stat-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
+}
+
+/* Responsive: 2 cols on tablet, 1 on mobile */
+@media (max-width: 1355px) {
+    .data-grid-4 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+    .data-grid-4 { grid-template-columns: 1fr; }
+}

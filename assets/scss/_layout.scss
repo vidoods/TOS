@@ -1,0 +1,45 @@
+/* =========================================
+   2. ЛЕЙАУТ (Сайдбар и Контент)
+   ========================================= */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: row;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    padding: 20px;
+    background: rgba(9, 12, 20, 0.98);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--glass-border-hover) transparent;
+}
+
+.content-area {
+    margin-left: var(--sidebar-width);
+    flex-grow: 1;
+    padding: 20px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	min-width: 0;
+}
+
+.main-content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+.content-area header {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-bottom: 20px;
+    width: auto;
+}

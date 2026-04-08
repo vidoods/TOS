@@ -1,0 +1,52 @@
+/* =========================================
+   0. УТИЛИТЫ И ПОМОЩНИКИ (Helpers)
+   ========================================= */
+
+/* Выравнивание текста */
+.text-center { text-align: center; }
+.text-end    { text-align: right; }
+.text-start  { text-align: left; }
+
+/* Ширина */
+.w-100 { width: 100%; }
+
+/* Отступы (Margin Bottom) */
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: 5px; }
+.mb-2 { margin-bottom: 10px; }
+.mb-3 { margin-bottom: 15px; }
+.mb-4 { margin-bottom: 25px; }
+.mb-5 { margin-bottom: 40px; }
+
+/* Отступы (Margin Top) */
+.mt-1 { margin-top: 5px; }
+.mt-2 { margin-top: 10px; }
+.mt-3 { margin-top: 15px; }
+.mt-4 { margin-top: 25px; }
+.mt-auto { margin-top: auto; }
+
+/* Отступы (Margin End/Right) - для иконок в кнопках */
+.me-1 { margin-right: 5px; }
+.me-2 { margin-right: 10px; }
+.me-3 { margin-right: 15px; }
+
+/* Flexbox утилиты (если не используете Bootstrap) */
+.d-flex { display: flex; }
+.d-block { display: block; }
+.d-inline-flex { display: inline-flex; }
+.align-items-center { align-items: center; }
+.align-items-start { align-items: flex-start; }
+.justify-content-between { justify-content: space-between; }
+.justify-content-center { justify-content: center; }
+.justify-content-end { justify-content: flex-end; }
+.flex-grow-1 { flex-grow: 1; }
+.gap-2 { gap: 10px; }
+.gap-3 { gap: 15px; }
+
+/* Цвета текста (дополнительно) */
+.text-muted { color: var(--text-secondary); opacity: 0.8; }
+.fw-bold { font-weight: 700; }
+.text-warning { color: #ffc107 !important; } /* Желтый (BE) */
+.text-info { color: #0dcaf0 !important; }    /* Синий (Pending) */
+.text-success { color: #198754 !important; } /* Зеленый (Win) */
+.text-danger { color: #dc3545 !important; }  /* Красный (Lose) */

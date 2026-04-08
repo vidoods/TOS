@@ -1,0 +1,38 @@
+/* =========================================
+   18. КНОПКИ В ЖУРНАЛЕ (БЕЗ ФОНА)
+   ========================================= */
+
+/* 1. Базовое состояние */
+.btn-icon,
+.btn-icon:visited {
+    color: var(--accent-blue) !important; /* Синий цвет */
+    background: transparent !important;    /* Фона нет */
+    border: none;
+    
+    /* Анимация только для трансформации (размера) */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Убираем внутренние отступы, если они мешают */
+}
+
+/* 2. Наведение (Hover) - Только увеличение */
+.btn-icon:hover {
+    transform: scale(1.05); /* Увеличиваем иконку чуть сильнее (на 20%) */
+    color: var(--accent-blue) !important;
+    background: transparent !important; /* Фон не появляется */
+    box-shadow: none;
+    filter: drop-shadow(0 0 5px rgba(41, 151, 255, 0.5)); /* Легкое свечение самой иконки (по желанию) */
+}
+
+/* 3. Клик (Active) */
+.btn-icon:active,
+.btn-icon:focus {
+    transform: scale(0.9); /* Сжатие при клике */
+    color: var(--accent-blue) !important;
+    background: transparent !important;
+    outline: none;
+}

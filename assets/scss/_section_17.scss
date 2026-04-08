@@ -1,0 +1,24 @@
+/* =========================================
+   17. ПОДКЛЮЧЕНИЕ СВОЕГО ШРИФТА
+   ========================================= */
+
+/* 1. Загружаем файл шрифта */
+@font-face {
+    font-family: 'Montserrat'; /* Имя для CSS */
+    src: url('fonts/Montserrat-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 2. Класс, который Quill будет вешать на текст */
+/* ВАЖНО: имя класса должно быть .ql-font-{название_в_js} */
+.ql-font-Montserrat { 
+    font-family: 'Montserrat', sans-serif; 
+}
+
+/* 3. Красивое название в выпадающем списке */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Montserrat"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Montserrat"]::before {
+    content: 'Montserrat'; /* То, что вы увидите в меню */
+    font-family: 'Montserrat', sans-serif; /* Чтобы название было написано этим же шрифтом */
+}

@@ -1,0 +1,164 @@
+/* =========================================
+   GLOBAL TOOLTIP STYLES (Fixed Arrow)
+   ========================================= */
+
+/* 1. Настройка переменных для самого контейнера */
+.tooltip {
+    /* Задаем наш темный цвет в переменную, чтобы BS сам использовал его везде */
+    --bs-tooltip-bg: rgba(0, 0, 0, 0.9); 
+    --bs-tooltip-opacity: 1;
+    --bs-tooltip-padding-x: 10px;
+    --bs-tooltip-padding-y: 8px;
+    --bs-tooltip-margin: 0;
+    
+    /* Убираем стандартную прозрачность */
+    opacity: 1 !important;
+}
+
+/* 2. Стилизация тела подсказки */
+.tooltip-inner {
+    background-color: var(--bs-tooltip-bg) !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    font-family: 'Inter', sans-serif;
+    
+    /* Ваши эффекты (стекло/тень) */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(5px);
+    padding: 8px 12px !important;
+    max-width: 250px;
+}
+
+/* 3. ЖЕСТКОЕ восстановление стрелочки */
+.tooltip-arrow {
+    display: block !important;
+    width: 0.8rem;
+    height: 0.4rem;
+}
+
+.tooltip-arrow::before {
+    content: "" !important;
+    position: absolute !important;
+    border-style: solid !important;
+    display: block !important;
+    /* Цвет стрелки берем из переменной фона */
+    border-color: transparent !important; 
+}
+
+/* 4. Красим стрелку в зависимости от направления (TOP) */
+.bs-tooltip-top .tooltip-arrow, 
+.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow {
+    bottom: -0.4rem; 
+}
+.bs-tooltip-top .tooltip-arrow::before, 
+.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
+    top: -1px; /* Сдвиг, чтобы закрыть рамку */
+    border-width: 0.4rem 0.4rem 0 !important;
+    border-top-color: var(--bs-tooltip-bg) !important;
+}
+
+/* 5. Красим стрелку (BOTTOM) */
+.bs-tooltip-bottom .tooltip-arrow, 
+.bs-tooltip-auto[data-popper-placement^="bottom"] .tooltip-arrow {
+    top: -0.4rem;
+}
+.bs-tooltip-bottom .tooltip-arrow::before, 
+.bs-tooltip-auto[data-popper-placement^="bottom"] .tooltip-arrow::before {
+    bottom: -1px;
+    border-width: 0 0.4rem 0.4rem !important;
+    border-bottom-color: var(--bs-tooltip-bg) !important;
+}
+
+/* 6. Красим стрелку (LEFT / START) */
+.bs-tooltip-start .tooltip-arrow, 
+.bs-tooltip-auto[data-popper-placement^="left"] .tooltip-arrow {
+    right: -0.4rem;
+    width: 0.4rem; height: 0.8rem; /* Поворачиваем размеры */
+}
+.bs-tooltip-start .tooltip-arrow::before, 
+.bs-tooltip-auto[data-popper-placement^="left"] .tooltip-arrow::before {
+    left: -1px;
+    border-width: 0.4rem 0 0.4rem 0.4rem !important;
+    border-left-color: var(--bs-tooltip-bg) !important;
+}
+
+/* 7. Красим стрелку (RIGHT / END) */
+.bs-tooltip-end .tooltip-arrow, 
+.bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow {
+    left: -0.4rem;
+    width: 0.4rem; height: 0.8rem;
+}
+.bs-tooltip-end .tooltip-arrow::before, 
+.bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow::before {
+    right: -1px;
+    border-width: 0.4rem 0.4rem 0.4rem 0 !important;
+    border-right-color: var(--bs-tooltip-bg) !important;
+}
+
+/* Стиль карточки при наведении */
+.qpa-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.qpa-card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Специфичная сетка для QPA: строго 2 колонки на ПК */
+.qpa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Две равные части */
+    gap: 24px;
+    width: 100%;
+}
+
+/* На мобильных телефонах (меньше 768px) - одна колонка */
+@media (max-width: 768px) {
+    .qpa-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- MOBILE PWA STYLES --- */
+
+/* Скрываем кнопку на ПК */
+.mobile-fab {
+    display: none;
+}
+
+/* Показываем на мобильных */
+@media (max-width: 768px) {
+    .mobile-fab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        color: white;
+        border-radius: 50%;
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+        font-size: 24px;
+        z-index: 1000;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+    }
+
+    .mobile-fab:active {
+        transform: scale(0.95);
+    }
+    
+    /* Увеличиваем отступы снизу, чтобы кнопка не перекрывала контент */
+    .app-container {
+        padding-bottom: 80px; 
+    }
+}

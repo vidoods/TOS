@@ -1,0 +1,34 @@
+/* =========================================
+   12. АДАПТИВНОСТЬ ШАПОК (RESPONSIVE HEADERS)
+   ========================================= */
+
+@media (max-width: 768px) {
+    /* Превращаем строку в колонку на мобильных */
+    .responsive-header {
+        flex-direction: column !important;
+        align-items: stretch !important; /* Растягиваем элементы на всю ширину */
+        gap: 15px !important;
+    }
+
+    /* Блок с кнопками растягиваем на 100% и разрешаем перенос */
+    .responsive-header .d-flex {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 10px !important;
+    }
+
+    /* Кнопки делаем резиновыми (flex-grow: 1), чтобы их было удобно нажимать */
+    .responsive-header .btn {
+        flex-grow: 1; 
+        display: flex;
+        justify-content: center; /* Центрируем текст и иконку */
+        white-space: nowrap; /* Запрещаем перенос текста внутри кнопки */
+        min-width: 100px; /* Минимальная ширина, чтобы совсем не сжались */
+    }
+    
+    /* Убираем марджины у заголовка, чтобы не было лишних отступов */
+    .responsive-header h2 {
+        font-size: 1.5rem !important; /* Чуть уменьшаем шрифт заголовка */
+        margin-bottom: 5px !important;
+    }
+}

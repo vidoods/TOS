@@ -1,0 +1,116 @@
+/* =========================================
+   19. СТИЛИ ДЛЯ MPA (Monthly Performance Analysis)
+   ========================================= */
+
+/* --- 1. Секция Квартала --- */
+.quarter-section {
+    margin-bottom: 30px;
+    transition: margin-bottom 0.3s ease;
+}
+
+/* Заголовок (Header) */
+.quarter-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s;
+}
+
+.quarter-header:hover {
+    opacity: 0.8;
+}
+
+/* Иконка стрелочки */
+.quarter-toggle-icon {
+    margin-right: 10px;
+    transition: transform 0.3s ease; /* Плавный поворот */
+}
+
+/* Поворот стрелки при сворачивании */
+.quarter-section.collapsed .quarter-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+/* --- 2. Сетка плиток (Анимация сворачивания) --- */
+.quarter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    
+    /* Свойства для плавного открытия */
+    max-height: 2000px; /* Максимальная высота для анимации */
+    opacity: 1;
+    overflow: hidden; /* Скрываем контент при сворачивании */
+    margin-top: 15px;
+    
+    /* Анимация высоты и прозрачности */
+    transition: max-height 0.5s ease-in-out, 
+                opacity 0.4s ease-in-out, 
+                margin-top 0.3s ease;
+}
+
+/* Состояние: СВЕРНУТО */
+.quarter-section.collapsed .quarter-grid {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0; /* Убираем отступ */
+    pointer-events: none;
+}
+
+
+/* --- 3. Карточка Месяца (Статичный стиль как в Notes) --- */
+.mpa-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 160px;
+    
+    /* Убрали transform из transition, оставили только цвета */
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* Эффект при наведении (БЕЗ ПОДПРЫГИВАНИЯ) */
+.mpa-card:hover {
+    background: rgba(255, 255, 255, 0.07); /* Чуть светлее фон */
+    border-color: rgba(255, 255, 255, 0.3); /* Ярче рамка */
+    /* Transform убран, карточка остается на месте */
+}
+
+/* Типографика внутри карточки */
+.mpa-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-main);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mpa-stat-row {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.mpa-progress-bg {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: auto;
+    overflow: hidden;
+}
+
+.mpa-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+}
