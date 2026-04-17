@@ -187,7 +187,22 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
 	<script src="assets/quill.js"></script>
 	<script src="assets/chart.js"></script>
     <script type="text/javascript" src="assets/toastify.js"></script>
-    <script src="assets/app.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/core.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/ui.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/auth.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/shared_ui.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/forms.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/notes.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/plans.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/trades.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/dashboard.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/accounts.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/data_analysis.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/strategy.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/mpa.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/qpa.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/quick_trade.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/init.js?v=<?php echo time(); ?>"></script>
 
     <div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(5px);">
     <div class="modal-dialog modal-dialog-centered">

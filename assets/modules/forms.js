@@ -1,0 +1,191 @@
+// assets/modules/forms.js
+// ==================================================
+// ОБЩИЕ ФУНКЦИИ ЗАГРУЗКИ ДАННЫХ И ФОРМ
+// ==================================================
+
+async function loadLookups() {
+    try {
+        const response = await fetch('api/api.php?action=get_lookups');
+        const result = await response.json();
+        if (result.success) {
+            const data = result.data;
+
+            accountBalances = {};
+            if (data.accounts) {
+                data.accounts.forEach(acc => {
+                    accountBalances[acc.id] = parseFloat(acc.balance);
+                });
+            }
+
+            populateSelect('plan-pair', data.pairs, 'symbol');
+            populateSelect('trade-pair', data.pairs, 'symbol');
+            populateSelect('trade-account', data.accounts, 'name');
+            populateSelect('trade-style', data.styles, 'name');
+            populateSelect('trade-model', data.models, 'name');
+            populateSelect('trade-plan', data.plans, 'title');
+            populateSelect('trade-note', data.notes, 'title', 'id', null, '--- No note ---');
+            populateSelect('plan-note', data.notes, 'title', 'id', null, '--- No note ---');
+
+            if (document.getElementById('note-plan')) {
+                populateSelect('note-plan', data.plans, 'title');
+                populateSelect('note-trade', data.trades, 'display_name', 'id', null, '-- Choose trade --');
+            }
+
+            populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'All pairs');
+
+            return data;
+        } else {
+            console.error('Failed to load:', result.message);
+            showMessage('Failed to load.', 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error('Failed to load due to network error:', error);
+        showMessage('Failed to load due to network error:.', 'error');
+        return null;
+    }
+}
+
+function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedValue = null, placeholderText = '--- Choose ---') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const firstOption = select.querySelector('option[value=""]');
+    select.innerHTML = '';
+    if (firstOption) select.appendChild(firstOption);
+
+    if (!items || items.length === 0) return;
+    items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item[valueKey];
+        option.textContent = item[displayKey] || item.id;
+        if (selectedValue && item[valueKey] == selectedValue) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+async function handleFormSubmit(event, action, entityName, redirectView) {
+    event.preventDefault();
+    const form = event.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>⏳</span> Saving...';
+
+    // Переносим HTML из редактора
+    if (quillEditor) {
+        if (entityName === 'note') {
+            const el = document.getElementById('note-content-hidden');
+            if (el) el.value = quillEditor.root.innerHTML;
+        } else if (entityName === 'strategy') {
+            const el = document.getElementById('st-content-hidden');
+            if (el) el.value = quillEditor.root.innerHTML;
+        }
+    }
+
+    try {
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (key.includes('[')) {
+                const [mainKey, index, subKey] = key.match(/(\w+)\[(\d+)\]\[(\w+)\]/).slice(1);
+                if (!data[mainKey]) data[mainKey] = [];
+                if (!data[mainKey][index]) data[mainKey][index] = {};
+                data[mainKey][index][subKey] = value;
+            } else {
+                data[key] = value;
+            }
+        });
+
+        // Добавляем ID если это редактирование
+        if (entityName === 'plan' && document.getElementById('edit-plan-id')) {
+            const idVal = document.getElementById('edit-plan-id').value;
+            if (idVal) data['id'] = idVal;
+        }
+        if (entityName === 'trade' && document.getElementById('edit-trade-id')) {
+            const idVal = document.getElementById('edit-trade-id').value;
+            if (idVal) data['id'] = idVal;
+        }
+        if (entityName === 'note' && document.getElementById('edit-note-id')) {
+            const idVal = document.getElementById('edit-note-id').value;
+            if (idVal) data['id'] = idVal;
+        }
+        if (entityName === 'strategy' && document.getElementById('edit-strategy-id')) {
+            const idVal = document.getElementById('edit-strategy-id').value;
+            if (idVal) data['id'] = idVal;
+        }
+
+        // Обработка изображений
+        ['timeframes', 'trade_images'].forEach(arrKey => {
+            if (data[arrKey]) data[arrKey] = data[arrKey].filter(item => item && (item.url || item.notes || item.title));
+        });
+
+        const imagePromises = [];
+        const processImages = (containerClass, arrayName, type) => {
+            form.querySelectorAll(`.${containerClass}`).forEach((card, index) => {
+                const fileInput = card.querySelector('input[type="file"]');
+                const urlInput = card.querySelector('input[name*="[url]"]');
+                const hiddenUrlInput = card.querySelector('input[type="hidden"][name*="[url]"]');
+
+                if (fileInput && fileInput.files[0]) {
+                    imagePromises.push(uploadFile(fileInput.files[0], type).then(url => {
+                        if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
+                    }));
+                } else if (urlInput && urlInput.value.trim() && (!hiddenUrlInput || urlInput.value.trim() !== hiddenUrlInput.value)) {
+                    imagePromises.push(downloadImage(urlInput.value.trim(), type).then(url => {
+                        if (data[arrayName] && data[arrayName][index]) data[arrayName][index].url = url;
+                    }));
+                }
+            });
+        };
+
+        if (entityName === 'plan') processImages('tf-card', 'timeframes', 'plan');
+        if (entityName === 'trade') processImages('trade-img-card', 'trade_images', 'trade');
+
+        await Promise.all(imagePromises);
+
+        const response = await fetch(`api/api.php?action=${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            if (entityName === 'strategy' && result.id) {
+                window.location.href = `index.php?view=strategy_details&id=${result.id}`;
+            } else {
+                window.location.href = `index.php?view=${redirectView}`;
+            }
+        } else {
+            showMessage('Error saving: ' + result.message, 'error');
+        }
+    } catch (error) {
+        console.error('Save error:', error);
+        showMessage('An error occurred while saving.', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    }
+}
+
+async function uploadFile(file, type = 'general') {
+    const formData = new FormData();
+    formData.append('action', 'upload_image');
+    formData.append('image', file);
+    formData.append('type', type);
+    const response = await fetch('api/api.php', { method: 'POST', body: formData });
+    const result = await response.json();
+    if (result.success) return result.url;
+    throw new Error(result.message);
+}
+
+async function downloadImage(url, type = 'general') {
+    const response = await fetch('api/api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'download_image_from_url', image_url: url, type: type })
+    });
+    const result = await response.json();
+    if (result.success) return result.url;
+    throw new Error(result.message);
+}
