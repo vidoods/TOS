@@ -55,6 +55,7 @@ function getTradeDetails($pdo) {
         $trade_id = $_GET['id'] ?? null;
         if (!$trade_id) throw new Exception('ID not stated.');
 
+        // 1. Основной запрос (уже был безопасным, оставляем как есть)
         $query = "SELECT t.*,
                          rp.symbol AS pair_symbol, rp.type AS pair_type,
                          a.name AS account_name, a.type AS account_type,
@@ -72,13 +73,22 @@ function getTradeDetails($pdo) {
         $stmt->execute([$trade_id, $_SESSION['user_id']]);
         $trade = $stmt->fetch();
 
-        if (!$trade) { http_response_code(404); throw new Exception('Trade not found.'); }
+        if (!$trade) { 
+            http_response_code(404); 
+            throw new Exception('Trade not found.'); 
+        }
 
+        // 2. Запрос изображений (безопасный)
         $stmt_images = $pdo->prepare("SELECT id, image_url, notes, title FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 0 ORDER BY id ASC");
         $stmt_images->execute([$trade_id]);
         $trade['trade_images'] = $stmt_images->fetchAll();
 
-        $note = $pdo->query("SELECT n.id, n.title FROM note_to_trade nt JOIN notes n ON nt.note_id = n.id WHERE nt.trade_id = $trade_id LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        // 3. ИСПРАВЛЕННЫЙ ЗАПРОС К ЗАМЕТКАМ (Теперь здесь тоже Prepare!)
+        // Мы убрали прямую вставку $trade_id и заменили её на плейсхолдер ?
+        $stmt_note = $pdo->prepare("SELECT n.id, n.title FROM note_to_trade nt JOIN notes n ON nt.note_id = n.id WHERE nt.trade_id = ? LIMIT 1");
+        $stmt_note->execute([$trade_id]);
+        $note = $stmt_note->fetch(PDO::FETCH_ASSOC);
+
         $trade['note_id']    = $note['id'] ?? null;
         $trade['note_title'] = $note['title'] ?? null;
 
