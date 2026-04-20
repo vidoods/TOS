@@ -4,5 +4,6 @@
             ".continue/**/*.yaml",
             "file:///Users/vitalii/.continue/config.yaml"
         ]
-    }
+    },
+    "markdown.validate.enabled": true
 }
