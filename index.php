@@ -23,6 +23,17 @@ if (isset($_SESSION['user_id']) && in_array($view, $guestPages)) {
     exit;
 }
 
+// Определение языка пользователя
+$userLang = $_SESSION['user_lang'] ?? 'en'; // По умолчанию английский
+
+// Подключаем нужный словарь
+$langFile = __DIR__ . "/assets/lang/{$userLang}.php";
+if (file_exists($langFile)) {
+    $lang = require $langFile;
+} else {
+    $lang = require __DIR__ . "/assets/lang/en.php";
+}
+
 // 4. Определение пути к файлу представления
 // Предполагаем, что все view лежат в папке views/
 $view_path = __DIR__ . '/views/' . $view . '.php';

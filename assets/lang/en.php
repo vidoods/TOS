@@ -1,8 +1,27 @@
 <?php
 return [
     'my_profile' => 'My Profile',
-    'name' => 'Name',
-    'email' => 'Email',
-    'joined' => 'Joined'
+    'joined' => 'Joined',
+    'language' => 'Language',
+    'loading' => 'Loading...',
+    'select_language' => 'Select Language',
+    'english' => 'English',
+    'russian' => 'Russian',
+    'performance_overview' => 'Performance overview',
+    'total_trades' => 'Total Trades',
+    'all_accounts' => 'All accounts',
+    'all_period' => 'All period',
+    'whole_year' => 'Whole year',
+    'january' => 'January',
+    'february' => 'February',
+    'march' => 'March',
+    'april' => 'April',
+    'may' => 'May',
+    'june' => 'June',
+    'july' => 'July',
+    'august' => 'August',
+    'september' => 'September',
+    'october' => 'October',
+    'november' => 'November',
+    'december' => 'December'
 ];
-?>

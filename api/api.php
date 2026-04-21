@@ -52,7 +52,7 @@ try {
         case 'reset_password': handleResetPassword($conn); break;
         case 'get_user_info':
             $userId = $_SESSION['user_id'];
-            $stmt = $pdo->prepare("SELECT username, email, created_at FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT username, email, created_at, language FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user) {
@@ -60,12 +60,30 @@ try {
                     'success'    => true,
                     'username'   => $user['username'],
                     'email'      => $user['email'],
+                    'language' => $user['language'] ?? 'en',
                     'created_at' => $user['created_at'] ? date('d M Y', strtotime($user['created_at'])) : '-'
                 ]);
             } else {
                 echo json_encode(['success' => false]);
             }
             break;
+
+        case 'change_language':
+        $userId = $_SESSION['user_id'];
+        $newLang = $_POST['lang'] ?? 'en';
+        
+        // Защита от подделки: разрешаем только en и ru
+        if (!in_array($newLang, ['en', 'ru'])) $newLang = 'en';
+
+        $stmt = $pdo->prepare("UPDATE users SET language = ? WHERE id = ?");
+        if ($stmt->execute([$newLang, $userId])) {
+            // Обновляем сессию сразу!
+            $_SESSION['user_lang'] = $newLang;
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
+        break;
 
         // --- СПРАВОЧНИКИ ---
         case 'get_lookups':         getLookups($conn); break;

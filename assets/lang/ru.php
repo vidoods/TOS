@@ -1,8 +1,27 @@
 <?php
 return [
     'my_profile' => 'Мой профиль',
-    'name' => 'Имя',
-    'email' => 'Email',
-    'joined' => 'Зарегистрирован'
+    'joined' => 'Регистрация',
+    'language' => 'Язык',
+    'loading' => 'Загрузка...',
+    'select_language' => 'Выберите язык',
+    'english' => 'Английский',
+    'russian' => 'Русский',
+    'performance_overview' => 'Обзор производительности',
+    'total_trades' => 'Всего сделок',
+    'all_accounts' => 'Все аккаунты',
+    'all_period' => 'Весь период',
+    'whole_year' => 'Весь год',
+    'january' => 'Январь',
+    'february' => 'Февраль',
+    'march' => 'Март',
+    'april' => 'Апрель',
+    'may' => 'Май',
+    'june' => 'Июнь',
+    'july' => 'Июль',
+    'august' => 'Август',
+    'september' => 'Сентябрь',
+    'october' => 'Октябрь',
+    'november' => 'Ноябрь',
+    'december' => 'Декабрь'
 ];
-?>

@@ -71,6 +71,7 @@ function handleLogin($pdo) {
     if ($isCorrect) {
         $_SESSION['user_id']  = $user['id'];
         $_SESSION['username'] = $user['username'];
+        $_SESSION['user_lang'] = $user['language'] ?? 'en';
 
         if ($needsMigration) {
             $newHash = password_hash($password, PASSWORD_DEFAULT);
