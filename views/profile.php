@@ -10,7 +10,7 @@
                     
                     <div class="mb-4">
                         <img src="assets/logo.png" class="rounded-circle shadow" 
-                             style="width: 150px; height: 80px; border: 3px solid var(--accent-blue);">
+                             style="width: 150px; height: 80px;">
                     </div>
 
                     <h3 id="profile-page-name" class="fw-bold mb-1">Loading...</h3>
