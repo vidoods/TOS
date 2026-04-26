@@ -320,6 +320,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    if (typeof initLanguageSwitcher === 'function') {
+        initLanguageSwitcher();
+    }
+
     // --- Общие утилиты ---
     setupLightbox();
     loadUserInfo();

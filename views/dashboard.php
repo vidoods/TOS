@@ -33,7 +33,7 @@
         <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
         <div class="metric-content">
             <div class="metric-label"><?= $lang['total_trades'] ?></div>
-            <div class="metric-value" id="total-trades-value">Loading...</div>
+            <div class="metric-value" id="total-trades-value"><?= $lang['loading'] ?></div>
             <div class="metric-subtext" id="total-trades-breakdown"></div>
         </div>
     </div>
@@ -41,8 +41,8 @@
     <div class="metric-card glass-panel">
         <div class="metric-icon"><i class="fas fa-trophy"></i></div>
         <div class="metric-content">
-            <div class="metric-label">Winrate</div>
-            <div class="metric-value" id="winning-ratio-value">Loading...</div>
+            <div class="metric-label"><?= $lang['winrate'] ?></div>
+            <div class="metric-value" id="winning-ratio-value"><?= $lang['loading'] ?></div>
             <div class="metric-progress-bar">
                 <div id="winning-ratio-progress" style="width:0%;"></div>
             </div>
@@ -52,16 +52,16 @@
     <div class="metric-card glass-panel">
         <div class="metric-icon"><i class="fas fa-hourglass-half"></i></div>
         <div class="metric-content">
-            <div class="metric-label">Average time in position</div>
-            <div class="metric-value" id="avg-time-in-position-value">Loading...</div>
+            <div class="metric-label"><?= $lang['average_time_in_position'] ?></div>
+            <div class="metric-value" id="avg-time-in-position-value"><?= $lang['loading'] ?></div>
         </div>
     </div>
 
     <div class="metric-card glass-panel">
         <div class="metric-icon"><i class="fas fa-chart-area"></i></div>
         <div class="metric-content">
-            <div class="metric-label">Net profit</div>
-            <div class="metric-value" id="net-profit-value">Loading...</div>
+            <div class="metric-label"><?= $lang['net_profit'] ?></div>
+            <div class="metric-value" id="net-profit-value"><?= $lang['loading'] ?></div>
             <div class="metric-subtext" id="avg-monthly-profit"></div>
         </div>
     </div>
@@ -69,16 +69,16 @@
     <div class="metric-card glass-panel">
         <div class="metric-icon"><i class="fas fa-exchange-alt"></i></div>
         <div class="metric-content">
-            <div class="metric-label">Average RR</div>
-            <div class="metric-value" id="average-rr-value">Loading...</div>
+            <div class="metric-label"><?= $lang['average_rr'] ?></div>
+            <div class="metric-value" id="average-rr-value"><?= $lang['loading'] ?></div>
         </div>
     </div>
 
     <div class="metric-card glass-panel">
         <div class="metric-icon"><i class="fas fa-arrow-down"></i></div>
         <div class="metric-content">
-            <div class="metric-label">Max drawdown</div>
-            <div class="metric-value" id="max-drawdown-value">Loading...</div>
+            <div class="metric-label"><?= $lang['max_drawdown'] ?></div>
+            <div class="metric-value" id="max-drawdown-value"><?= $lang['loading'] ?></div>
         </div>
     </div>
 </div>
@@ -86,7 +86,7 @@
 <div class="charts-area mt-4">
     <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; padding: 20px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="m-0" style="font-size: 1.2rem; font-weight: 600; color: var(--text-main);">Equity Curve</h3>
+            <h3 class="m-0" style="font-size: 1.2rem; font-weight: 600; color: var(--text-main);"><?= $lang['equity_curve'] ?></h3>
         </div>
         
         <div class="chart-wrapper">

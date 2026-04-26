@@ -120,33 +120,33 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
                         <i class="fas fa-user" id="user-avatar"></i>
                     </div>
                     <div class="user-info">
-                        <span class="user-welcome">Welcome back,</span>
-                        <span class="user-name" id="sidebar-username">Loading...</span>
+                        <span class="user-welcome"><?= $lang['welcome_back'] ?></span>
+                        <span class="user-name" id="sidebar-username"><?= $lang['loading'] ?></span>
                     </div>
                 </a>
 
                 <nav class="nav-menu">
-                    <h3>ROUTINE</h3>
+                    <h3><?= $lang['routine'] ?></h3>
                     <div class="nav-links">
                         <a href="index.php?view=dashboard" class="<?= $view === 'dashboard' ? 'active' : '' ?>">
-                            <i class="fas fa-th-large"></i> Dashboard
+                            <i class="fas fa-th-large"></i> <?= $lang['dashboard'] ?>
                         </a>
                         <a href="index.php?view=plans" class="<?= strpos($view, 'plan') !== false ? 'active' : '' ?>">
-                            <i class="fas fa-file-contract"></i> Trading Plan
+                            <i class="fas fa-file-contract"></i> <?= $lang['trading_plan'] ?>
                         </a>
                         <a href="index.php?view=journal"
                             class="<?= strpos($view, 'trade') !== false || $view === 'journal' ? 'active' : '' ?>">
-                            <i class="fas fa-book"></i> Trading Journal
+                            <i class="fas fa-book"></i> <?= $lang['trading_journal'] ?>
                         </a>
                         <a href="index.php?view=notes" class="<?= $view === 'notes' ? 'active' : '' ?>">
-                            <i class="fas fa-sticky-note"></i> Notes
+                            <i class="fas fa-sticky-note"></i> <?= $lang['notes'] ?>
                         </a>
                         <a href="index.php?view=strategy" class="<?= $view === 'strategy' ? 'active' : '' ?>">
-                            <i class="fas fa-chess-knight"></i> Trading Strategy
+                            <i class="fas fa-chess-knight"></i> <?= $lang['strategy'] ?>
                         </a>
                     </div>
 
-                    <h3>PERFORMANCE</h3>
+                    <h3><?= $lang['performance'] ?></h3>
                     <div class="nav-links">
                         <a href="index.php?view=mpa" class="<?= $view === 'mpa' ? 'active' : '' ?>">
                             <i class="fas fa-calendar-check"></i> MPA
@@ -156,13 +156,13 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
                         </a>
                     </div>
 
-                    <h3>DATA</h3>
+                    <h3><?= $lang['data'] ?></h3>
                     <div class="nav-links">
                         <a href="index.php?view=accounts" class="<?= $view === 'accounts' ? 'active' : '' ?>">
-                            <i class="fas fa-wallet"></i> Accounts
+                            <i class="fas fa-wallet"></i> <?= $lang['accounts'] ?>
                         </a>
                         <a href="index.php?view=data" class="<?= $view === 'data' ? 'active' : '' ?>">
-                            <i class="fas fa-database"></i> Data Analysis
+                            <i class="fas fa-database"></i> <?= $lang['data_analysis'] ?>
                         </a>
                     </div>
 
@@ -204,27 +204,28 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/quill.js"></script>
     <script src="assets/chart.js"></script>
     <script type="text/javascript" src="assets/toastify.js"></script>
-    <script src="assets/modules/core.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/ui.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/auth.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/shared_ui.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/forms.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/notes.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/plans.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/trades.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/dashboard.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/accounts.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/data_analysis.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/strategy.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/mpa.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/qpa.js?v=<?php echo time(); ?>"></script>
-    <script src="assets/modules/quick_trade.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/modules/core.js"></script>
+    <script src="assets/modules/ui.js"></script>
+    <script src="assets/modules/auth.js"></script>
+    <script type="text/javascript" src="assets/modules/language.js"></script>
+    <script src="assets/modules/shared_ui.js"></script>
+    <script src="assets/modules/forms.js"></script>
+    <script src="assets/modules/notes.js"></script>
+    <script src="assets/modules/plans.js"></script>
+    <script src="assets/modules/trades.js?"></script>
+    <script src="assets/modules/dashboard.js"></script>
+    <script src="assets/modules/accounts.js"></script>
+    <script src="assets/modules/data_analysis.js"></script>
+    <script src="assets/modules/strategy.js"></script>
+    <script src="assets/modules/mpa.js"></script>
+    <script src="assets/modules/qpa.js"></script>
+    <script src="assets/modules/quick_trade.js"></script>
     <script src="assets/modules/init.js?v=<?php echo time(); ?>"></script>
 
     <div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(5px);">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-panel border-0 text-white"
-                style="background: rgba(18, 18, 18, 0.95); box-shadow: 0 0 20px rgba(0,0,0,0.8);">
+                style="background: rgba(18, 18, 18, 0.95); box-shadow: 0 0 20px rgba(0,0,0,0.8)">
 
                 <div class="modal-header border-secondary border-opacity-25">
                     <h5 class="modal-title fw-bold"><i class="fas fa-bolt text-warning me-2"></i>Quick Trade</h5>

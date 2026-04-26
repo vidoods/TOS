@@ -115,40 +115,15 @@ async function loadSimpleProfile() {
             const elUser = document.getElementById('profile-display-username');
             const elEmail = document.getElementById('profile-display-email');
             const elJoined = document.getElementById('profile-join-date');
-            // Устанавливаем текущий язык в селект
-            const langSelect = document.getElementById('profile-language-select');
-            if (langSelect && result.language) {
-                langSelect.value = result.language;
-                
-                // Слушаем изменение языка
-                langSelect.addEventListener('change', async function() {
-                    const newLang = this.value;
-                    const fd = new FormData();
-                    fd.append('lang', newLang);
-                    
-                    try {
-                        const res = await fetch('api/api.php?action=change_language', {
-                            method: 'POST',
-                            body: fd
-                        });
-                        const data = await res.json();
-                        
-                        if (data.success) {
-                            // Если успешно - просто перезагружаем страницу, 
-                            // чтобы PHP отдал ее уже на новом языке
-                            window.location.reload(); 
-                        } else {
-                            alert('Error changing language');
-                        }
-                    } catch (e) {
-                        console.error(e);
-                    }
-                });
-            }
 
             if (elUser) elUser.textContent = result.username;
             if (elEmail) elEmail.textContent = result.email;
             if (elJoined) elJoined.textContent = result.created_at || '-';
+
+            // ВАЖНО: Мы вызываем функцию из другого модуля для синхронизации языка
+            if (typeof syncLanguageSelect === 'function') {
+                syncLanguageSelect(result.language);
+            }
         }
     } catch (error) {
         console.error('Error loading profile:', error);
