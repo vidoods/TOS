@@ -50,7 +50,7 @@ return [
     'balance' => 'Баланс',
     'win_target' => 'Цель прибыли (%)',
     'max_drawdown' => 'Максимальная просадка (%)',
-    'prop_firm_parameters' => 'Параметры фирмы-сделки',
+    'prop_firm_parameters' => 'Параметры проп-фирмы',
     'cancel' => 'Отмена',
     'save' => 'Сохранить',
     'new_plan' => 'Новый план',
