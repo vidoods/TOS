@@ -51,6 +51,7 @@ return [
     'win_target' => 'Win target (%)',
     'max_drawdown' => 'Max drawdown (%)',
     'prop_firm_parameters' => 'Prop firm parameters',
+    'prop_firm_params_title' => 'Prop firm parameters',
     'cancel' => 'Cancel',
     'save' => 'Save',
     'starting_equity_description' => 'Starting equity (for targets calculation)',

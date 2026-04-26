@@ -51,6 +51,7 @@ return [
     'win_target' => 'Цель прибыли (%)',
     'max_drawdown' => 'Максимальная просадка (%)',
     'prop_firm_parameters' => 'Параметры проп-фирмы',
+    'prop_firm_params_title' => 'Параметры фирмы-сделки',
     'cancel' => 'Отмена',
     'save' => 'Сохранить',
     'starting_equity_description' => 'Начальный капитал (для расчета целей)',
