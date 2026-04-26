@@ -39,13 +39,13 @@ $btn_text = $is_edit ? $lang['update_account'] : $lang['new_account'];
                                         <div class="col-md-4">
                                             <label for="acc-starting" class="form-label fw-bold"><?= $lang['starting_equity'] ?></label>
                                             <input type="number" id="acc-starting" name="starting_equity" class="input-field" step="0.01" placeholder="100000" required oninput="syncBalanceField()">
-                                            <div class="form-text">Starting equity (for targets calculation)</div>
+                                            <div class="form-text"><?= $lang['starting_equity_description'] ?></div>
                                         </div>
                 						</br>
                                         <div class="col-md-4">
                                             <label for="acc-balance" class="form-label fw-bold"><?= $lang['balance'] ?></label>
                                             <input type="number" id="acc-balance" name="balance" class="input-field" step="0.01" placeholder="100000" required>
-                                            <div class="form-text">Balance at the moment</div>
+                                            <div class="form-text"><?= $lang['balance_description'] ?></div>
                                         </div>
                                     </div>
                                 </div>

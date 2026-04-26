@@ -53,6 +53,8 @@ return [
     'prop_firm_parameters' => 'Prop firm parameters',
     'cancel' => 'Cancel',
     'save' => 'Save',
+    'starting_equity_description' => 'Starting equity (for targets calculation)',
+    'balance_description' => 'Balance at the moment',
     'challenge' => 'Challenge',
     'verification' => 'Verification',
     'funded' => 'Funded',

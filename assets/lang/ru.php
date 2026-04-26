@@ -53,6 +53,8 @@ return [
     'prop_firm_parameters' => 'Параметры проп-фирмы',
     'cancel' => 'Отмена',
     'save' => 'Сохранить',
+    'starting_equity_description' => 'Начальный капитал (для расчета целей)',
+    'balance_description' => 'Баланс в данный момент',
     'challenge' => 'Челлендж',
     'verification' => 'Верификация',
     'funded' => 'Финансированный',
