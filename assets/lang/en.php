@@ -43,6 +43,7 @@ return [
     'data' => 'Data',
     'data_analysis' => 'Data Analysis',
     'trading_plans' => 'Trading Plans',
+    'main_data' => 'Main data',
     'new_plan' => 'New Plan',
     'filters' => 'Filters',
     'loading_plans' => 'Loading plans...',

@@ -43,6 +43,7 @@ return [
     'data' => 'Данные',
     'data_analysis' => 'Анализ данных',
     'trading_plans' => 'Торговые планы',
+    'main_data' => 'Основные данные',
     'new_plan' => 'Новый план',
     'filters' => 'Фильтры',
     'loading_plans' => 'Загрузка планов...',

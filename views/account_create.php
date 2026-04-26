@@ -18,7 +18,7 @@ $btn_text = $is_edit ? $lang['update_account'] : $lang['new_account'];
 
             <form id="account-form">
                 
-                <div class="mb-5"> <h5 class="form-section-title">Main data</h5>
+                <div class="mb-5"> <h5 class="form-section-title"><?= $lang['main_data'] ?></h5>
                     
                     <div class="form-group mb-4">
                         <label for="acc-name" class="form-label fw-bold">Account name</label>
