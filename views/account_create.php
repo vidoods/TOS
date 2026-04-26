@@ -28,11 +28,11 @@ $btn_text = $is_edit ? $lang['update_account'] : $lang['new_account'];
                                     <div class="row g-4"> <div class="col-md-4">
                                             <label for="acc-type" class="form-label fw-bold"><?= $lang['account_type'] ?></label>
                                             <select id="acc-type" name="type" class="select-field" onchange="togglePropFields()">
-                                                <option value="Challenge" selected>Challenge</option>
-                                                <option value="Verification">Verification</option>
-                                                <option value="Funded">Funded</option>
-                                                <option value="Live">Live</option>
-                                                <option value="Demo">Demo</option>
+                                                <option value="Challenge" selected><?= $lang['challenge'] ?></option>
+                                                <option value="Verification"><?= $lang['verification'] ?></option>
+                                                <option value="Funded"><?= $lang['funded'] ?></option>
+                                                <option value="Live"><?= $lang['live'] ?></option>
+                                                <option value="Demo"><?= $lang['demo'] ?></option>
                                             </select>
                                         </div>
                         
