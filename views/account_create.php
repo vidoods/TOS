@@ -2,8 +2,8 @@
 // views/account_create.php
 $acc_id = $_GET['id'] ?? null;
 $is_edit = !empty($acc_id);
-$page_title = $is_edit ? 'Edit account' : 'New account';
-$btn_text = $is_edit ? 'Update account' : 'New account';
+$page_title = $is_edit ? $lang['edit_account'] : $lang['new_account'];
+$btn_text = $is_edit ? $lang['update_account'] : $lang['new_account'];
 ?>
 
 <div class="fade-in">
