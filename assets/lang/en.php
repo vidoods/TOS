@@ -90,4 +90,6 @@ return [
     'edit_account' => 'Edit account',
     'new_account' => 'New account',
     'update_account' => 'Update account',
+    'leave_zero_for_no_target' => 'Leave 0, if no target (Live/Funded).',
+    'max_drawdown_description' => 'Max drawdown from starting equity.',
 ];

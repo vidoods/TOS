@@ -90,4 +90,6 @@ return [
     'edit_account' => 'Редактировать аккаунт',
     'new_account' => 'Новый аккаунт',
     'update_account' => 'Обновить аккаунт',
+    'leave_zero_for_no_target' => 'Оставьте 0, если нет цели (Live/Funded).',
+    'max_drawdown_description' => 'Макс. просадка от начального капитала.',
 ];

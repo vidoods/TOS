@@ -61,14 +61,14 @@ $btn_text = $is_edit ? $lang['update_account'] : $lang['new_account'];
                                                 <i class="fas fa-bullseye me-1"></i> <?= $lang['win_target'] ?>
                                             </label>
                                             <input type="number" id="acc-target" name="target_percent" class="input-field" step="0.1" placeholder="Example: 10">
-                                            <div class="form-text">Leave 0, if no target (Live/Funded).</div>
+                                            <div class="form-text"><?= $lang['leave_zero_for_no_target'] ?></div>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="acc-dd" class="form-label" style="color: var(--accent-red); font-weight: 600;">
                                                 <i class="fas fa-arrow-down me-1"></i> <?= $lang['max_drawdown'] ?>
                                             </label>
                                             <input type="number" id="acc-dd" name="max_drawdown_percent" class="input-field" step="0.1" placeholder="Example: 10">
-                                            <div class="form-text">Max drawdown from starting equity.</div>
+                                            <div class="form-text"><?= $lang['max_drawdown_description'] ?></div>
                                         </div>
                                     </div>
                                 </div>
