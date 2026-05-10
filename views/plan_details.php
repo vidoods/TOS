@@ -7,9 +7,9 @@ $plan_id = $_GET['id'] ?? null;
 // Если ID не передан, показываем сообщение об ошибке и кнопку возврата
 if (!$plan_id) {
     echo '<div class="error-state glass-panel" style="padding: 30px; margin: 30px auto; max-width: 600px; text-align: center;">
-            <h2 style="color: var(--accent-red); margin-bottom: 20px;">Error: Plan ID not stated!</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 30px;">Can not load plan details without plan ID.</p>
-            <button class="btn btn-primary" onclick="window.location.href=\'index.php?view=plans\'">Back to plans list</button>
+            <h2 style="color: var(--accent-red); margin-bottom: 20px;">' . ($lang['error_plan_id'] ?? 'Error: Plan ID not stated!') . '</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 30px;">' . ($lang['error_plan_load'] ?? 'Can not load plan details without plan ID.') . '</p>
+            <button class="btn btn-primary" onclick="window.location.href=\'index.php?view=plans\'">' . ($lang['back_to_plans'] ?? 'Back to plans list') . '</button>
           </div>';
     // Важно: прекращаем выполнение скрипта, чтобы не отображать остальную часть страницы
     return; 
@@ -19,17 +19,17 @@ if (!$plan_id) {
 <input type="hidden" id="current-plan-id" value="<?= htmlspecialchars($plan_id) ?>">
 
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
-    <h1 id="plan-details-title" class="page-title" style="margin: 0;">Loading plan...</h1>
+    <h1 id="plan-details-title" class="page-title" style="margin: 0;"><?= $lang['loading_plan'] ?></h1>
     
     <div class="plan-actions" style="display: flex; gap: 10px;">
 		<a href="index.php?view=plans" class="btn btn-outline">
-            <i class="fas fa-arrow-left me-2"></i> Back
+            <i class="fas fa-arrow-left me-2"></i> <?= $lang['back'] ?>
         </a>
         <button class="btn btn-secondary" onclick="window.location.href='index.php?view=plan_create&id=<?= $plan_id ?>'">
-            <i class="fas fa-edit me-2"></i> Edit
+            <i class="fas fa-edit me-2"></i> <?= $lang['edit'] ?>
         </button>
         <button class="btn btn-danger" onclick="deleteEntity(<?= $plan_id ?>, 'delete_plan', 'plans')">
-            <i class="fas fa-trash-alt me-2"></i> Delete
+            <i class="fas fa-trash-alt me-2"></i> <?= $lang['delete'] ?>
         </button>
     </div>
 </div>
@@ -39,34 +39,34 @@ if (!$plan_id) {
     <section class="plan-overview" style="margin-bottom: 40px; border-bottom: 1px solid var(--glass-border); padding-bottom: 30px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 25px;">
             <div class="detail-item">
-                <span class="detail-label">Plan type:</span>
-                <span id="plan-type" class="detail-value">Loading...</span>
+                <span class="detail-label"><?= $lang['plan_type_label'] ?></span>
+                <span id="plan-type" class="detail-value"><?= $lang['loading'] ?></span>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Pair:</span>
-                <span id="plan-pair-symbol" class="detail-value">Loading...</span>
+                <span class="detail-label"><?= $lang['pair_label'] ?></span>
+                <span id="plan-pair-symbol" class="detail-value"><?= $lang['loading'] ?></span>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Plan date:</span>
-                <span id="plan-date" class="detail-value">Loading...</span>
+                <span class="detail-label"><?= $lang['plan_date_label'] ?></span>
+                <span id="plan-date" class="detail-value"><?= $lang['loading'] ?></span>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Bias:</span>
-                <span id="plan-bias" class="detail-value plan-bias-tag" style="align-self: flex-start;">Loading...</span>
+                <span class="detail-label"><?= $lang['bias_label'] ?></span>
+                <span id="plan-bias" class="detail-value plan-bias-tag" style="align-self: flex-start;"><?= $lang['loading'] ?></span>
             </div>
         </div>
         <div class="detail-item" style="display: inline-flex;">
-            <span class="detail-label">Created:</span>
-            <span id="plan-created-at" class="detail-value" style="font-size: 0.9rem; color: var(--text-secondary);">Loading...</span>
+            <span class="detail-label"><?= $lang['created_label'] ?></span>
+            <span id="plan-created-at" class="detail-value" style="font-size: 0.9rem; color: var(--text-secondary);"><?= $lang['loading'] ?></span>
         </div>
     </section>
 
     <section class="timeframes-section">
-        <h2 style="margin-bottom: 25px; font-size: 1.5rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;">Timeframe analysis</h2>
+        <h2 style="margin-bottom: 25px; font-size: 1.5rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;"><?= $lang['timeframe_analysis'] ?></h2>
         
         <div id="timeframes-list" style="display: flex; flex-direction: column; gap: 30px;">
             <div class="loading-spinner" style="text-align: center; padding: 50px; color: var(--text-secondary);">
-                Loading timeframe analysis...
+                <?= $lang['loading_timeframe_analysis'] ?>
             </div>
         </div>
     </section>
