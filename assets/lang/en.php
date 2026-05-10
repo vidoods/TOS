@@ -111,4 +111,8 @@ return [
     'paid' => 'Paid',
     'rejected' => 'Rejected',
     'active' => 'Active',
+    'add_account' => 'Add account',
+    'loading_accounts' => 'Loading accounts...',
+    'payouts_history' => 'Payouts History',
+    'new_payout' => 'New Payout',
 ];

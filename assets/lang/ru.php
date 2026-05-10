@@ -111,4 +111,8 @@ return [
     'paid' => 'Выплачено',
     'rejected' => 'Отклонено',
     'active' => 'Активен',
+    'add_account' => 'Добавить аккаунт',
+    'loading_accounts' => 'Загрузка аккаунтов...',
+    'payouts_history' => 'История выплат',
+    'new_payout' => 'Новая выплата',
 ];
