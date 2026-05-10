@@ -115,4 +115,9 @@ return [
     'loading_accounts' => 'Загрузка аккаунтов...',
     'payouts_history' => 'История выплат',
     'new_payout' => 'Новая выплата',
+    'data_winrate_analysis' => 'Анализ винрейта',
+    'trading_style' => 'Стиль торговли',
+    'entry_tf' => 'Таймфрейм входа',
+    'model_execution' => 'Модель / Исполнение',
+    'pairs_performance' => 'Производительность пар',
 ];

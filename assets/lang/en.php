@@ -115,4 +115,9 @@ return [
     'loading_accounts' => 'Loading accounts...',
     'payouts_history' => 'Payouts History',
     'new_payout' => 'New Payout',
+    'data_winrate_analysis' => 'Data Winrate Analysis',
+    'trading_style' => 'Trading Style',
+    'entry_tf' => 'Entry TF',
+    'model_execution' => 'Model / Execution',
+    'pairs_performance' => 'Pairs Performance',
 ];
