@@ -38,11 +38,11 @@
                 <label for="filter-status" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;"><?= $lang['status'] ?></label>
                 <select class="select-field" id="filter-status" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; outline: none;">
                     <option value=""><?= $lang['all_status'] ?></option>
-                    <option value="win">Win</option>
-                    <option value="loss">Loss</option>
-                    <option value="breakeven">Breakeven</option>
-                    <option value="partial">Partial</option>
-                    <option value="pending">Pending</option>
+                    <option value="win"><?= $lang['win'] ?></option>
+                    <option value="loss"><?= $lang['loss'] ?></option>
+                    <option value="breakeven"><?= $lang['breakeven'] ?></option>
+                    <option value="partial"><?= $lang['partial'] ?></option>
+                    <option value="pending"><?= $lang['pending'] ?></option>
                 </select>
             </div>
 
@@ -50,8 +50,8 @@
                 <label for="filter-direction" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;"><?= $lang['direction'] ?></label>
                 <select class="select-field" id="filter-direction" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; outline: none;">
                     <option value=""><?= $lang['all'] ?></option>
-                    <option value="long">Long</option>
-                    <option value="short">Short</option>
+                    <option value="long"><?= $lang['long'] ?></option>
+                    <option value="short"><?= $lang['short'] ?></option>
                 </select>
             </div>
 

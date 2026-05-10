@@ -43,19 +43,19 @@
                 <label for="filter-type" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;"><?= $lang['plan_type'] ?></label>
                 <select class="select-field" id="filter-type" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; outline: none;">
                     <option value=""><?= $lang['all_types'] ?></option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Daily">Daily</option>
-                    <option value="Monthly">Monthly</option>
-                    <option value="Long Term">Long Term</option>
+                    <option value="Weekly"><?= $lang['weekly'] ?></option>
+                    <option value="Daily"><?= $lang['daily'] ?></option>
+                    <option value="Monthly"><?= $lang['monthly'] ?></option>
+                    <option value="Long Term"><?= $lang['long_term'] ?></option>
                 </select>
             </div>
 
             <div class="form-group" style="margin-bottom: 30px;">
-                <label for="filter-bias" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;">Narrative (Bias)</label>
+                <label for="filter-bias" class="form-label" style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-weight: 500;"><?= $lang['narrative_bias'] ?></label>
                 <select class="select-field" id="filter-bias" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; outline: none;">
                     <option value=""><?= $lang['all_narrative'] ?></option>
-                    <option value="Bullish">Bullish</option>
-                    <option value="Bearish">Bearish</option>
+                    <option value="Bullish"><?= $lang['bullish'] ?></option>
+                    <option value="Bearish"><?= $lang['bearish'] ?></option>
                     <option value="Neutral"><?= $lang['neutral'] ?></option>
                 </select>
             </div>
