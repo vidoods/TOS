@@ -168,7 +168,8 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
 
                     <div class="nav-links mt-auto" style="margin-top: 40px;">
                         <button id="logout-btn" class="btn btn-danger w-100">
-                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            <?= $lang['logout'] ?>
                         </button>
                     </div>
                 </nav>
@@ -204,12 +205,12 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/quill.js"></script>
     <script src="assets/chart.js"></script>
     <script type="text/javascript" src="assets/toastify.js"></script>
-    
+
     <!-- Pass translations to JS -->
     <script>
         window.lang = <?= json_encode($lang) ?>;
     </script>
-    
+
     <script src="assets/modules/core.js"></script>
     <script src="assets/modules/ui.js"></script>
     <script src="assets/modules/auth.js"></script>

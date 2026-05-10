@@ -63,6 +63,18 @@
                 <div class="profile-stat-value" id="profile-stat-pnl">—</div>
             </div>
         </div>
+        <div class="profile-stat-divider"></div>
+        <!-- Account filter -->
+        <div class="profile-stat-item profile-acc-filter">
+            <i class="fas fa-wallet profile-stat-icon" style="color: var(--text-secondary)"></i>
+            <div style="flex:1; min-width:120px;">
+                <div class="profile-stat-label"><?= $lang['account'] ?? 'Account' ?></div>
+                <p></p>
+                <select id="profile-account-select" class="profile-acc-select">
+                    <option value=""><?= $lang['all_accounts'] ?? 'All accounts' ?></option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <!-- Settings Cards Grid -->
@@ -115,36 +127,20 @@
             </div>
             <div class="profile-card-body">
                 <div class="profile-info-row">
-                    <span class="profile-info-label"><i class="fas fa-user me-2 text-muted"></i><?= $lang['username'] ?? 'Username' ?></span>
+                    <span class="profile-info-label"><i
+                            class="fas fa-user me-2 text-muted"></i><?= $lang['username'] ?? 'Username' ?></span>
                     <span class="profile-info-value" id="profile-info-name">—</span>
                 </div>
                 <div class="profile-info-row">
-                    <span class="profile-info-label"><i class="fas fa-envelope me-2 text-muted"></i><?= $lang['email'] ?? 'Email' ?></span>
+                    <span class="profile-info-label"><i
+                            class="fas fa-envelope me-2 text-muted"></i><?= $lang['email'] ?? 'Email' ?></span>
                     <span class="profile-info-value" id="profile-info-email">—</span>
                 </div>
                 <div class="profile-info-row">
-                    <span class="profile-info-label"><i class="fas fa-clock me-2 text-muted"></i><?= $lang['member_since'] ?? 'Member since' ?></span>
+                    <span class="profile-info-label"><i
+                            class="fas fa-clock me-2 text-muted"></i><?= $lang['member_since'] ?? 'Member since' ?></span>
                     <span class="profile-info-value" id="profile-info-date">—</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Danger Zone Card -->
-        <div class="profile-card glass-panel profile-danger-card">
-            <div class="profile-card-header">
-                <div class="profile-card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626)">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div>
-                    <div class="profile-card-title"><?= $lang['danger_zone'] ?? 'Session' ?></div>
-                    <div class="profile-card-subtitle"><?= $lang['session_management'] ?? 'Manage your session' ?></div>
-                </div>
-            </div>
-            <div class="profile-card-body">
-                <button id="profile-logout-btn" class="profile-logout-btn">
-                    <i class="fas fa-sign-out-alt me-2"></i>
-                    <?= $lang['logout'] ?? 'Logout' ?>
-                </button>
             </div>
         </div>
 
@@ -152,408 +148,518 @@
 </div>
 
 <style>
-/* =================== PROFILE PAGE =================== */
-.profile-page-header {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    padding: 36px 36px 32px;
-    background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(168,85,247,0.08) 100%);
-    border: 1px solid rgba(99,102,241,0.2);
-    border-radius: 20px;
-    margin-bottom: 20px;
-    overflow: hidden;
-}
+    /* =================== PROFILE PAGE =================== */
+    .profile-page-header {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 36px 36px 32px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 20px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
 
-.profile-header-glow {
-    position: absolute;
-    top: -60px;
-    left: -60px;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%);
-    pointer-events: none;
-}
+    .profile-header-glow {
+        position: absolute;
+        top: -60px;
+        left: -60px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+        pointer-events: none;
+    }
 
-.profile-avatar-wrap {
-    position: relative;
-    flex-shrink: 0;
-}
+    .profile-avatar-wrap {
+        position: relative;
+        flex-shrink: 0;
+    }
 
-.profile-avatar-ring {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    padding: 3px;
-    background: linear-gradient(135deg, #6366f1, #a855f7, #06b6d4);
-    animation: spin-ring 8s linear infinite;
-}
+    .profile-avatar-ring {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        padding: 3px;
+        background: linear-gradient(135deg, #6366f1, #a855f7, #06b6d4);
+        animation: spin-ring 8s linear infinite;
+    }
 
-@keyframes spin-ring {
-    from { filter: hue-rotate(0deg); }
-    to { filter: hue-rotate(360deg); }
-}
+    @keyframes spin-ring {
+        from {
+            filter: hue-rotate(0deg);
+        }
 
-.profile-avatar-inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: var(--bg-card, #1a1a2e);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.2rem;
-    color: #6366f1;
-}
+        to {
+            filter: hue-rotate(360deg);
+        }
+    }
 
-.profile-avatar-status {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #22c55e;
-    border: 3px solid var(--bg-main, #121212);
-    animation: pulse-status 2s ease-in-out infinite;
-}
+    .profile-avatar-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--bg-card, #1a1a2e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        color: #6366f1;
+    }
 
-@keyframes pulse-status {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
-    50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
-}
+    .profile-avatar-status {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #22c55e;
+        border: 3px solid var(--bg-main, #121212);
+        animation: pulse-status 2s ease-in-out infinite;
+    }
 
-.profile-header-info { flex: 1; min-width: 0; }
+    @keyframes pulse-status {
 
-.profile-username {
-    font-size: 1.9rem;
-    font-weight: 800;
-    color: #fff;
-    margin: 0 0 4px;
-    background: linear-gradient(135deg, #fff 60%, #a855f7);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    line-height: 1.2;
-}
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+        }
 
-.profile-email {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    margin: 0 0 12px;
-}
+        50% {
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+        }
+    }
 
-.profile-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.2));
-    border: 1px solid rgba(99,102,241,0.35);
-    color: #a5b4fc;
-}
+    .profile-header-info {
+        flex: 1;
+        min-width: 0;
+    }
 
-/* Stats Strip */
-.profile-stats-strip {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    background: var(--bg-card, #1a1a1a);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 20px 28px;
-    margin-bottom: 20px;
-}
+    .profile-username {
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 4px;
+        background: linear-gradient(135deg, #fff 60%, #a855f7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1.2;
+    }
 
-.profile-stat-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex: 1;
-}
+    .profile-email {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin: 0 0 12px;
+    }
 
-.profile-stat-icon {
-    font-size: 1.4rem;
-    width: 40px;
-    text-align: center;
-    flex-shrink: 0;
-}
+    .profile-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.2));
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        color: #a5b4fc;
+    }
 
-.profile-stat-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-secondary);
-    font-weight: 600;
-    margin-bottom: 3px;
-}
+    /* Stats Strip */
+    .profile-stats-strip {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: var(--bg-card, #1a1a1a);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 20px 28px;
+        margin-bottom: 20px;
+    }
 
-.profile-stat-value {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #fff;
-}
+    .profile-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 1;
+    }
 
-.profile-stat-divider {
-    width: 1px;
-    height: 44px;
-    background: rgba(255,255,255,0.08);
-    margin: 0 24px;
-    flex-shrink: 0;
-}
+    .profile-stat-icon {
+        font-size: 1.4rem;
+        width: 40px;
+        text-align: center;
+        flex-shrink: 0;
+    }
 
-/* Cards Grid */
-.profile-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-}
+    .profile-stat-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 3px;
+    }
 
-.profile-card {
-    border-radius: 16px;
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
+    .profile-stat-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+    }
 
-.profile-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-}
+    .profile-stat-divider {
+        width: 1px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 0 24px;
+        flex-shrink: 0;
+    }
 
-.profile-card-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px 22px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
+    /* Cards Grid */
+    .profile-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+    }
 
-.profile-card-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    color: #fff;
-    flex-shrink: 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
+    .profile-card {
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-.profile-card-title {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: #fff;
-}
+    .profile-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
 
-.profile-card-subtitle {
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    margin-top: 2px;
-}
+    .profile-card-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 22px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
 
-.profile-card-body {
-    padding: 20px 22px;
-}
+    .profile-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        color: #fff;
+        flex-shrink: 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
 
-/* Language options */
-.lang-options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+    .profile-card-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #fff;
+    }
 
-.lang-option {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1.5px solid rgba(255,255,255,0.07);
-    background: rgba(255,255,255,0.03);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
-}
+    .profile-card-subtitle {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        margin-top: 2px;
+    }
 
-.lang-option:hover {
-    border-color: rgba(99,102,241,0.4);
-    background: rgba(99,102,241,0.08);
-}
+    .profile-card-body {
+        padding: 20px 22px;
+    }
 
-.lang-option.active {
-    border-color: #6366f1;
-    background: rgba(99,102,241,0.15);
-}
+    /* Language options */
+    .lang-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-.lang-flag { font-size: 1.4rem; line-height: 1; }
-.lang-name { flex: 1; font-weight: 600; font-size: 0.92rem; color: #fff; }
+    .lang-option {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(255, 255, 255, 0.07);
+        background: rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
 
-.lang-check {
-    color: #6366f1;
-    opacity: 0;
-    transition: opacity 0.2s;
-    font-size: 0.85rem;
-}
+    .lang-option:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        background: rgba(99, 102, 241, 0.08);
+    }
 
-.lang-option.active .lang-check { opacity: 1; }
+    .lang-option.active {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.15);
+    }
 
-/* Info rows */
-.profile-info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
+    .lang-flag {
+        font-size: 1.4rem;
+        line-height: 1;
+    }
 
-.profile-info-row:last-child { border-bottom: none; }
+    .lang-name {
+        flex: 1;
+        font-weight: 600;
+        font-size: 0.92rem;
+        color: #fff;
+    }
 
-.profile-info-label {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-}
+    .lang-check {
+        color: #6366f1;
+        opacity: 0;
+        transition: opacity 0.2s;
+        font-size: 0.85rem;
+    }
 
-.profile-info-value {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #fff;
-    text-align: right;
-    max-width: 55%;
-    word-break: break-all;
-}
+    .lang-option.active .lang-check {
+        opacity: 1;
+    }
 
-/* Logout button */
-.profile-logout-btn {
-    width: 100%;
-    padding: 12px 20px;
-    border: 1.5px solid rgba(239,68,68,0.35);
-    background: rgba(239,68,68,0.08);
-    color: #f87171;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    /* Info rows */
+    .profile-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
 
-.profile-logout-btn:hover {
-    background: rgba(239,68,68,0.18);
-    border-color: rgba(239,68,68,0.6);
-    color: #fca5a5;
-    transform: translateY(-1px);
-}
+    .profile-info-row:last-child {
+        border-bottom: none;
+    }
 
-@media (max-width: 600px) {
-    .profile-page-header { flex-direction: column; text-align: center; padding: 28px 20px; }
-    .profile-stats-strip { flex-wrap: wrap; gap: 16px; }
-    .profile-stat-divider { display: none; }
-    .profile-stat-item { flex: 1 1 40%; }
-    .profile-username { font-size: 1.5rem; }
-}
+    .profile-info-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+    }
+
+    .profile-info-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #fff;
+        text-align: right;
+        max-width: 55%;
+        word-break: break-all;
+    }
+
+    /* Logout button */
+    .profile-logout-btn {
+        width: 100%;
+        padding: 12px 20px;
+        border: 1.5px solid rgba(239, 68, 68, 0.35);
+        background: rgba(239, 68, 68, 0.08);
+        color: #f87171;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-logout-btn:hover {
+        background: rgba(239, 68, 68, 0.18);
+        border-color: rgba(239, 68, 68, 0.6);
+        color: #fca5a5;
+        transform: translateY(-1px);
+    }
+
+    /* Account filter in stats strip */
+    .profile-acc-filter {
+        flex: 1.2;
+    }
+
+    .profile-acc-select {
+        appearance: none;
+        -webkit-appearance: none;
+        background: rgba(255, 255, 255, 0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 10px center;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 5px 30px 5px 10px;
+        cursor: pointer;
+        width: 100%;
+        transition: border-color 0.2s, background-color 0.2s;
+        outline: none;
+    }
+
+    .profile-acc-select:hover,
+    .profile-acc-select:focus {
+        border-color: rgba(99, 102, 241, 0.5);
+        background-color: rgba(99, 102, 241, 0.1);
+    }
+
+    .profile-acc-select option {
+        background: #1a1a2e;
+        color: #fff;
+    }
+
+    @media (max-width: 600px) {
+
+        .profile-page-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 28px 20px;
+        }
+
+        .profile-stats-strip {
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .profile-stat-divider {
+            display: none;
+        }
+
+        .profile-stat-item {
+            flex: 1 1 40%;
+        }
+
+        .profile-username {
+            font-size: 1.5rem;
+        }
+    }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Wire up language card to hidden select + existing handler
-    const langOptions = document.querySelectorAll('.lang-option');
-    const hiddenSelect = document.getElementById('profile-language-select');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Wire up language card to hidden select + existing handler
+        const langOptions = document.querySelectorAll('.lang-option');
+        const hiddenSelect = document.getElementById('profile-language-select');
 
-    langOptions.forEach(opt => {
-        opt.addEventListener('click', function() {
-            const val = this.querySelector('input[type="radio"]').value;
-            hiddenSelect.value = val;
-            hiddenSelect.dispatchEvent(new Event('change'));
+        langOptions.forEach(opt => {
+            opt.addEventListener('click', function () {
+                const val = this.querySelector('input[type="radio"]').value;
+                hiddenSelect.value = val;
+                hiddenSelect.dispatchEvent(new Event('change'));
+            });
         });
-    });
 
-    // Sync visual state of language UI
-    function syncLangUI(lang) {
-        document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
-        const target = document.getElementById('lang-opt-' + lang);
-        if (target) target.classList.add('active');
-    }
+        // Sync visual state of language UI
+        function syncLangUI(lang) {
+            document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+            const target = document.getElementById('lang-opt-' + lang);
+            if (target) target.classList.add('active');
+        }
 
-    // Override syncLanguageSelect to also update the visual lang buttons
-    const _origSync = window.syncLanguageSelect;
-    window.syncLanguageSelect = function(lang) {
-        if (_origSync) _origSync(lang);
-        syncLangUI(lang);
-    };
+        // Override syncLanguageSelect to also update the visual lang buttons
+        const _origSync = window.syncLanguageSelect;
+        window.syncLanguageSelect = function (lang) {
+            if (_origSync) _origSync(lang);
+            syncLangUI(lang);
+        };
 
-    // Load user info directly and populate all profile elements
-    fetch('api/api.php?action=get_user_info')
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                // Header
-                const nameEl = document.getElementById('profile-page-name');
-                if (nameEl) nameEl.textContent = data.username || '—';
+        // Load user info directly and populate all profile elements
+        fetch('api/api.php?action=get_user_info')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Header
+                    const nameEl = document.getElementById('profile-page-name');
+                    if (nameEl) nameEl.textContent = data.username || '—';
 
-                const emailEl = document.getElementById('profile-page-email');
-                if (emailEl) emailEl.textContent = data.email || '—';
+                    const emailEl = document.getElementById('profile-page-email');
+                    if (emailEl) emailEl.textContent = data.email || '—';
 
-                const dateEl = document.getElementById('profile-page-date');
-                if (dateEl) dateEl.textContent = data.created_at || '—';
+                    const dateEl = document.getElementById('profile-page-date');
+                    if (dateEl) dateEl.textContent = data.created_at || '—';
 
-                // Info card rows
-                const infoName = document.getElementById('profile-info-name');
-                if (infoName) infoName.textContent = data.username || '—';
+                    // Info card rows
+                    const infoName = document.getElementById('profile-info-name');
+                    if (infoName) infoName.textContent = data.username || '—';
 
-                const infoEmail = document.getElementById('profile-info-email');
-                if (infoEmail) infoEmail.textContent = data.email || '—';
+                    const infoEmail = document.getElementById('profile-info-email');
+                    if (infoEmail) infoEmail.textContent = data.email || '—';
 
-                const infoDate = document.getElementById('profile-info-date');
-                if (infoDate) infoDate.textContent = data.created_at || '—';
+                    const infoDate = document.getElementById('profile-info-date');
+                    if (infoDate) infoDate.textContent = data.created_at || '—';
 
-                // Sync lang UI
-                if (data.language) syncLangUI(data.language);
-            }
-        })
-        .catch(() => {});
-
-    // Logout button
-    document.getElementById('profile-logout-btn')?.addEventListener('click', logout);
-
-    // Load stats from dashboard API
-    fetch('api/api.php?action=get_dashboard_metrics')
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const m = data.data || {};
-
-                // total_trades
-                const total = m.total_trades ?? null;
-                document.getElementById('profile-stat-trades').textContent = total != null ? total : '—';
-
-                // win_rate (not winrate)
-                const wr = m.win_rate != null ? parseFloat(m.win_rate).toFixed(1) + '%' : null;
-                document.getElementById('profile-stat-winrate').textContent = wr ?? '—';
-
-                // total_pnl (not net_pnl)
-                const pnlRaw = m.total_pnl ?? null;
-                const pnlEl = document.getElementById('profile-stat-pnl');
-                if (pnlRaw != null) {
-                    const pnlVal = parseFloat(pnlRaw);
-                    pnlEl.textContent = (pnlVal >= 0 ? '+' : '') + pnlVal.toFixed(2) + '$';
-                    pnlEl.style.color = pnlVal >= 0 ? 'var(--accent-green, #22c55e)' : 'var(--accent-red, #ef4444)';
-                } else {
-                    pnlEl.textContent = '—';
+                    // Sync lang UI
+                    if (data.language) syncLangUI(data.language);
                 }
-            }
-        })
-        .catch(() => {});
-});
+            })
+            .catch(() => { });
+
+        // Logout button
+        document.getElementById('profile-logout-btn')?.addEventListener('click', logout);
+
+        // Populate accounts dropdown
+        fetch('api/api.php?action=get_accounts_data')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.data.length > 0) {
+                    const sel = document.getElementById('profile-account-select');
+                    data.data.forEach(acc => {
+                        const opt = document.createElement('option');
+                        opt.value = acc.id;
+                        opt.textContent = acc.name;
+                        sel.appendChild(opt);
+                    });
+                }
+            })
+            .catch(() => { });
+
+        // Load stats — optionally filtered by account
+        function loadProfileStats(accountId) {
+            const url = accountId
+                ? `api/api.php?action=get_dashboard_metrics&account_id=${accountId}`
+                : 'api/api.php?action=get_dashboard_metrics';
+
+            ['profile-stat-trades', 'profile-stat-winrate', 'profile-stat-pnl'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = '…'; el.style.color = ''; }
+            });
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const m = data.data || {};
+
+                        const total = m.total_trades ?? null;
+                        document.getElementById('profile-stat-trades').textContent = total != null ? total : '—';
+
+                        const wr = m.win_rate != null ? parseFloat(m.win_rate).toFixed(1) + '%' : null;
+                        document.getElementById('profile-stat-winrate').textContent = wr ?? '—';
+
+                        const pnlRaw = m.total_pnl ?? null;
+                        const pnlEl = document.getElementById('profile-stat-pnl');
+                        if (pnlRaw != null) {
+                            const pnlVal = parseFloat(pnlRaw);
+                            pnlEl.textContent = (pnlVal >= 0 ? '+' : '') + pnlVal.toFixed(2) + '$';
+                            pnlEl.style.color = pnlVal >= 0 ? 'var(--accent-green, #22c55e)' : 'var(--accent-red, #ef4444)';
+                        } else {
+                            pnlEl.textContent = '—';
+                            pnlEl.style.color = '';
+                        }
+                    }
+                })
+                .catch(() => { });
+        }
+
+        // Wire account selector to reload stats
+        const accSelect = document.getElementById('profile-account-select');
+        accSelect?.addEventListener('change', () => loadProfileStats(accSelect.value || null));
+
+        // Initial load
+        loadProfileStats(null);
+    });
 </script>
