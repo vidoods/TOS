@@ -7,20 +7,20 @@
                 <i class="fas fa-spinner"></i>
             </div>
             <div>
-                <h1 class="m-0 fw-bold" id="st-detail-title" style="font-size: 2rem;">Loading...</h1>
+                <h1 class="m-0 fw-bold" id="st-detail-title" style="font-size: 2rem;"><?= $lang['loading'] ?></h1>
                 <div class="text-muted" id="st-detail-desc">-</div>
             </div>
         </div>
         
         <div class="d-flex gap-2">
              <a href="index.php?view=strategy" class="btn btn-outline">
-                <i class="fas fa-arrow-left me-2"></i> Back
+                <i class="fas fa-arrow-left me-2"></i> <?= $lang['back'] ?>
             </a>
             <button class="btn btn-secondary" id="btn-edit-strategy">
-                <i class="fas fa-edit me-2"></i> Edit
+                <i class="fas fa-edit me-2"></i> <?= $lang['edit'] ?>
             </button>
 			<button class="btn btn-danger" id="btn-delete-strategy">
-                <i class="fas fa-trash-alt me-2"></i> Delete
+                <i class="fas fa-trash-alt me-2"></i> <?= $lang['delete'] ?>
             </button>
         </div>
     </div>

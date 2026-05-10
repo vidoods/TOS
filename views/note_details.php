@@ -7,18 +7,18 @@
 
     <div class="d-flex justify-content-between align-items-start mb-4 responsive-header">
         <div>
-            <h2 class="m-0 fw-bold" id="note-details-title" style="color: var(--text-primary);">Loading...</h2>
+            <h2 class="m-0 fw-bold" id="note-details-title" style="color: var(--text-primary);"><?= $lang['loading'] ?></h2>
             <div class="text-muted small mt-1" id="note-date-info">-</div>
         </div>
         <div class="d-flex gap-2">
              <a href="index.php?view=notes" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Back
+                <i class="fas fa-arrow-left me-2"></i> <?= $lang['back'] ?>
             </a>
             <button class="btn btn-secondary" id="btn-edit-note">
-                <i class="fas fa-edit me-2"></i> Edit
+                <i class="fas fa-edit me-2"></i> <?= $lang['edit'] ?>
             </button>
             <button class="btn btn-danger" id="btn-delete-note">
-                <i class="fas fa-trash-alt me-2"></i> Delete
+                <i class="fas fa-trash-alt me-2"></i> <?= $lang['delete'] ?>
             </button>
         </div>
     </div>
@@ -26,15 +26,15 @@
 	<div class="col-lg-4">
              <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; margin-bottom: 10px;">
                 <div class="card-body p-4">
-                    <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;">Links</h5>
+                    <h5 class="text-muted text-uppercase fw-bold mb-4" style="font-size: 0.9rem; letter-spacing: 1px;"><?= $lang['links'] ?></h5>
                     
                     <div class="mb-4">
-                        <strong class="d-block mb-2" style="color: var(--text-secondary); font-size: 0.8rem;">Trade</strong>
+                        <strong class="d-block mb-2" style="color: var(--text-secondary); font-size: 0.8rem;"><?= $lang['trade'] ?></strong>
                         <div id="note-linked-trade">-</div>
                     </div>
 
                     <div class="mb-4">
-                        <strong class="d-block mb-2" style="color: var(--text-secondary); font-size: 0.8rem;">Plan</strong>
+                        <strong class="d-block mb-2" style="color: var(--text-secondary); font-size: 0.8rem;"><?= $lang['plan'] ?></strong>
                         <div id="note-linked-plan">-</div>
                     </div>
                     
@@ -42,7 +42,7 @@
                     
                     <div>
                         <div class="d-flex justify-content-between">
-                            <span class="text-muted">Created:</span>
+                            <span class="text-muted"><?= $lang['created_label'] ?></span>
                             <span id="note-created-at" class="text-end">-</span>
                         </div>
                     </div>

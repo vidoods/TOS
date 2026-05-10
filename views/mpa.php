@@ -5,22 +5,22 @@
 <div class="fade-in">
     <div class="d-flex align-items-center mb-4 gap-3">
         <div class="mpa-page-icon">M</div>
-        <h2 class="m-0 page-title-text">Monthly Performance Analysis</h2>
+        <h2 class="m-0 page-title-text"><?= $lang['monthly_analysis'] ?></h2>
     </div>
 
     <div class="mpa-toolbar mb-4">
         <div class="d-flex flex-wrap gap-3 align-items-center">
             
             <div>
-                <label for="mpa-year-select" class="small text-muted mb-1 d-block">Year</label>
+                <label for="mpa-year-select" class="small text-muted mb-1 d-block"><?= $lang['year'] ?></label>
                 <select id="mpa-year-select" class="form-select form-select-sm" style="width: 120px; background: rgba(255,255,255,0.1); border:none; color:white;">
                 </select>
             </div>
 
             <div>
-                <label for="mpa-quarter-select" class="small text-muted mb-1 d-block">Quarter</label>
+                <label for="mpa-quarter-select" class="small text-muted mb-1 d-block"><?= $lang['quarter'] ?></label>
                 <select id="mpa-quarter-select" class="form-select form-select-sm" style="width: 120px; background: rgba(255,255,255,0.1); border:none; color:white;">
-                    <option value="all">All Year</option>
+                    <option value="all"><?= $lang['all_year'] ?></option>
                     <option value="1">Q1</option>
                     <option value="2">Q2</option>
                     <option value="3">Q3</option>
@@ -33,7 +33,7 @@
 
     <div id="mpa-dynamic-container">
         <div class="text-center py-5">
-            <div class="loading-spinner"></div> Loading Analysis...
+            <div class="loading-spinner"></div> <?= $lang['loading_analysis'] ?>
         </div>
     </div>
 </div>

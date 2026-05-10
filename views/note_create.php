@@ -1,7 +1,7 @@
 <?php
 $note_id = $_GET['id'] ?? null;
 $is_edit = !empty($note_id);
-$page_title = $is_edit ? 'Edit note' : 'New note';
+$page_title = $is_edit ? $lang['edit_note'] : $lang['new_note'];
 ?>
 
 <div class="fade-in">
@@ -22,34 +22,34 @@ $page_title = $is_edit ? 'Edit note' : 'New note';
 
             <form id="note-form">
                 <div class="mb-4">
-                    <label class="form-label">Title</label>
-                    <input type="text" class="input-field" name="title" id="note-title" placeholder="Note title..." required style="font-size: 1.2rem; font-weight: 600;">
+                    <label class="form-label"><?= $lang['title'] ?></label>
+                    <input type="text" class="input-field" name="title" id="note-title" placeholder="<?= $lang['note_title_placeholder'] ?>" required style="font-size: 1.2rem; font-weight: 600;">
                 </div>
                 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <label class="form-label">Link to trade (optional)</label>
+                        <label class="form-label"><?= $lang['link_to_trade_optional'] ?></label>
                         <select class="select-field" id="note-trade" name="trade_id">
-                            <option value="">-- Select trade --</option>
+                            <option value=""><?= $lang['select_trade'] ?></option>
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Link to plan (optional)</label>
+                        <label class="form-label"><?= $lang['link_to_plan_optional'] ?></label>
                         <select class="select-field" id="note-plan" name="plan_id">
-                            <option value="">-- Select plan --</option>
+                            <option value=""><?= $lang['select_plan'] ?></option>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Content</label>
+                    <label class="form-label"><?= $lang['content'] ?></label>
                     <div id="editor-container" style="height: 400px; background: rgba(0,0,0,0.2); border-radius: 0 0 8px 8px;"></div>
                     <input type="hidden" name="content" id="note-content-hidden">
                 </div>
 
                 <div class="d-flex gap-2 pt-3 border-top border-secondary">
-                    <button type="button" class="btn btn-outline" onclick="window.history.back()">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4">Save</button>
+                    <button type="button" class="btn btn-outline" onclick="window.history.back()"><?= $lang['cancel'] ?></button>
+                    <button type="submit" class="btn btn-primary px-4"><?= $lang['save'] ?></button>
                 </div>
             </form>
         </div>
