@@ -30,7 +30,7 @@ async function loadAccounts() {
 
         if (json.success) {
             if (json.data.length === 0) {
-                container.innerHTML = '<div class="empty-state">No accounts. Add your first one!</div>';
+                container.innerHTML = `<div class="empty-state">${window.lang['no_accounts_add_first']}</div>`;
                 return;
             }
 
@@ -49,8 +49,8 @@ async function loadAccounts() {
 
                 let widthLoss = 0;
                 let widthProfit = 0;
-                let labelLeft = maxDDPct > 0 ? `Max DD: ${maxDDPct}%` : 'No Limit';
-                let labelRight = targetPct > 0 ? `Target: ${targetPct}%` : 'No Target';
+                let labelLeft = maxDDPct > 0 ? `${window.lang['max_dd']}: ${maxDDPct}%` : window.lang['no_limit'];
+                let labelRight = targetPct > 0 ? `${window.lang['target']}: ${targetPct}%` : window.lang['no_target'];
 
                 if (totalGainAbs >= 0) {
                     if (targetPct > 0) {
@@ -73,15 +73,15 @@ async function loadAccounts() {
                     </div>
                     <div class="acc-split-labels">
                         <span class="text-loss">${labelLeft}</span>
-                        <span style="color:#fff; opacity:0.5; font-size:0.65rem;">Start: $${startEquity.toLocaleString()}</span>
+                        <span style="color:#fff; opacity:0.5; font-size:0.65rem;">${window.lang['start_label']}: $${startEquity.toLocaleString()}</span>
                         <span class="text-profit">${labelRight}</span>
                     </div>`;
 
                 html += `
                 <div class="account-card" onclick="window.location.href='index.php?view=account_details&id=${acc.id}'">
                     <div class="acc-actions" onclick="event.stopPropagation()">
-                        <a title="Edit" href="index.php?view=account_create&id=${acc.id}" class="acc-btn d-inline-flex align-items-center justify-content-center" style="text-decoration:none;"><i class="fas fa-pen" style="font-size:0.8rem"></i></a>
-                        <button title="Delete" class="acc-btn delete" onclick="deleteAccount(${acc.id})"><i class="fas fa-trash" style="font-size:0.8rem"></i></button>
+                        <a title="${window.lang['edit']}" href="index.php?view=account_create&id=${acc.id}" class="acc-btn d-inline-flex align-items-center justify-content-center" style="text-decoration:none;"><i class="fas fa-pen" style="font-size:0.8rem"></i></a>
+                        <button title="${window.lang['delete']}" class="acc-btn delete" onclick="deleteAccount(${acc.id})"><i class="fas fa-trash" style="font-size:0.8rem"></i></button>
                     </div>
                     <div class="acc-header">
                         <div class="acc-name"><i class="fas fa-wallet" style="color:var(--accent-blue)"></i> ${acc.name}</div>
@@ -93,10 +93,10 @@ async function loadAccounts() {
                     </div>
                     ${barHtml}
                     <div class="acc-stats-grid">
-                        <div class="acc-stat-row"><span>Trades:</span><span class="acc-stat-val">${acc.total_trades}</span></div>
-                        <div class="acc-stat-row"><span>Winrate:</span><span class="acc-stat-val">${acc.total_trades > 0 ? ((acc.wins/acc.total_trades)*100).toFixed(1) : 0}%</span></div>
-                        <div class="acc-stat-row"><span>Avg RR:</span><span class="acc-stat-val">${acc.avg_rr}R</span></div>
-                        <div class="acc-stat-row"><span>Journal PnL:</span><span class="acc-stat-val ${acc.profit >=0 ? 'text-profit':'text-loss'}">${acc.profit >=0?'+':''}${acc.profit.toFixed(2)}$</span></div>
+                        <div class="acc-stat-row"><span>${window.lang['total_trades']}:</span><span class="acc-stat-val">${acc.total_trades}</span></div>
+                        <div class="acc-stat-row"><span>${window.lang['winrate']}:</span><span class="acc-stat-val">${acc.total_trades > 0 ? ((acc.wins/acc.total_trades)*100).toFixed(1) : 0}%</span></div>
+                        <div class="acc-stat-row"><span>${window.lang['avg_rr']}:</span><span class="acc-stat-val">${acc.avg_rr}R</span></div>
+                        <div class="acc-stat-row"><span>${window.lang['journal_pnl']}:</span><span class="acc-stat-val ${acc.profit >=0 ? 'text-profit':'text-loss'}">${acc.profit >=0?'+':''}${acc.profit.toFixed(2)}$</span></div>
                     </div>
                 </div>`;
             });
@@ -107,24 +107,24 @@ async function loadAccounts() {
 }
 
 async function deleteAccount(id) {
-    if (!confirm('Delete this account and all its data? This action can not be undone.')) return;
+    if (!confirm(window.lang['confirm_delete_account'])) return;
     const fd = new FormData(); fd.append('id', id);
     try {
         const res = await fetch('api/api.php?action=delete_account', { method: 'POST', body: fd });
         const json = await res.json();
         if (json.success) {
-            showToast('Account deleted successfully', 'success');
+            showToast(window.lang['account_deleted'], 'success');
             if (window.location.search.includes('view=account_details')) {
                 window.location.href = 'index.php?view=accounts';
             } else {
                 loadAccounts();
             }
         } else {
-            showToast('Delete error: ' + json.message, 'error');
+            showToast(window.lang['delete_error'] + ': ' + json.message, 'error');
         }
     } catch(e) {
         console.error(e);
-        showToast('Network error', 'error');
+        showToast(window.lang['network_error'], 'error');
     }
 }
 
@@ -173,10 +173,10 @@ async function initAccountForm() {
                 if (json.success) {
                     window.location.href = 'index.php?view=accounts';
                 } else {
-                    showMessage('Error ' + json.message, 'error');
+                    showMessage(window.lang['error'] + ' ' + json.message, 'error');
                 }
             } catch(err) {
-                showMessage('Network error', 'error');
+                showMessage(window.lang['network_error'], 'error');
             }
         };
     }
@@ -199,7 +199,7 @@ async function loadPayouts() {
                 container.innerHTML = `
                     <div class="glass-panel p-4 text-center text-muted">
                         <i class="fas fa-money-bill-wave mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
-                        <p>No payout history</p>
+                        <p>${window.lang['no_payout_history']}</p>
                     </div>`;
                 return;
             }
@@ -207,11 +207,11 @@ async function loadPayouts() {
             let html = `
                 <div class="payouts-grid">
                     <div class="payout-header-row">
-                        <div>Date</div>
-                        <div>Account</div>
-                        <div>Status</div>
-                        <div style="text-align: right;">Amount</div>
-                        <div style="text-align: right;">Actions</div>
+                        <div>${window.lang['date']}</div>
+                        <div>${window.lang['account']}</div>
+                        <div>${window.lang['status']}</div>
+                        <div style="text-align: right;">${window.lang['amount']}</div>
+                        <div style="text-align: right;">${window.lang['actions']}</div>
                     </div>`;
 
             let totalPayouts = 0;
@@ -224,9 +224,9 @@ async function loadPayouts() {
                 if (p.confirmation_status === 'Paid') totalPayouts += amount;
 
                 let statusBadge = '';
-                if (p.confirmation_status === 'Paid') statusBadge = '<span class="status-tag status-win">Paid</span>';
-                else if (p.confirmation_status === 'Rejected') statusBadge = '<span class="status-tag status-loss">Rejected</span>';
-                else statusBadge = '<span class="status-tag status-pending">Requested</span>';
+                if (p.confirmation_status === 'Paid') statusBadge = `<span class="status-tag status-win">${window.lang['paid']}</span>`;
+                else if (p.confirmation_status === 'Rejected') statusBadge = `<span class="status-tag status-loss">${window.lang['rejected']}</span>`;
+                else statusBadge = `<span class="status-tag status-pending">${window.lang['requested']}</span>`;
 
                 html += `
                     <div class="payout-card">
@@ -245,10 +245,10 @@ async function loadPayouts() {
                             </span>
                         </div>
                         <div class="payout-col payout-actions" style="text-align: right;">
-                            <button class="acc-btn" style="width:32px; height:32px;" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')" title="Edit">
+                            <button class="acc-btn" style="width:32px; height:32px;" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')" title="${window.lang['edit']}">
                                 <i class="fas fa-pen" style="font-size: 0.8rem;"></i>
                             </button>
-                            <button class="acc-btn delete" style="width:32px; height:32px;" onclick="deletePayout(${p.id})" title="Delete">
+                            <button class="acc-btn delete" style="width:32px; height:32px;" onclick="deletePayout(${p.id})" title="${window.lang['delete']}">
                                 <i class="fas fa-trash" style="font-size: 0.8rem;"></i>
                             </button>
                         </div>
@@ -257,7 +257,7 @@ async function loadPayouts() {
 
             html += `
                 <div style="padding: 20px; text-align: right; font-size: 0.95rem; color: var(--text-secondary); margin-top: 10px;">
-                    Total Paid: <span style="color: var(--text-main); font-weight: 700; font-size: 1.2rem;">$${totalPayouts.toLocaleString()}</span>
+                    ${window.lang['total_paid']}: <span style="color: var(--text-main); font-weight: 700; font-size: 1.2rem;">$${totalPayouts.toLocaleString()}</span>
                 </div>
             </div>`;
 
@@ -273,7 +273,7 @@ function openPayoutModal() {
         document.getElementById('payout-form').reset();
         document.getElementById('payout-id').value = '';
         document.getElementById('payout-date').valueAsDate = new Date();
-        document.getElementById('payout-modal-title').textContent = 'Add payout';
+        document.getElementById('payout-modal-title').textContent = window.lang['add_payout'];
 
         loadLookups().then(data => {
             if (data && data.accounts) {
@@ -295,11 +295,11 @@ function editPayout(id, accId, amount, date, status) {
     document.getElementById('payout-amount').value = amount;
     document.getElementById('payout-date').value = date;
     document.getElementById('payout-status').value = status;
-    document.getElementById('payout-modal-title').textContent = 'Edit payout';
+    document.getElementById('payout-modal-title').textContent = window.lang['edit_payout'];
 }
 
 async function deletePayout(id) {
-    if (!confirm('Delete payout?')) return;
+    if (!confirm(window.lang['confirm_delete_payout'])) return;
     const fd = new FormData(); fd.append('id', id);
     await fetch('api/api.php?action=delete_payout', { method: 'POST', body: fd });
     loadPayouts();
@@ -378,7 +378,7 @@ async function loadAccountPayouts(accountId) {
             const accountPayouts = json.data.filter(p => p.account_id == accountId);
 
             if (accountPayouts.length === 0) {
-                container.innerHTML = `<div class="glass-panel p-4 text-center text-muted"><p>No payouts</p></div>`;
+                container.innerHTML = `<div class="glass-panel p-4 text-center text-muted"><p>${window.lang['no_payouts']}</p></div>`;
                 return;
             }
 
@@ -386,9 +386,9 @@ async function loadAccountPayouts(accountId) {
             accountPayouts.forEach(p => {
                 const date = new Date(p.payout_date).toLocaleDateString();
                 const amount = parseFloat(p.amount);
-                let statusBadge = '<span class="status-tag status-pending">Requested</span>';
-                if (p.confirmation_status === 'Paid') statusBadge = '<span class="status-tag status-win">Paid</span>';
-                else if (p.confirmation_status === 'Rejected') statusBadge = '<span class="status-tag status-loss">Rejected</span>';
+                let statusBadge = `<span class="status-tag status-pending">${window.lang['requested']}</span>`;
+                if (p.confirmation_status === 'Paid') statusBadge = `<span class="status-tag status-win">${window.lang['paid']}</span>`;
+                else if (p.confirmation_status === 'Rejected') statusBadge = `<span class="status-tag status-loss">${window.lang['rejected']}</span>`;
 
                 html += `
                     <div class="payout-card" style="grid-template-columns: 1fr 1fr 1fr 80px;">
@@ -427,7 +427,7 @@ function renderAccountProgressBarDOM(acc, containerId) {
             <div class="acc-bar-right"><div class="acc-fill-profit" style="width: ${wProfit}%"></div></div>
         </div>
         <div class="acc-split-labels">
-            <span class="text-loss">${maxDD > 0 ? 'Max DD: '+maxDD+'%' : ''}</span>
-            <span class="text-profit">${target > 0 ? 'Target: '+target+'%' : ''}</span>
+            <span class="text-loss">${maxDD > 0 ? window.lang['max_dd']+': '+maxDD+'%' : ''}</span>
+            <span class="text-profit">${target > 0 ? window.lang['target']+': '+target+'%' : ''}</span>
         </div>`;
 }

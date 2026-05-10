@@ -21,7 +21,7 @@ async function loadUserInfo() {
         }
     } catch(e) {
         console.error(e);
-        if (sidebarName) sidebarName.textContent = 'User';
+        if (sidebarName) sidebarName.textContent = window.lang['user'];
     }
 }
 
@@ -36,7 +36,7 @@ async function handleLoginSubmit(event) {
 
     errorDiv.textContent = '';
     submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Checking...';
+    submitBtn.innerHTML = window.lang['checking'];
 
     try {
         const response = await fetch('api/api.php', { method: 'POST', body: formData });
@@ -44,10 +44,10 @@ async function handleLoginSubmit(event) {
         if (result.success) {
             window.location.href = 'index.php?view=dashboard';
         } else {
-            errorDiv.textContent = result.message || 'Login error';
+            errorDiv.textContent = result.message || window.lang['login_error'];
         }
     } catch (error) {
-        errorDiv.textContent = 'Network error. Please try again later.';
+        errorDiv.textContent = window.lang['network_error_try_later'];
         console.error('Login error:', error);
     } finally {
         submitBtn.disabled = false;
@@ -65,7 +65,7 @@ async function handleRegisterSubmit(event) {
     const errorDiv = document.getElementById('register-error');
 
     if (pass !== passConfirm) {
-        errorDiv.textContent = 'Password doesn`t match';
+        errorDiv.textContent = window.lang['password_doesnt_match'];
         return;
     }
 
@@ -74,7 +74,7 @@ async function handleRegisterSubmit(event) {
 
     errorDiv.textContent = '';
     submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Registration...';
+    submitBtn.innerHTML = window.lang['registration'];
 
     try {
         const data = Object.fromEntries(formData.entries());
@@ -88,10 +88,10 @@ async function handleRegisterSubmit(event) {
         if (result.success) {
             window.location.href = 'index.php?view=dashboard';
         } else {
-            errorDiv.textContent = result.message || 'Registration error';
+            errorDiv.textContent = result.message || window.lang['registration_error'];
         }
     } catch (error) {
-        errorDiv.textContent = 'Network error.';
+        errorDiv.textContent = window.lang['network_error'];
         console.error('Register error:', error);
     } finally {
         submitBtn.disabled = false;
@@ -100,7 +100,7 @@ async function handleRegisterSubmit(event) {
 }
 
 async function logout() {
-    if (confirm('Are you sure you want to logout?')) {
+    if (confirm(window.lang['confirm_logout'])) {
         try { await fetch('api/api.php?action=logout'); } catch (e) { console.error(e); }
         window.location.href = 'index.php?view=login';
     }

@@ -39,14 +39,14 @@ async function loadPlanDataForEdit(planId) {
             } else {
                 addTimeframe();
             }
-            document.getElementById('form-page-title').textContent = 'Edit Plan';
+            document.getElementById('form-page-title').textContent = window.lang['edit_plan'];
         } else {
-            showMessage('Error loading plan: ' + result.message, 'error');
+            showMessage(window.lang['error_loading_plan'] + ': ' + result.message, 'error');
             window.location.href = 'index.php?view=plans';
         }
     } catch (error) {
         console.error('Error loading plan for edit', error);
-        showMessage('Network error.', 'error');
+        showMessage(window.lang['network_error'], 'error');
     }
 }
 
@@ -57,7 +57,7 @@ function setupAutoUpdateTitle() {
         const dateVal = document.getElementById('plan-date')?.value;
         if (!dateVal) return;
         const date = new Date(dateVal);
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthNames = [window.lang['jan_short'], window.lang['feb_short'], window.lang['mar_short'], window.lang['apr_short'], window.lang['may_short'], window.lang['jun_short'], window.lang['jul_short'], window.lang['aug_short'], window.lang['sep_short'], window.lang['oct_short'], window.lang['nov_short'], window.lang['dec_short']];
         let formattedDate = `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
         if (type.toLowerCase().includes('weekly')) {
             const endDate = new Date(date); endDate.setDate(date.getDate() + 4);
@@ -85,14 +85,14 @@ function addTimeframe(data = null) {
     const html = `
         <div class="tf-card glass-panel" id="${tfId}">
             <div class="tf-header">
-                <input type="text" name="timeframes[${tfCount-1}][title]" class="input-field" value="${title}" placeholder="Timeframe. Example: H4 Chart">
-                <button type="button" class="btn-remove" onclick="document.getElementById('${tfId}').remove()">Delete</button>
+                <input type="text" name="timeframes[${tfCount-1}][title]" class="input-field" value="${title}" placeholder="${window.lang['timeframe_example']}">
+                <button type="button" class="btn-remove" onclick="document.getElementById('${tfId}').remove()">${window.lang['delete']}</button>
             </div>
             <div class="form-group">
                  ${getImageInputHtml(tfId, url, `timeframes[${tfCount-1}][url]`)}
             </div>
             <div class="form-group">
-                <textarea class="textarea-field" name="timeframes[${tfCount-1}][notes]" rows="3" placeholder="Notes for timeframe">${notes}</textarea>
+                <textarea class="textarea-field" name="timeframes[${tfCount-1}][notes]" rows="3" placeholder="${window.lang['notes_for_timeframe']}">${notes}</textarea>
             </div>
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
@@ -111,7 +111,7 @@ async function loadPlans(filters = {}) {
         if (result.success) {
             const groupedPlans = result.data;
             if (groupedPlans.length === 0) {
-                container.innerHTML = '<div class="empty-state">Plans not found.</div>';
+                container.innerHTML = `<div class="empty-state">${window.lang['plans_not_found']}</div>`;
                 return;
             }
             container.innerHTML = '';
@@ -131,8 +131,8 @@ async function loadPlans(filters = {}) {
                 plansGrid.innerHTML = cardsHtml;
                 container.appendChild(plansGrid);
             });
-        } else { container.innerHTML = `<div class="error-state">Error: ${result.message}</div>`; }
-    } catch (error) { console.error(error); container.innerHTML = '<div class="error-state">Loading error.</div>'; }
+        } else { container.innerHTML = `<div class="error-state">${window.lang['error']}: ${result.message}</div>`; }
+    } catch (error) { console.error(error); container.innerHTML = `<div class="error-state">${window.lang['loading_error']}</div>`; }
 }
 
 async function loadPlanDetails() {
@@ -169,7 +169,7 @@ async function loadPlanDetails() {
                 const noteHtml = `
                     <div id="plan-note-link-container" class="detail-item mt-3">
 						</br>
-                        <span class="detail-label">Linked note:</span>
+                        <span class="detail-label">${window.lang['linked_note']}</span>
                         <a href="index.php?view=note_details&id=${plan.note_id}" class="info-badge badge-blue" style="text-decoration:none; width: fit-content;">${plan.note_title}</a>
                     </div>`;
                 const overviewSection = document.querySelector('.plan-overview');
@@ -183,18 +183,18 @@ async function loadPlanDetails() {
                     plan.timeframes.forEach(tf => {
                         tfList.innerHTML += `
                             <div class="timeframe-card">
-                                <h3>${tf.title || 'Timeframe'}</h3>
-                                ${tf.image_url ? `<img src="${tf.image_url}" class="lightbox-trigger">` : '<p class="text-muted">No image</p>'}
+                                <h3>${tf.title || window.lang['timeframe']}</h3>
+                                ${tf.image_url ? `<img src="${tf.image_url}" class="lightbox-trigger">` : `<p class="text-muted">${window.lang['no_image']}</p>`}
                                 ${tf.notes ? `<div class="notes">${tf.notes}</div>` : ''}
                             </div>`;
                     });
-                } else { tfList.innerHTML = '<div class="empty-state">No images.</div>'; }
+                } else { tfList.innerHTML = `<div class="empty-state">${window.lang['no_images']}</div>`; }
             }
         } else {
-            showMessage('Error loading plan details: ' + result.message, 'error');
+            showMessage(window.lang['error_loading_plan_details'] + ': ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Error loading plan for edit:', error);
-        showMessage('Network error.', 'error');
+        showMessage(window.lang['network_error'], 'error');
     } finally { if (container) container.style.opacity = '1'; }
 }

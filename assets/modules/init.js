@@ -64,14 +64,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('Registration successful! Please login.', 'success');
+                    showToast(window.lang['registration_successful'], 'success');
                     setTimeout(() => window.location.href = 'index.php?view=login', 1500);
                 } else {
-                    showToast(data.message || 'Registration failed', 'error');
+                    showToast(data.message || window.lang['registration_failed'], 'error');
                 }
             } catch (err) {
                 console.error(err);
-                showToast('Network error', 'error');
+                showToast(window.lang['network_error'], 'error');
             }
         });
     }
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const originalBtnText = btn.textContent;
 
             btn.disabled = true;
-            btn.textContent = 'Sending...';
+            btn.textContent = window.lang['sending'];
 
             try {
                 const res = await fetch('api/api.php?action=forgot_password', {
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const data = await res.json();
 
                 if (data.success) {
-                    showToast('Link generated!', 'success');
+                    showToast(window.lang['link_generated'], 'success');
 
                     let path = window.location.pathname;
                     if (path.endsWith('index.php')) {
@@ -109,11 +109,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     forgotForm.innerHTML = `
                         <div class="text-center mb-4">
                             <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
-                            <h4 class="text-white">Check your email</h4>
-                            <p class="text-muted small">We've sent a password reset link to <strong>${email}</strong></p>
+                            <h4 class="text-white">${window.lang['check_email']}</h4>
+                            <p class="text-muted small">${window.lang['reset_link_sent']} <strong>${email}</strong></p>
                         </div>
                         <div class="p-3 mb-3 rounded" style="background: rgba(25, 135, 84, 0.1); border: 1px dashed #198754;">
-                            <div class="text-success fw-bold small mb-2 text-uppercase">Debug Mode: Simulation</div>
+                            <div class="text-success fw-bold small mb-2 text-uppercase">${window.lang['debug_simulation']}</div>
                             <div class="input-group mb-2">
                                 <input type="text" class="form-control bg-dark text-white border-secondary form-control-sm"
                                        value="${fullLink}" id="debug-link-input" readonly>
@@ -122,19 +122,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     el.select();
                                     navigator.clipboard.writeText(el.value);
                                     this.innerHTML = '<i class=\\'fas fa-check\\'></i>';
-                                " title="Copy to clipboard"><i class="fas fa-copy"></i></button>
+                                " title="${window.lang['copy_clipboard']}"><i class="fas fa-copy"></i></button>
                             </div>
-                            <a href="${fullLink}" class="btn btn-success btn-sm w-100">Open Link Directly</a>
+                            <a href="${fullLink}" class="btn btn-success btn-sm w-100">${window.lang['open_link']}</a>
                         </div>
                     `;
                 } else {
-                    showToast(data.message || 'Error', 'error');
+                    showToast(data.message || window.lang['error'], 'error');
                     btn.disabled = false;
                     btn.textContent = originalBtnText;
                 }
             } catch (err) {
                 console.error(err);
-                showToast('Network error', 'error');
+                showToast(window.lang['network_error'], 'error');
                 btn.disabled = false;
                 btn.textContent = originalBtnText;
             }
@@ -157,13 +157,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const data = await res.json();
 
                 if (data.success) {
-                    showToast('Password changed successfully!', 'success');
+                    showToast(window.lang['password_changed'], 'success');
                     setTimeout(() => window.location.href = 'index.php?view=login', 2000);
                 } else {
-                    showToast(data.message || 'Error changing password', 'error');
+                    showToast(data.message || window.lang['error_changing_password'], 'error');
                 }
             } catch (err) {
-                showToast('Network error', 'error');
+                showToast(window.lang['network_error'], 'error');
             }
         });
     }
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const btn = payoutForm.querySelector('button[type="submit"]');
             const oldText = btn.textContent;
             btn.disabled = true;
-            btn.textContent = 'Saving...';
+            btn.textContent = window.lang['saving'];
 
             const fd = new FormData(payoutForm);
             const data = Object.fromEntries(fd.entries());
@@ -298,13 +298,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (result.success) {
                     closePayoutModal();
                     loadPayouts();
-                    showToast('Payout saved successfully', 'success');
+                    showToast(window.lang['payout_saved'], 'success');
                 } else {
-                    showToast('Saving error: ' + result.message, 'error');
+                    showToast(window.lang['saving_error'] + ': ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error(error);
-                showToast('Network error', 'error');
+                showToast(window.lang['network_error'], 'error');
             } finally {
                 btn.disabled = false;
                 btn.textContent = oldText;

@@ -18,7 +18,7 @@ async function initQuickTrade() {
             const json = await res.json();
 
             if (json.success) {
-                pairSelect.innerHTML = '<option value="">Select</option>';
+                pairSelect.innerHTML = `<option value="">${window.lang['select']}</option>`;
                 json.data.forEach(p => {
                     pairSelect.innerHTML += `<option value="${p.id}">${p.symbol}</option>`;
                 });
@@ -33,7 +33,7 @@ async function initQuickTrade() {
             const json = await res.json();
 
             if (json.success) {
-                accSelect.innerHTML = '<option value="">Select</option>';
+                accSelect.innerHTML = `<option value="">${window.lang['select']}</option>`;
                 json.data.forEach(a => {
                     accSelect.innerHTML += `<option value="${a.id}">${a.name} (${a.currency})</option>`;
                 });
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const btn = quickForm.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = 'Saving...';
+            btn.innerHTML = window.lang['saving'];
 
             try {
                 const res = await fetch('api/api.php?action=save_trade', {
@@ -72,20 +72,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     modal.hide();
 
                     if (typeof Toastify === 'function') {
-                        Toastify({text: "Trade added successfully!", backgroundColor: "#198754"}).showToast();
+                        Toastify({text: window.lang['trade_added_successfully'], backgroundColor: "#198754"}).showToast();
                     } else {
-                        alert("Trade added successfully!");
+                        alert(window.lang['trade_added_successfully']);
                     }
 
                     setTimeout(() => location.reload(), 500);
                 } else {
-                    alert('Error: ' + (result.message || 'Unknown error'));
+                    alert(window.lang['error'] + ': ' + (result.message || window.lang['unknown_error']));
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 }
             } catch (err) {
                 console.error(err);
-                alert('Network Error');
+                alert(window.lang['network_error']);
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }

@@ -32,7 +32,7 @@ function renderDataList(containerId, items) {
     if (!container) return;
 
     if (!items || items.length === 0) {
-        container.innerHTML = '<div class="text-muted small">No data available</div>';
+        container.innerHTML = `<div class="text-muted small">${window.lang['no_data_available']}</div>`;
         return;
     }
 
@@ -49,7 +49,7 @@ function renderDataList(containerId, items) {
         }
 
         const strokeDash = `${winrate}, 100`;
-        const tooltipText = `Winrate: ${winrate}%`;
+        const tooltipText = `${window.lang['winrate']}: ${winrate}%`;
 
         html += `
         <div class="data-row">
@@ -58,7 +58,7 @@ function renderDataList(containerId, items) {
                 <span>${label}</span>
             </div>
             <div class="data-stats-group">
-                <span class="data-count">${count} Trades</span>
+                <span class="data-count">${count} ${window.lang['trades']}</span>
                 <div title="${tooltipText}" style="display: flex; align-items: center; gap: 6px; cursor: help;">
                     <span style="font-weight:700; font-size:0.8rem; color:${color}; width: 35px; text-align:right;">${winrate}%</span>
                     <svg viewBox="0 0 36 36" class="circular-chart">
@@ -77,7 +77,7 @@ function renderPairsGrid(containerId, items) {
     if (!container) return;
 
     if (!items || items.length === 0) {
-        container.innerHTML = '<div class="text-muted small">No trades yet</div>';
+        container.innerHTML = `<div class="text-muted small">${window.lang['no_trades_yet']}</div>`;
         return;
     }
 
@@ -93,13 +93,13 @@ function renderPairsGrid(containerId, items) {
         }
 
         const strokeDash = `${winrate}, 100`;
-        const tooltipText = `Winrate: ${winrate}%`;
+        const tooltipText = `${window.lang['winrate']}: ${winrate}%`;
 
         html += `
         <div class="pair-stat-card">
             <div style="font-weight:700; font-size: 1rem;">${item.label}</div>
             <div style="display: flex; align-items: center; gap: 15px;">
-                <span class="data-count">${count} T</span>
+                <span class="data-count">${count} ${window.lang['trades_short']}</span>
                 <div title="${tooltipText}" style="display: flex; align-items: center; gap: 5px; cursor: help;">
                     <span style="font-weight:700; font-size:0.8rem; color:${color};">${winrate}%</span>
                     <svg viewBox="0 0 36 36" class="circular-chart">

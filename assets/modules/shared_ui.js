@@ -17,30 +17,30 @@ function getTradeRowHtml(trade) {
     return `
     <div class="trade-row trade-item" onclick="window.location.href='index.php?view=trade_details&id=${trade.id}'">
         <div class="t-col t-date">
-            <span class="mobile-label">Date:</span> ${date}
+            <span class="mobile-label">${window.lang['date']}:</span> ${date}
         </div>
         <div class="t-col t-pair">
-            <span class="mobile-label">Pair:</span> <strong>${trade.pair_symbol}</strong>
+            <span class="mobile-label">${window.lang['pair']}:</span> <strong>${trade.pair_symbol}</strong>
         </div>
         <div class="t-col t-account">
-            <span class="mobile-label">Acc:</span> <strong>${accName}</strong>
+            <span class="mobile-label">${window.lang['acc']}:</span> <strong>${accName}</strong>
         </div>
         <div class="t-col t-dir">
-            <span class="mobile-label">Dir:</span>
+            <span class="mobile-label">${window.lang['dir']}:</span>
             <span class="dir-tag dir-${trade.direction} status-tag ${statusClass}">${trade.direction.toUpperCase()}</span>
         </div>
         <div class="t-col t-status">
-            <span class="mobile-label">Status:</span>
+            <span class="mobile-label">${window.lang['status']}:</span>
             <span class="status-tag ${statusClass}">${trade.status.charAt(0).toUpperCase() + trade.status.slice(1)}</span>
         </div>
-        <div class="t-col t-risk"><span class="mobile-label">Risk:</span> ${trade.risk_percent}%</div>
-        <div class="t-col t-rr"><span class="mobile-label">RR:</span> ${rrVal}</div>
+        <div class="t-col t-risk"><span class="mobile-label">${window.lang['risk']}:</span> ${trade.risk_percent}%</div>
+        <div class="t-col t-rr"><span class="mobile-label">${window.lang['rr_table']}:</span> ${rrVal}</div>
         <div class="t-col t-pnl ${pnlColor}">
-            <span class="mobile-label">PnL:</span> ${pnlVal}
+            <span class="mobile-label">${window.lang['pnl_table']}:</span> ${pnlVal}
         </div>
         <div class="t-col t-actions" onclick="event.stopPropagation()">
-            <a title="View" href="index.php?view=trade_details&id=${trade.id}" class="btn-icon"><i class="fas fa-eye"></i></a>
-            <a title="Edit" href="index.php?view=trade_create&id=${trade.id}" class="btn-icon"><i class="fas fa-edit"></i></a>
+            <a title="${window.lang['view']}" href="index.php?view=trade_details&id=${trade.id}" class="btn-icon"><i class="fas fa-eye"></i></a>
+            <a title="${window.lang['edit']}" href="index.php?view=trade_create&id=${trade.id}" class="btn-icon"><i class="fas fa-edit"></i></a>
         </div>
     </div>`;
 }

@@ -15,13 +15,13 @@ async function loadNotes() {
 
         if (json.success) {
             if (json.data.length === 0) {
-                container.innerHTML = '<div class="empty-state">No notes. Create your first one!</div>';
+                container.innerHTML = `<div class="empty-state">${window.lang['no_notes_create']}</div>`;
                 return;
             }
 
             let html = '';
             json.data.forEach(note => {
-                const isUsed = note.latest_usage !== 'Not Used';
+                const isUsed = note.latest_usage !== window.lang['not_used'];
                 const usageStyle = isUsed ? 'color: var(--accent-blue); font-weight: 500;' : 'color: var(--text-secondary); opacity: 0.5;';
 
                 html += `
@@ -42,7 +42,7 @@ async function loadNotes() {
                             ${note.relations}
                         </div>
                          <div class="note-meta-row" style="${usageStyle}">
-                            Latest usage: ${note.latest_usage}
+                            ${window.lang['latest_usage']}: ${note.latest_usage}
                         </div>
                     </div>
                 </a>`;
@@ -60,7 +60,7 @@ async function initNoteForm() {
         document.getElementById('editor-container').innerHTML = '';
         quillEditor = new Quill('#editor-container', {
             theme: 'snow',
-            placeholder: 'Type here...',
+            placeholder: window.lang['type_here'],
             modules: {
                 toolbar: {
                     container: fullToolbarOptions,
@@ -80,10 +80,10 @@ async function initNoteForm() {
                                         quillEditor.insertEmbed(range.index, 'image', url);
                                     } catch (e) {
                                         console.error('Upload failed:', e);
-                                        alert('Failed to load an image');
+                                        alert(window.lang['failed_load_image']);
                                     }
                                 } else {
-                                    alert('Select an image.');
+                                    alert(window.lang['select_image']);
                                 }
                             };
                         }
@@ -125,14 +125,14 @@ async function loadNoteDetails() {
         if (n.trade) {
             tradeEl.innerHTML = `<a href="index.php?view=trade_details&id=${n.trade.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.trade.label}</a>`;
         } else {
-            tradeEl.textContent = 'No link';
+            tradeEl.textContent = window.lang['no_link'];
         }
 
         const planEl = document.getElementById('note-linked-plan');
         if (n.plan) {
             planEl.innerHTML = `<a href="index.php?view=plan_details&id=${n.plan.id}" class="info-badge badge-blue" style="text-decoration: none;">${n.plan.label}</a>`;
         } else {
-            planEl.textContent = 'No link';
+            planEl.textContent = window.lang['no_link'];
         }
 
         document.getElementById('btn-edit-note').onclick = () => window.location.href = `index.php?view=note_create&id=${n.id}`;
@@ -141,7 +141,7 @@ async function loadNoteDetails() {
 }
 
 async function deleteNote(id) {
-    if (!confirm('Delete note?')) return;
+    if (!confirm(window.lang['confirm_delete_note'])) return;
     const fd = new FormData(); fd.append('id', id);
     await fetch('api/api.php?action=delete_note', { method: 'POST', body: fd });
     window.location.href = 'index.php?view=notes';

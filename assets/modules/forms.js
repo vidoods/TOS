@@ -23,30 +23,30 @@ async function loadLookups() {
             populateSelect('trade-style', data.styles, 'name');
             populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
-            populateSelect('trade-note', data.notes, 'title', 'id', null, '--- No note ---');
-            populateSelect('plan-note', data.notes, 'title', 'id', null, '--- No note ---');
+            populateSelect('trade-note', data.notes, 'title', 'id', null, window.lang['no_note']);
+            populateSelect('plan-note', data.notes, 'title', 'id', null, window.lang['no_note']);
 
             if (document.getElementById('note-plan')) {
                 populateSelect('note-plan', data.plans, 'title');
-                populateSelect('note-trade', data.trades, 'display_name', 'id', null, '-- Choose trade --');
+                populateSelect('note-trade', data.trades, 'display_name', 'id', null, window.lang['choose_trade']);
             }
 
-            populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, 'All pairs');
+            populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, window.lang['all_pairs']);
 
             return data;
         } else {
             console.error('Failed to load:', result.message);
-            showMessage('Failed to load.', 'error');
+            showMessage(window.lang['failed_to_load'], 'error');
             return null;
         }
     } catch (error) {
         console.error('Failed to load due to network error:', error);
-        showMessage('Failed to load due to network error:.', 'error');
+        showMessage(window.lang['failed_to_load_network'], 'error');
         return null;
     }
 }
 
-function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedValue = null, placeholderText = '--- Choose ---') {
+function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedValue = null, placeholderText = window.lang['choose']) {
     const select = document.getElementById(selectId);
     if (!select) return;
     const firstOption = select.querySelector('option[value=""]');
@@ -69,7 +69,7 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span>⏳</span> Saving...';
+    submitBtn.innerHTML = '<span>⏳</span> ' + window.lang['saving'];
 
     // Переносим HTML из редактора
     if (quillEditor) {
@@ -157,11 +157,11 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
                 window.location.href = `index.php?view=${redirectView}`;
             }
         } else {
-            showMessage('Error saving: ' + result.message, 'error');
+            showMessage(window.lang['error_saving'] + ': ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Save error:', error);
-        showMessage('An error occurred while saving.', 'error');
+        showMessage(window.lang['error_occurred_saving'], 'error');
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalBtnText;

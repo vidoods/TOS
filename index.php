@@ -204,6 +204,12 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/quill.js"></script>
     <script src="assets/chart.js"></script>
     <script type="text/javascript" src="assets/toastify.js"></script>
+    
+    <!-- Pass translations to JS -->
+    <script>
+        window.lang = <?= json_encode($lang) ?>;
+    </script>
+    
     <script src="assets/modules/core.js"></script>
     <script src="assets/modules/ui.js"></script>
     <script src="assets/modules/auth.js"></script>

@@ -23,7 +23,7 @@ async function handleLanguageChange(event) {
             window.location.reload(); 
         } else {
             Toastify({
-                text: data.message || 'Error changing language',
+                text: data.message || window.lang['error_changing_language'],
                 duration: 3000,
                 gravity: "top",
                 position: "right",
@@ -33,7 +33,7 @@ async function handleLanguageChange(event) {
     } catch (e) {
         console.error('Language change error:', e);
         Toastify({
-            text: 'Network error',
+            text: window.lang['network_error'],
             duration: 3000,
             style: { background: "#ff5f6d" }
         }).showToast();

@@ -154,7 +154,7 @@ async function loadDashboardMetrics(overrideAccountId = null, isDetailedView = f
             }
 
             if (!isDetailedView) {
-                document.getElementById(idMap.monthly).innerHTML = `Monthly average: ${m.avg_monthly_profit} $`;
+                document.getElementById(idMap.monthly).innerHTML = `${window.lang['monthly_average']}: ${m.avg_monthly_profit} $`;
                 document.getElementById(idMap.avg_time).textContent = m.avg_time_in_position;
                 const mddEl = document.getElementById(idMap.mdd);
                 if (mddEl) {
@@ -208,7 +208,7 @@ function renderEquityChart(dataPoints, canvasId = 'equityChart') {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Balance',
+                label: window.lang['balance'],
                 data: data,
                 borderColor: lineColor,
                 backgroundColor: areaColor,
@@ -235,7 +235,7 @@ function renderEquityChart(dataPoints, canvasId = 'equityChart') {
                     displayColors: false,
                     callbacks: {
                         label: function(context) {
-                            return 'Balance: ' + context.parsed.y.toFixed(2) + ' $';
+                            return window.lang['balance'] + ': ' + context.parsed.y.toFixed(2) + ' $';
                         }
                     }
                 }

@@ -14,7 +14,7 @@ async function loadStrategies() {
 
         if (json.success) {
             if (json.data.length === 0) {
-                container.innerHTML = '<div class="empty-state">No strategy modules yet. Add one!</div>';
+                container.innerHTML = `<div class="empty-state">${window.lang['no_strategy_modules']}</div>`;
                 return;
             }
 
@@ -47,7 +47,7 @@ async function initStrategyForm() {
         document.getElementById('editor-container').innerHTML = '';
         quillEditor = new Quill('#editor-container', {
             theme: 'snow',
-            placeholder: 'Describe your strategy rules here...',
+            placeholder: window.lang['describe_strategy'],
             modules: {
                 toolbar: fullToolbarOptions
             }
@@ -99,7 +99,7 @@ async function loadStrategyDetails() {
 }
 
 async function deleteStrategy(id) {
-    if (!confirm('Are you sure you want to delete this module?')) return;
+    if (!confirm(window.lang['confirm_delete_module'])) return;
     const fd = new FormData(); fd.append('id', id);
     await fetch('api/api.php?action=delete_strategy', { method: 'POST', body: fd });
     window.location.href = 'index.php?view=strategy';

@@ -32,7 +32,7 @@ function initMPA() {
 
 async function loadMPAData(year) {
     const container = document.getElementById('mpa-dynamic-container');
-    container.innerHTML = `<div class="text-center py-5"><div class="loading-spinner"></div> Loading Analysis...</div>`;
+    container.innerHTML = `<div class="text-center py-5"><div class="loading-spinner"></div> ${window.lang['loading_analysis']}</div>`;
 
     try {
         const response = await fetch(`api/api.php?action=get_mpa_analysis&year=${year}`);
@@ -43,7 +43,7 @@ async function loadMPAData(year) {
             result = JSON.parse(text);
         } catch (e) {
             console.error("Server response:", text);
-            container.innerHTML = `<div class="alert alert-danger"><strong>Server error:</strong><br>${text.substring(0, 300)}</div>`;
+            container.innerHTML = `<div class="alert alert-danger"><strong>${window.lang['server_error']}:</strong><br>${text.substring(0, 300)}</div>`;
             return;
         }
 
@@ -55,13 +55,13 @@ async function loadMPAData(year) {
         }
     } catch (e) {
         console.error(e);
-        container.innerHTML = `<div class="text-danger">Network Error: ${e.message}</div>`;
+        container.innerHTML = `<div class="text-danger">${window.lang['network_error']}: ${e.message}</div>`;
     }
 }
 
 function renderMPAGrid(quartersData, container, year) {
     container.innerHTML = '';
-    const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthNames = ["", window.lang['january'], window.lang['february'], window.lang['march'], window.lang['april'], window.lang['may'], window.lang['june'], window.lang['july'], window.lang['august'], window.lang['september'], window.lang['october'], window.lang['november'], window.lang['december']];
 
     const quarterSelect = document.getElementById('mpa-quarter-select');
     const selectedQ = quarterSelect ? quarterSelect.value : 'all';
@@ -118,13 +118,13 @@ function renderMPAGrid(quartersData, container, year) {
                     </div>
                     <div class="mpa-stat-row mt-2">
                         <span>
-                            Profit: <span class="${profitColorClass}" style="font-weight: 600;">${m.pnl_percent.toFixed(1)}%</span>
+                            ${window.lang['profit_label']}: <span class="${profitColorClass}" style="font-weight: 600;">${m.pnl_percent.toFixed(1)}%</span>
                             <span class="${profitColorClass}" style="font-size: 0.9em; opacity: 0.8;"> / ${profitSign}${m.pnl_total.toFixed(0)}$</span>
                         </span>
-                        <span class="text-muted" style="font-size: 0.85em;">AVG: <span class="text-white">${avgRR} RR</span></span>
+                        <span class="text-muted" style="font-size: 0.85em;">${window.lang['avg_label']}: <span class="text-white">${avgRR} RR</span></span>
                     </div>
                     <div class="mpa-stat-row mt-1 text-muted" style="font-size: 0.85em;">
-                        ${winRate}% Winrate
+                        ${winRate}% ${window.lang['winrate']}
                     </div>
                     <div class="mpa-progress-bg mt-3">
                         <div class="mpa-progress-fill" style="width: ${hasTrades ? winRate : 0}%; background: ${progressColor};"></div>
@@ -146,7 +146,7 @@ async function loadMPAMonthDetails() {
 
     const year = yearInput.value;
     const month = monthInput.value;
-    const monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthNames = ["", window.lang['january'], window.lang['february'], window.lang['march'], window.lang['april'], window.lang['may'], window.lang['june'], window.lang['july'], window.lang['august'], window.lang['september'], window.lang['october'], window.lang['november'], window.lang['december']];
 
     const titleEl = document.getElementById('month-title');
     if (titleEl) titleEl.textContent = `${monthNames[month]} ${year}`;
@@ -180,7 +180,7 @@ async function loadMPAMonthDetails() {
                 pnlEl.className = `metric-value-pro ${s.pnl >= 0 ? 'text-success' : 'text-danger'}`;
             }
             if (document.getElementById('month-pnl-percent')) {
-                document.getElementById('month-pnl-percent').textContent = `${s.percent_sum.toFixed(2)} % Return`;
+                document.getElementById('month-pnl-percent').textContent = `${s.percent_sum.toFixed(2)} ${window.lang['percent_return']}`;
                 document.getElementById('month-pnl-percent').className = `metric-subtext-pro ${s.percent_sum >= 0 ? 'text-success' : 'text-danger'}`;
             }
             if (document.getElementById('month-winrate')) document.getElementById('month-winrate').textContent = `${s.winrate} %`;
@@ -200,7 +200,7 @@ async function loadMPAMonthDetails() {
             if (plansContainer) {
                 plansContainer.innerHTML = '';
                 if (plans.length === 0) {
-                    plansContainer.innerHTML = '<div class="col-12 text-center text-muted py-4">No plans for this month.</div>';
+                    plansContainer.innerHTML = `<div class="col-12 text-center text-muted py-4">${window.lang['no_plans_month']}</div>`;
                 } else {
                     plans.forEach(plan => {
                         const dateObj = new Date(plan.date);
@@ -234,7 +234,7 @@ async function loadMPAMonthDetails() {
             if (tradesContainer) {
                 tradesContainer.innerHTML = '';
                 if (trades.length === 0) {
-                    tradesContainer.innerHTML = '<div class="col-12 text-center text-muted py-5">No trades.</div>';
+                    tradesContainer.innerHTML = `<div class="col-12 text-center text-muted py-5">${window.lang['no_trades']}</div>`;
                 } else {
                     trades.forEach(t => {
                         const dateObj = new Date(t.entry_date);
@@ -270,7 +270,7 @@ async function loadMPAMonthDetails() {
                                 <div class="d-flex justify-content-between align-items-end">
                                     <div>
                                         <div class="fw-bold text-white fs-4 mb-0">${pair}</div>
-                                        <div class="text-muted small mt-1">Result: <span class="text-white">${rrVal} R</span></div>
+                                        <div class="text-muted small mt-1">${window.lang['result_label']}: <span class="text-white">${rrVal} R</span></div>
                                     </div>
                                     <div class="text-end">
                                         <div class="fs-4 fw-bold ${pnlColor} font-mono">${pnlVal > 0 ? '+' : ''}${pnlVal.toFixed(2)} $</div>
@@ -304,7 +304,7 @@ async function initMPAReportLogic(year, month) {
 
     if (typeof Quill === 'undefined') {
         console.error("Quill JS not loaded!");
-        container.innerHTML = '<div class="text-danger">Error: editor library not loaded.</div>';
+        container.innerHTML = `<div class="text-danger">${window.lang['error']}: editor library not loaded.</div>`;
         return;
     }
 
@@ -345,7 +345,7 @@ async function initMPAReportLogic(year, month) {
         mpaQuill = new Quill(containerId, {
             theme: 'snow',
             modules: { toolbar: toolbarOptions },
-            placeholder: 'Type your conclusions...'
+            placeholder: window.lang['type_conclusions']
         });
 
         mpaQuill.root.style.color = '#e0e0e0';
@@ -379,7 +379,7 @@ async function initMPAReportLogic(year, month) {
             const originalText = btn.innerHTML;
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> ${window.lang['saving']}`;
 
             const content = mpaQuill.root.innerHTML;
 
@@ -393,8 +393,8 @@ async function initMPAReportLogic(year, month) {
 
                 if (data.success) {
                     btn.className = 'btn btn-success px-4 py-2';
-                    btn.innerHTML = '<i class="fas fa-check me-2"></i> Saved';
-                    showToast('Report saved successfully', 'success');
+                    btn.innerHTML = `<i class="fas fa-check me-2"></i> ${window.lang['saved']}`;
+                    showToast(window.lang['report_saved'], 'success');
 
                     setTimeout(() => {
                         btn.className = 'btn btn-primary px-4 py-2';
@@ -407,7 +407,7 @@ async function initMPAReportLogic(year, month) {
                     btn.innerHTML = originalText;
                 }
             } catch (err) {
-                showToast('Network Error', 'error');
+                showToast(window.lang['network_error'], 'error');
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }

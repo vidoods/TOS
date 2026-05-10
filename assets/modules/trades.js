@@ -79,18 +79,18 @@ async function loadTradeDataForEdit(tradeId) {
             } else {
                 addTradeImage();
             }
-            document.getElementById('form-page-title').textContent = 'Edit trade';
+            document.getElementById('form-page-title').textContent = window.lang['edit_trade'];
 
             const event = new Event('input', { bubbles: true });
             const pnlInput = document.getElementById('trade-pnl');
             if (pnlInput) pnlInput.dispatchEvent(event);
         } else {
-            showMessage('Error loading trade: ' + result.message, 'error');
+            showMessage(window.lang['error_loading_trade'] + ': ' + result.message, 'error');
             window.location.href = 'index.php?view=journal';
         }
     } catch (error) {
         console.error('Error loading trade for edit:', error);
-        showMessage('Network error.', 'error');
+        showMessage(window.lang['network_error'], 'error');
     }
 }
 
@@ -106,20 +106,20 @@ function addTradeImage(data = null) {
         <div class="trade-img-card glass-panel" id="${imgId}">
              <div class="d-flex justify-content-between align-items-start mb-3">
                 <div style="flex-grow: 1; margin-right: 15px;">
-                     <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">Timeframe / Context</label>
-                     <input type="text" name="trade_images[${tradeImgCount-1}][title]" class="input-field" placeholder="Example: 4H, Entry, Setup" value="${title}">
+                     <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">${window.lang['timeframe_context']}</label>
+                     <input type="text" name="trade_images[${tradeImgCount-1}][title]" class="input-field" placeholder="${window.lang['example_timeframe']}" value="${title}">
                 </div>
             </div>
             <div class="form-group">
                  ${getImageInputHtml(imgId, url, `trade_images[${tradeImgCount-1}][url]`)}
             </div>
              <div class="form-group">
-                <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">Description / Idea</label>
-                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="Describe screenshot...">${notes}</textarea>
+                <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">${window.lang['description_idea']}</label>
+                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="${window.lang['describe_screenshot']}">${notes}</textarea>
             </div>
             <div class="text-end mt-2">
                 <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${imgId}').remove()">
-                    <i class="fas fa-trash-alt me-2"></i> Delete screenshot
+                    <i class="fas fa-trash-alt me-2"></i> ${window.lang['delete_screenshot']}
                 </button>
             </div>
         </div>`;
@@ -132,14 +132,14 @@ function getImageInputHtml(id, url, name) {
         <input type="file" id="${id}-file" class="input-field" style="display:none" onchange="previewImage(this, '${id}-preview')">
         <div class="d-flex gap-2 mb-2">
             <button type="button" class="btn btn-outline flex-grow-1" onclick="document.getElementById('${id}-file').click()">
-                <i class="fas fa-upload me-2"></i> Upload file
+                <i class="fas fa-upload me-2"></i> ${window.lang['upload_file']}
             </button>
         </div>
-        <input type="text" id="${id}-url" class="input-field mb-2" placeholder="Or paste the link for image" value="${url}" oninput="previewImage(this, '${id}-preview')">
+        <input type="text" id="${id}-url" class="input-field mb-2" placeholder="${window.lang['paste_link_image']}" value="${url}" oninput="previewImage(this, '${id}-preview')">
         <div id="${id}-preview" class="image-preview-box">
             ${url ? `<img src="${url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                     <span class="image-preview-placeholder" style="display:none;">Loading error</span>`
-                  : '<span class="image-preview-placeholder">Image preview</span>'}
+                     <span class="image-preview-placeholder" style="display:none;">${window.lang['loading_error']}</span>`
+                  : `<span class="image-preview-placeholder">${window.lang['image_preview']}</span>`}
         </div>
     `;
 }
@@ -161,10 +161,10 @@ function previewImage(input, previewId) {
         const val = input.value.trim();
         if (val) {
             preview.innerHTML = `<img src="${val}" onerror="this.style.display='none'; this.parentElement.querySelector('.err-msg').style.display='block';">
-                                  <span class="image-preview-placeholder err-msg" style="display:none; color: var(--accent-red);">Could not load an image</span>`;
+                                  <span class="image-preview-placeholder err-msg" style="display:none; color: var(--accent-red);">${window.lang['could_not_load_image']}</span>`;
             if (hiddenUrlInput) hiddenUrlInput.value = val;
         } else {
-            preview.innerHTML = '<span class="image-preview-placeholder">Image preview</span>';
+            preview.innerHTML = `<span class="image-preview-placeholder">${window.lang['image_preview']}</span>`;
             if (hiddenUrlInput) hiddenUrlInput.value = '';
         }
     }
@@ -183,7 +183,7 @@ async function loadTrades(filters = {}) {
         if (result.success) {
             const groupedTrades = result.data;
             if (groupedTrades.length === 0) {
-                container.innerHTML = '<div class="empty-state">Trades not found.</div>';
+                container.innerHTML = `<div class="empty-state">${window.lang['trades_not_found']}</div>`;
                 return;
             }
 
@@ -217,15 +217,15 @@ async function loadTrades(filters = {}) {
                         <div class="trades-list-wrapper">
                             <div class="trades-inner">
                                 <div class="trade-row trade-header-row">
-                                    <div class="t-col t-date">Date</div>
-                                    <div class="t-col t-pair">Pair</div>
-                                    <div class="t-col t-account">Account</div>
-                                    <div class="t-col t-dir">Dir</div>
-                                    <div class="t-col t-status">Status</div>
-                                    <div class="t-col t-risk">Risk</div>
-                                    <div class="t-col t-rr">RR</div>
-                                    <div class="t-col t-pnl">PnL</div>
-                                    <div class="t-col t-actions">Actions</div>
+                                    <div class="t-col t-date">${window.lang['date']}</div>
+                                    <div class="t-col t-pair">${window.lang['pair']}</div>
+                                    <div class="t-col t-account">${window.lang['account']}</div>
+                                    <div class="t-col t-dir">${window.lang['dir']}</div>
+                                    <div class="t-col t-status">${window.lang['status']}</div>
+                                    <div class="t-col t-risk">${window.lang['risk']}</div>
+                                    <div class="t-col t-rr">${window.lang['rr_table']}</div>
+                                    <div class="t-col t-pnl">${window.lang['pnl_table']}</div>
+                                    <div class="t-col t-actions">${window.lang['actions']}</div>
                                 </div>`;
 
                 group.trades.forEach(trade => {
@@ -235,8 +235,8 @@ async function loadTrades(filters = {}) {
                 html += '</div></div></div>';
             });
             container.innerHTML = html;
-        } else { container.innerHTML = `<div class="error-state">Error: ${result.message}</div>`; }
-    } catch (error) { console.error(error); container.innerHTML = '<div class="error-state">Loading error.</div>'; }
+        } else { container.innerHTML = `<div class="error-state">${window.lang['error']}: ${result.message}</div>`; }
+    } catch (error) { console.error(error); container.innerHTML = `<div class="error-state">${window.lang['loading_error']}</div>`; }
 }
 
 async function loadTradeDetails() {
@@ -279,11 +279,11 @@ async function loadTradeDetails() {
                 let durationText = '';
                 if (days > 0) durationText += `${days}d `;
                 if (hours > 0) durationText += `${hours}h`;
-                if (days === 0 && hours === 0) durationText = '< 1 hour';
+                if (days === 0 && hours === 0) durationText = window.lang['less_than_1_hour'];
                 durationEl.textContent = durationText.trim();
                 durationEl.className = 'detail-value info-badge badge-neutral';
             } else {
-                durationEl.textContent = trade.exit_date ? 'No entry date' : 'In progress';
+                durationEl.textContent = trade.exit_date ? window.lang['no_entry_date'] : window.lang['in_progress'];
                 durationEl.className = 'detail-value';
             }
 
@@ -312,13 +312,13 @@ async function loadTradeDetails() {
                     } else if (key === 'notes' || key === 'trade_conclusions' || key === 'key_lessons' || key === 'mistakes_made' || key === 'emotional_state') {
                         el.textContent = trade[key] || '-';
                     } else {
-                        el.textContent = trade[key] || 'Empty';
+                        el.textContent = trade[key] || window.lang['empty'];
                     }
                 }
             });
 
             const entryTfEl = document.getElementById('trade-entry_timeframe');
-            if (entryTfEl) entryTfEl.textContent = trade.entry_tf || 'Empty';
+            if (entryTfEl) entryTfEl.textContent = trade.entry_tf || window.lang['empty'];
 
             const directionEl = document.getElementById('trade-direction');
             if (directionEl) {
@@ -334,7 +334,7 @@ async function loadTradeDetails() {
                 if (trade.tags) {
                     tagsEl.innerHTML = trade.tags.split(',').map(tag => `<span class="trade-tag">${tag.trim()}</span>`).join('');
                 } else {
-                    tagsEl.textContent = 'None';
+                    tagsEl.textContent = window.lang['none'];
                 }
             }
 
@@ -345,7 +345,7 @@ async function loadTradeDetails() {
                     planLink.className = 'info-badge badge-blue';
                     planLink.innerHTML = `<i class="fas fa-solid fa-link me-2"></i> ${trade.plan_title}`;
                 } else {
-                    planLink.textContent = 'No linked plan';
+                    planLink.textContent = window.lang['no_linked_plan'];
                     planLink.removeAttribute('href');
                     planLink.className = 'info-badge badge-neutral';
                 }
@@ -358,23 +358,23 @@ async function loadTradeDetails() {
                     trade.trade_images.forEach(img => {
                         tradeImgList.innerHTML += `
                             <div class="trade-image-item">
-                                ${img.image_url ? `<img src="${img.image_url}" class="lightbox-trigger">` : '<p class="text-muted">No image</p>'}
+                                ${img.image_url ? `<img src="${img.image_url}" class="lightbox-trigger">` : `<p class="text-muted">${window.lang['no_image']}</p>`}
                                 ${img.notes ? `<div class="notes small text-muted mt-2">${img.notes}</div>` : ''}
                             </div>`;
                     });
-                } else { tradeImgList.innerHTML = '<div class="empty-state-small">No screenshots for this trade.</div>'; }
+                } else { tradeImgList.innerHTML = `<div class="empty-state-small">${window.lang['no_screenshots_trade']}</div>`; }
             }
         } else {
-            showMessage('Error loading trade details: ' + result.message, 'error');
+            showMessage(window.lang['error_loading_trade_details'] + ': ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Error loading trade details for edit:', error);
-        showMessage('Network error.', 'error');
+        showMessage(window.lang['network_error'], 'error');
     } finally { if (container) container.style.opacity = '1'; }
 }
 
 async function deleteEntity(id, action, redirectView) {
-    if (!confirm('Are you sure? This action can not be undone.')) return;
+    if (!confirm(window.lang['confirm_delete_action'])) return;
     try {
         const formData = new FormData();
         formData.append('action', action);
@@ -384,6 +384,6 @@ async function deleteEntity(id, action, redirectView) {
         const response = await fetch('api/api.php', { method: 'POST', body: formData });
         const result = await response.json();
         if (result.success) window.location.href = `index.php?view=${redirectView}`;
-        else showMessage('Delete error: ' + result.message, 'error');
-    } catch (e) { console.error(e); showMessage('Network error.', 'error'); }
+        else showMessage(window.lang['delete_error'] + ': ' + result.message, 'error');
+    } catch (e) { console.error(e); showMessage(window.lang['network_error'], 'error'); }
 }

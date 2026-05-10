@@ -10,7 +10,7 @@ function initQPADetails() {
     if (typeof Quill !== 'undefined') {
         qpaQuill = new Quill('#qpa-editor-container', {
             theme: 'snow',
-            placeholder: 'Write your quarterly analysis here...',
+            placeholder: window.lang['write_quarterly_analysis'],
             modules: {
                 toolbar: [
                     ['bold', 'italic', 'underline'],
@@ -31,7 +31,7 @@ function initQPADetails() {
             const btn = form.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> ${window.lang['saving']}`;
 
             const year = document.getElementById('qpa-year').value;
             const quarter = document.getElementById('qpa-quarter').value;
@@ -45,13 +45,13 @@ function initQPADetails() {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('Quarterly report saved!', 'success');
+                    showToast(window.lang['quarterly_report_saved'], 'success');
                 } else {
-                    showToast('Error: ' + data.message, 'error');
+                    showToast(window.lang['error'] + ': ' + data.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                showToast('Network error', 'error');
+                showToast(window.lang['network_error'], 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
@@ -70,7 +70,7 @@ async function loadQPADetails() {
     const quarter = quarterElem.value;
 
     const titleElem = document.getElementById('qpa-title');
-    if (titleElem) titleElem.textContent = `Q${quarter} ${year} Review`;
+    if (titleElem) titleElem.textContent = `Q${quarter} ${year} ${window.lang['review_short']}`;
 
     try {
         const res = await fetch(`api/api.php?action=get_qpa_details&year=${year}&quarter=${quarter}`);
@@ -86,11 +86,11 @@ async function loadQPADetails() {
                 qpaQuill.root.innerHTML = data.report_content;
             }
         } else {
-            showToast('Failed to load data: ' + data.message, 'error');
+            showToast(window.lang['failed_to_load_data'] + ': ' + data.message, 'error');
         }
     } catch (err) {
         console.error(err);
-        showToast('Error loading QPA details', 'error');
+        showToast(window.lang['error_loading_qpa'], 'error');
     }
 }
 
@@ -119,7 +119,7 @@ function renderQPAMonths(months) {
     container.innerHTML = '';
 
     if (!months || months.length === 0) {
-        container.innerHTML = '<div class="text-muted" style="grid-column: span 3;">No data available</div>';
+        container.innerHTML = `<div class="text-muted" style="grid-column: span 3;">${window.lang['no_data_available']}</div>`;
         return;
     }
 
@@ -161,7 +161,7 @@ function renderQPATrades(trades) {
     tbody.innerHTML = '';
 
     if (!trades || trades.length === 0) {
-        tbody.innerHTML = '<div class="text-center py-4 text-muted">No trades found for this quarter</div>';
+        tbody.innerHTML = `<div class="text-center py-4 text-muted">${window.lang['no_trades_quarter']}</div>`;
         return;
     }
 
@@ -182,7 +182,7 @@ function renderQPAPlans(plans) {
     container.innerHTML = '';
 
     if (!plans || plans.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center py-4 text-muted" style="grid-column: 1 / -1;">No plans found for this quarter</div>';
+        container.innerHTML = `<div class="col-12 text-center py-4 text-muted" style="grid-column: 1 / -1;">${window.lang['no_plans_quarter']}</div>`;
         return;
     }
 
@@ -227,11 +227,11 @@ async function fetchQPAData(year) {
         if (json.success) {
             renderQpaListGrid(json.data, container);
         } else {
-            container.innerHTML = `<div class="col-12 text-center text-danger">Error: ${json.message}</div>`;
+            container.innerHTML = `<div class="col-12 text-center text-danger">${window.lang['error']}: ${json.message}</div>`;
         }
     } catch (e) {
         console.error(e);
-        container.innerHTML = '<div class="col-12 text-center text-danger">Network Error</div>';
+        container.innerHTML = `<div class="col-12 text-center text-danger">${window.lang['network_error']}</div>`;
     }
 }
 
@@ -239,7 +239,7 @@ function renderQpaListGrid(quarters, container) {
     container.innerHTML = '';
 
     if (!quarters || quarters.length === 0) {
-        container.innerHTML = '<div class="text-muted text-center py-5" style="grid-column: 1 / -1;">No data available</div>';
+        container.innerHTML = `<div class="text-muted text-center py-5" style="grid-column: 1 / -1;">${window.lang['no_data_available']}</div>`;
         return;
     }
 
@@ -265,7 +265,7 @@ function renderQpaListGrid(quarters, container) {
             </div>
 
             <div class="mb-4">
-                <div class="small text-muted text-uppercase fw-bold mb-1" style="font-size: 0.75rem;">Net Result</div>
+                <div class="small text-muted text-uppercase fw-bold mb-1" style="font-size: 0.75rem;">${window.lang['net_result']}</div>
                 <div class="display-6 fw-bold ${pnlClass}">
                     ${pnlSign}${pnlVal.toFixed(2)}<small class="fs-6 opacity-50 ms-1">$</small>
                 </div>
