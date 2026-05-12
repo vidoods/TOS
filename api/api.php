@@ -41,6 +41,7 @@ require __DIR__ . '/handlers/data_analysis.php';
 require __DIR__ . '/handlers/strategy.php';
 require __DIR__ . '/handlers/mpa.php';
 require __DIR__ . '/handlers/qpa.php';
+require __DIR__ . '/handlers/settings.php'; 
 
 try {
     switch ($action) {
@@ -92,6 +93,13 @@ try {
         case 'get_accounts_lookup': getAccountsLookup($conn); break;
         case 'get_ref_styles':      getRefStyles($conn); break;
         case 'get_plans_for_lookup': getPlansForLookup($conn); break;
+
+        // --- НОВЫЕ МАРШРУТЫ ДЛЯ НАСТРОЕК ---
+        case 'get_user_settings':    getUserSettings($conn); break;
+        case 'add_user_setting':     addUserSettings($conn); break;
+        case 'delete_user_setting':  deleteUserSettings($conn); break;
+        case 'get_pair_types': getAvailablePairTypes($conn); break;
+
 
         // --- ПЛАНЫ ---
         case 'save_plan':

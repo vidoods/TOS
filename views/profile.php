@@ -9,6 +9,13 @@
 
 <div class="fade-in" style="max-width: 900px; margin: 0 auto;">
 
+    <div class="profile-tabs-nav">
+        <button class="profile-tab-btn active" data-tab="overview">Overview</button>
+        <button class="profile-tab-btn" data-tab="settings">Preferences</button>
+    </div>
+
+    <!-- Вкладка 1: Overview (Ваш текущий контент) -->
+    <div id="tab-overview" class="profile-tab-content active">
     <!-- Page Header -->
     <div class="profile-page-header">
         <div class="profile-header-glow"></div>
@@ -148,6 +155,78 @@
 
     </div>
 </div>
+<div id="tab-settings" class="profile-tab-content">
+    <div class="profile-cards-grid">
+
+            <!-- Настройка Таймфреймов -->
+            <div class="profile-card glass-panel">
+                <div class="profile-card-header">
+                    <div class="profile-card-icon" style="background: #6366f1;"><i class="fas fa-clock"></i></div>
+                    <div class="profile-card-title">Timeframes</div>
+                </div>
+                <div class="profile-card-body">
+                    <div class="setting-input-group">
+                        <input type="text" id="new-tf-name" class="profile-input" placeholder="e.g. M15">
+                        <button class="btn-add" onclick="addSetting('timeframe', 'new-tf-name')">+</button>
+                    </div>
+                    <ul id="list-timeframes" class="settings-list"></ul>
+                </div>
+            </div>
+
+            <!-- Настройка Стилей -->
+            <div class="profile-card glass-panel">
+                <div class="profile-card-header">
+                    <div class="profile-card-icon" style="background: #a855f7;"><i class="fas fa-paint-brush"></i></div>
+                    <div class="profile-card-title">Styles</div>
+                </div>
+                <div class="profile-card-body">
+                    <div class="setting-input-group">
+                        <input type="text" id="new-style-name" class="profile-input" placeholder="e.g. Scalping">
+                        <button class="btn-add" onclick="addSetting('style', 'new-style-name')">+</button>
+                    </div>
+                    <ul id="list-styles" class="settings-list"></ul>
+                </div>
+            </div>
+            <!-- Новая карточка: Entry Models -->
+            <div class="profile-card glass-panel">
+                <div class="profile-card-header">
+                    <div class="profile-card-icon" style="background: linear-gradient(135deg, #f87171, #ef4444);">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="profile-card-title">Entry Models</div>
+                </div>
+                <div class="profile-card-body">
+                    <div class="setting-input-group">
+                        <input type="text" id="new-model-name" class="profile-input" placeholder="e.g. FVG">
+                        <button class="btn-add" onclick="addSetting('model', 'new-model-name')">+</button>
+                    </div>
+                    <ul id="list-models" class="settings-list"></ul>
+                </div>
+            </div>
+    </div>
+
+            <!-- Настройка Пар -->
+            <div class="profile-card glass-panel" style="grid-column: 1 / -1; margin-top: 15px;">
+                <div class="profile-card-header">
+                    <div class="profile-card-icon" style="background: #06b6d4;"><i class="fas fa-coins"></i></div>
+                    <div class="profile-card-title">Trading Pairs</div>
+                </div>
+                <div class="profile-card-body">
+                    <div class="setting-input-group pair-inputs">
+                        <input type="text" id="new-pair-symbol" class="profile-input" placeholder="BTCUSDT">
+                        <select id="new-pair-type" class="profile-input">
+                            <option value="Crypto">Crypto</option>
+                            <option value="Forex">Forex</option>
+                        </select>
+                        <button class="btn-add" onclick="addPair()">+</button>
+                    </div>
+                    <ul id="list-pairs" class="settings-list"></ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <style>
     /* =================== PROFILE PAGE =================== */
@@ -197,6 +276,101 @@
             filter: hue-rotate(360deg);
         }
     }
+
+/* Tabs Navigation */
+.profile-tabs-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 5px;
+    border-radius: 12px;
+}
+
+.profile-tab-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.profile-tab-btn.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+.profile-tab-content {
+    display: none;
+}
+
+.profile-tab-content.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+
+/* Settings List & Inputs */
+.setting-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.pair-inputs {
+    flex-wrap: wrap;
+}
+
+.profile-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #fff;
+    flex: 1;
+}
+
+.btn-add {
+    background: #6366f1;
+    color: white;
+    border: none;
+    width: 35px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.settings-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-del {
+    color: #ef4444;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.btn-del:hover { opacity: 1; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 
     .profile-avatar-inner {
         width: 100%;
@@ -563,6 +737,147 @@
 </style>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- TAB SWITCHING LOGIC ---
+    const tabBtns = document.querySelectorAll('.profile-tab-btn');
+    const tabContents = document.querySelectorAll('.profile-tab-content');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.dataset.tab;
+
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+
+            btn.classList.add('active');
+            document.getElementById(`tab-${targetTab}`).classList.add('active');
+
+            if (targetTab === 'settings') loadUserSettings();
+        });
+    });
+
+    // --- SETTINGS CRUD LOGIC ---
+
+    function loadUserSettings() {
+        fetch('api/api.php?action=get_user_settings')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    renderList('list-timeframes', data.timeframes, 'timeframe');
+                    renderList('list-styles', data.styles, 'style');
+                    if (data.models) {
+                        renderList('list-models', data.models, 'model');
+                    }
+                    renderPairs(data.pairs);
+                }
+            });
+    // 2. НОВОЕ: Загружаем список доступных ТИПОВ из базы данных для селекта
+    fetch('api/api.php?action=get_pair_types')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const select = document.getElementById('new-pair-type');
+                // Очищаем старые опции, кроме первой (если нужно) или просто пересоздаем
+                select.innerHTML = ''; 
+                data.types.forEach(type => {
+                    const opt = document.createElement('option');
+                    opt.value = type;
+                    opt.textContent = type;
+                    select.appendChild(opt);
+                });
+            }
+        })
+        .catch(err => console.error("Error loading pair types:", err));
+    }
+
+    function renderList(elementId, items, type) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = '';
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'settings-item';
+            li.innerHTML = `
+                <span>${item.name}</span>
+                <i class="fas fa-trash btn-del" onclick="deleteSetting('${type}', ${item.id})"></i>
+            `;
+            container.appendChild(li);
+        });
+    }
+
+    function renderPairs(pairs) {
+        const container = document.getElementById('list-pairs');
+        container.innerHTML = '';
+        pairs.forEach(p => {
+            const li = document.createElement('li');
+            li.className = 'settings-item';
+            li.innerHTML = `
+                <span>${p.symbol} <small class='text-muted'>(${p.type})</small></span>
+                <i class="fas fa-trash btn-del" onclick="deleteSetting('pair', ${p.id}, '${p.symbol}')"></i>
+            `;
+            container.appendChild(li);
+        });
+    }
+
+    // Add Timeframe or Style
+    window.addSetting = function(type, inputId) {
+        const input = document.getElementById(inputId);
+        const val = input.value.trim();
+        if (!val) return;
+
+        const formData = new FormData();
+        formData.append('action', 'add_user_setting');
+        formData.append('type', type);
+        formData.append('name', val);
+
+        fetch('api/api.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    input.value = '';
+                    loadUserSettings();
+                }
+            });
+    };
+
+    // Add Pair
+    window.addPair = function() {
+        const symbol = document.getElementById('new-pair-symbol').value.trim();
+        const type = document.getElementById('new-pair-type').value;
+        if (!symbol) return;
+
+        const formData = new FormData();
+        formData.append('action', 'add_user_setting');
+        formData.append('type', 'pair');
+        formData.append('symbol', symbol);
+        formData.append('pair_type', type);
+
+        fetch('api/api.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    document.getElementById('new-pair-symbol').value = '';
+                    loadUserSettings();
+                }
+            });
+    };
+
+    // Delete Setting
+    window.deleteSetting = function(type, id, extra = '') {
+        const formData = new FormData();
+        formData.append('action', 'delete_user_setting');
+        formData.append('type', type);
+        formData.append('id', id);
+        if (extra) formData.append('extra', extra);
+
+        fetch('api/api.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) loadUserSettings();
+            });
+    };
+});
+
+
     document.addEventListener('DOMContentLoaded', function () {
         // Wire up language card to hidden select + existing handler
         const langOptions = document.querySelectorAll('.lang-option');
