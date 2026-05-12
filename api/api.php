@@ -52,7 +52,7 @@ try {
         case 'reset_password': handleResetPassword($conn); break;
         case 'get_user_info':
             $userId = $_SESSION['user_id'];
-            $stmt = $pdo->prepare("SELECT username, email, created_at, language FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT username, email, role, created_at, language FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user) {
@@ -61,6 +61,7 @@ try {
                     'username'   => $user['username'],
                     'email'      => $user['email'],
                     'language' => $user['language'] ?? 'en',
+                    'role'       => $user['role'] ?? 'Trader',
                     'created_at' => $user['created_at'] ? date('d M Y', strtotime($user['created_at'])) : '-'
                 ]);
             } else {

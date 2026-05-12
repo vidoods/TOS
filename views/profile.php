@@ -25,8 +25,9 @@
             <p class="profile-email" id="profile-page-email">...</p>
             <div class="profile-badge">
                 <i class="fas fa-shield-alt me-1"></i>
-                <?= $lang['trader'] ?? 'Trader' ?>
+                <span id="profile-page-role"><?= $lang['trader'] ?? 'Trader' ?></span>
             </div>
+
         </div>
     </div>
 
@@ -66,10 +67,11 @@
         <div class="profile-stat-divider"></div>
         <!-- Account filter -->
         <div class="profile-stat-item profile-acc-filter">
-            <i class="fas fa-wallet profile-stat-icon" style="color: var(--text-secondary)"></i>
-            <div style="flex:1; min-width:120px;">
-                <div class="profile-stat-label"><?= $lang['account'] ?? 'Account' ?></div>
-                <p></p>
+            <div class="profile-acc-top-row">
+                <i class="fas fa-wallet profile-stat-icon" style="color: var(--text-secondary)"></i>
+                <span class="profile-stat-label"><?= $lang['account'] ?? 'Account' ?></span>
+            </div>
+            <div class="profile-acc-select-wrapper">
                 <select id="profile-account-select" class="profile-acc-select">
                     <option value=""><?= $lang['all_accounts'] ?? 'All accounts' ?></option>
                 </select>
@@ -275,11 +277,12 @@
         display: flex;
         align-items: center;
         gap: 0;
-        background: var(--bg-card, #1a1a1a);
+        background: var(--bg-card, #1a11a1a);
         border: 1px solid rgba(255, 255, 255, 0.06);
         border-radius: 16px;
-        padding: 20px 28px;
+        padding: 20px 15px; /* Уменьшили боковые отступы (было 28px) */
         margin-bottom: 20px;
+        overflow: hidden; /* Чтобы ничего не вылезало за границы */
     }
 
     .profile-stat-item {
@@ -290,7 +293,6 @@
     }
 
     .profile-stat-icon {
-        font-size: 1.4rem;
         width: 40px;
         text-align: center;
         flex-shrink: 0;
@@ -315,7 +317,7 @@
         width: 1px;
         height: 44px;
         background: rgba(255, 255, 255, 0.08);
-        margin: 0 24px;
+        margin: 0 12px; /* Было 24px — это и вызывало переполнение */
         flex-shrink: 0;
     }
 
@@ -482,22 +484,43 @@
 
     /* Account filter in stats strip */
     .profile-acc-filter {
-        flex: 1.2;
+        flex-direction: column !important; /* Выстраиваем элементы вертикально */
+        align-items: flex-start !important; /* Прижимаем всё к левому краю */
+        gap: 8px; /* Расстояние между строкой с иконкой и селектом */
+    }
+
+    /* Верхняя строка: Иконка + Текст в один ряд */
+    .profile-acc-top-row {
+        display: flex;
+        align-items: center; /* Центрируем иконку и текст по вертикали */
+        gap: 10px; /* Расстояние между иконкой и текстом */
+        width: 100%;
+    }
+
+    /* Убираем лишние отступы у иконки, чтобы она не раздувала строку */
+    .profile-acc-top-row .profile-stat-icon {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    /* Контейнер для селекта, чтобы он занимал всю ширину */
+    .profile-acc-select-wrapper {
+        width: 100%;
     }
 
     .profile-acc-select {
         appearance: none;
         -webkit-appearance: none;
-        background: rgba(255, 255, 255, 0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 10px center;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.07) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238    %23888'/%3E%3C/svg%3E") no-repeat right 10px center;
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 8px;
         color: #fff;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        padding: 5px 30px 5px 10px;
+        padding: 6px 30px 6px 10px; /* Немного увеличили высоту для удобства */
         cursor: pointer;
         width: 100%;
-        transition: border-color 0.2s, background-color 0.2s;
+        transition: all 0.2s ease;
         outline: none;
     }
 
@@ -512,7 +535,7 @@
         color: #fff;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
 
         .profile-page-header {
             flex-direction: column;
@@ -578,6 +601,9 @@
 
                     const emailEl = document.getElementById('profile-page-email');
                     if (emailEl) emailEl.textContent = data.email || '—';
+
+                    const roleEl = document.getElementById('profile-page-role');
+                    if (roleEl && data.role) roleEl.textContent = data.role;
 
                     const dateEl = document.getElementById('profile-page-date');
                     if (dateEl) dateEl.textContent = data.created_at || '—';
