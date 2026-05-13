@@ -7,6 +7,7 @@ return [
     'select_language' => 'Select Language',
     'english' => 'English',
     'russian' => 'Russian',
+    'ukrainian' => 'Ukrainian',
     'performance_overview' => 'Performance overview',
     'total_trades' => 'Total Trades',
     'all_accounts' => 'All accounts',

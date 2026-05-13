@@ -122,6 +122,12 @@
                         <span class="lang-name"><?= $lang['english'] ?></span>
                         <i class="fas fa-check lang-check"></i>
                     </label>
+                    <label class="lang-option" id="lang-opt-ua">
+                        <input type="radio" name="profile-lang" value="ua" style="display:none">
+                        <span class="lang-flag">🇺🇦</span>
+                        <span class="lang-name"><?= $lang['ukrainian'] ?></span>
+                        <i class="fas fa-check lang-check"></i>
+                    </label>
                     <label class="lang-option" id="lang-opt-ru">
                         <input type="radio" name="profile-lang" value="ru" style="display:none">
                         <span class="lang-flag">🇷🇺</span>
@@ -132,6 +138,7 @@
                 <!-- hidden select for compatibility with existing JS -->
                 <select id="profile-language-select" style="display:none">
                     <option value="en"><?= $lang['english'] ?></option>
+                    <option value="ua"><?= $lang['ukrainian'] ?></option>
                     <option value="ru"><?= $lang['russian'] ?></option>
                 </select>
             </div>

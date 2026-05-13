@@ -7,6 +7,7 @@ return [
     'select_language' => 'Выберите язык',
     'english' => 'Английский',
     'russian' => 'Русский',
+    'ukrainian' => 'Украинский',
     'performance_overview' => 'Обзор производительности',
     'total_trades' => 'Всего сделок',
     'all_accounts' => 'Все аккаунты',

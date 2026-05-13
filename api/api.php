@@ -77,7 +77,7 @@ try {
         $newLang = $_POST['lang'] ?? 'en';
         
         // Защита от подделки: разрешаем только en и ru
-        if (!in_array($newLang, ['en', 'ru'])) $newLang = 'en';
+        if (!in_array($newLang, ['en', 'ru', 'ua'])) $newLang = 'en';
 
         $stmt = $pdo->prepare("UPDATE users SET language = ? WHERE id = ?");
         if ($stmt->execute([$newLang, $userId])) {
