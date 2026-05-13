@@ -101,37 +101,64 @@ h3 {
 .user-profile-widget {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.03); /* Очень легкий фон */
+    background: rgba(255, 255, 255, 0.03); 
     border: 1px solid var(--glass-border);
     padding: 12px 15px;
     border-radius: 12px;
-    margin-bottom: 30px; /* Отступ до меню */
+    margin-bottom: 30px; 
     transition: all 0.3s ease;
-	cursor: pointer;
+    cursor: pointer;
 }
 
 .user-profile-widget:hover {
     background: var(--glass-bg-hover);
     border-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    transform: none; /* УБРАНО ПОДПРЫГИВАНИЕ */
 }
 
-.user-avatar {
-    width: 38px;
-    height: 38px;
-    background: linear-gradient(135deg, rgba(41, 151, 255, 0.2), rgba(41, 151, 255, 0.05));
-    border-radius: 50%; /* Круглая форма */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(41, 151, 255, 0.3);
-    color: var(--accent-blue);
-    font-size: 1.1rem;
-    box-shadow: 0 0 15px rgba(41, 151, 255, 0.15); /* Легкое свечение */
+/* Размеры аватара для бокового меню */
+.sidebar-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    margin-right: 12px; 
+    border-width: 2px !important; /* Делаем обводку тоньше, так как кружок меньше */
+    z-index: 10 !important;
 }
 
+/* Принудительно сжимаем само кольцо */
+.sidebar-avatar .profile-avatar-ring {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 2px !important;
+}
+
+/* Сжимаем внутренний контейнер с иконкой/картинкой */
+.sidebar-avatar .profile-avatar-inner {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Уменьшаем иконку */
+.sidebar-avatar .profile-avatar-inner i {
+    font-size: 1.1rem !important;
+}
+
+/* Статус-индикатор в меню */
+.sidebar-avatar .profile-avatar-status {
+    width: 10px !important;
+    height: 10px !important;
+    bottom: 0px !important;
+    right: 0px !important;
+    border-width: 2px !important; /* Делаем обводку статуса тоньше */
+}
+
+/* Жестко убираем ссылочное подчеркивание со всего виджета */
+a.user-profile-widget {
+    text-decoration: none !important;
+}
+
+/* Текст пользователя */
 .user-info {
     display: flex;
     flex-direction: column;
@@ -140,7 +167,7 @@ h3 {
 
 .user-welcome {
     font-size: 0.7rem;
-    color: var(--text-secondary);
+    color: var(--text-secondary) !important; /* Принудительно возвращаем серый цвет */
     text-transform: uppercase;
     letter-spacing: 0.5px;
     opacity: 0.8;
@@ -149,6 +176,6 @@ h3 {
 .user-name {
     font-size: 0.95rem;
     font-weight: 700;
-    color: var(--text-main);
+    color: var(--text-main) !important; /* Принудительно возвращаем белый/основной цвет */
     letter-spacing: 0.3px;
 }

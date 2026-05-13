@@ -414,4 +414,6 @@ return [
     'danger_zone' => 'Session',
     'session_management' => 'Manage your session',
     'logout' => 'Logout',
+    'settings' => 'Settings',
+    'change' => 'Change',
 ];

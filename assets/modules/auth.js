@@ -8,20 +8,54 @@ async function loadUserInfo() {
     const profilePageName = document.getElementById('profile-page-name');
     const profilePageEmail = document.getElementById('profile-page-email');
     const profilePageDate = document.getElementById('profile-page-date');
+    
+    // Элементы профиля
+    const avatarImg = document.getElementById('profile-avatar-img');
+    const avatarIcon = document.getElementById('profile-avatar-icon');
+    
+    // Элементы бокового меню
+    const sidebarImg = document.getElementById('sidebar-avatar-img');
+    const sidebarIcon = document.getElementById('sidebar-avatar-icon');
 
     try {
         const res = await fetch('api/api.php?action=get_user_info');
         const data = await res.json();
 
         if (data.success) {
+            // Подстановка текстовых данных
             if (sidebarName) sidebarName.textContent = data.username;
             if (profilePageName) profilePageName.textContent = data.username;
             if (profilePageEmail) profilePageEmail.textContent = data.email;
             if (profilePageDate) profilePageDate.textContent = data.created_at;
+            
+            // Логика отображения аватара (сразу для профиля и меню)
+            if (data.avatar_url && data.avatar_url !== '') {
+                // Если аватар есть — показываем картинки и прячем иконки
+                if (avatarImg) {
+                    avatarImg.src = data.avatar_url;
+                    avatarImg.style.display = 'block';
+                }
+                if (sidebarImg) {
+                    sidebarImg.src = data.avatar_url;
+                    sidebarImg.style.display = 'block';
+                }
+                
+                if (avatarIcon) avatarIcon.style.display = 'none';
+                if (sidebarIcon) sidebarIcon.style.display = 'none';
+                
+            } else {
+                // Если аватара нет — прячем картинки и показываем иконки
+                if (avatarImg) avatarImg.style.display = 'none';
+                if (sidebarImg) sidebarImg.style.display = 'none';
+                
+                if (avatarIcon) avatarIcon.style.display = 'block';
+                if (sidebarIcon) sidebarIcon.style.display = 'block';
+            }
         }
     } catch(e) {
         console.error(e);
-        if (sidebarName) sidebarName.textContent = window.lang['user'];
+        // Резервное имя, если запрос упал
+        if (sidebarName) sidebarName.textContent = window.lang?.user || 'User';
     }
 }
 
@@ -129,3 +163,66 @@ async function loadSimpleProfile() {
         console.error('Error loading profile:', error);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const avatarInput = document.getElementById('avatar-input');
+    
+    if (avatarInput) {
+        avatarInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                if(typeof showToast === 'function') showToast('File too large (max 2MB)', 'error');
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('action', 'upload_avatar');
+            fd.append('avatar', file);
+
+            const wrapper = document.querySelector('.profile-avatar-inner');
+            if (wrapper) wrapper.classList.add('avatar-uploading'); // Анимация пульсации
+
+            try {
+                const res = await fetch('api/api.php', { method: 'POST', body: fd });
+                const json = await res.json();
+
+                if (json.success) {
+                    const newSrc = json.avatar_url + '?t=' + new Date().getTime();
+                    
+                    // Элементы профиля
+                    const avatarImg = document.getElementById('profile-avatar-img');
+                    const avatarIcon = document.getElementById('profile-avatar-icon');
+                    
+                    // Элементы сайдбара
+                    const sidebarImg = document.getElementById('sidebar-avatar-img');
+                    const sidebarIcon = document.getElementById('sidebar-avatar-icon');
+                    
+                    // Обновляем картинки
+                    if (avatarImg) {
+                        avatarImg.src = newSrc;
+                        avatarImg.style.display = 'block';
+                    }
+                    if (sidebarImg) {
+                        sidebarImg.src = newSrc;
+                        sidebarImg.style.display = 'block';
+                    }
+                    
+                    // Прячем иконки
+                    if (avatarIcon) avatarIcon.style.display = 'none';
+                    if (sidebarIcon) sidebarIcon.style.display = 'none';
+
+                    if(typeof showToast === 'function') showToast('Avatar updated!', 'success');
+                } else {
+                    if(typeof showToast === 'function') showToast(json.message, 'error');
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                if (wrapper) wrapper.classList.remove('avatar-uploading');
+                avatarInput.value = ''; 
+            }
+        });
+    }
+});

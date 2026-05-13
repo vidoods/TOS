@@ -90,3 +90,49 @@ function compressAndSaveImage($source, $dest, $mime, $quality = 80) {
     imagedestroy($img);
     return $res;
 }
+
+function uploadAvatar() {
+    global $pdo;
+    if (!isset($_FILES['avatar'])) {
+        echo json_encode(['success' => false, 'message' => 'No file uploaded']);
+        exit;
+    }
+
+    $userId = $_SESSION['user_id'];
+    $file = $_FILES['avatar'];
+    
+    // Проверка типа
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!in_array($file['type'], $allowedTypes)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid file format']);
+        exit;
+    }
+
+    // Создаем папку, если ее нет (обратите внимание на путь, я добавил /images/ чтобы было как у вас везде)
+    $uploadDir = '../assets/uploads/images/avatars/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+    // Генерируем уникальное имя
+    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $fileName = 'avatar_' . $userId . '_' . time() . '.' . $ext;
+    $filePath = $uploadDir . $fileName;
+
+    if (move_uploaded_file($file['tmp_name'], $filePath)) {
+        $dbPath = 'assets/uploads/images/avatars/' . $fileName;
+
+        // Удаляем старый аватар
+        $stmt = $pdo->prepare("SELECT avatar_url FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $oldAvatar = $stmt->fetchColumn();
+        if ($oldAvatar && file_exists('../' . $oldAvatar)) {
+            unlink('../' . $oldAvatar);
+        }
+
+        // Обновляем базу данных
+        $pdo->prepare("UPDATE users SET avatar_url = ? WHERE id = ?")->execute([$dbPath, $userId]);
+
+        echo json_encode(['success' => true, 'avatar_url' => $dbPath]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Upload failed. Check folder permissions.']);
+    }
+}

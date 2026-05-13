@@ -115,15 +115,30 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
                             alt="TOS" /></a>
                 </div>
 
-                <a href=" index.php?view=profile" class="user-profile-widget text-reset" style="text-decoration:none;">
-                    <div class="user-avatar">
-                        <i class="fas fa-user" id="user-avatar"></i>
-                    </div>
-                    <div class="user-info">
-                        <span class="user-welcome"><?= $lang['welcome_back'] ?></span>
-                        <span class="user-name" id="sidebar-username"><?= $lang['loading'] ?></span>
-                    </div>
-                </a>
+                <a href="index.php?view=profile" class="user-profile-widget text-reset" style="text-decoration:none;">
+    
+    <div class="profile-avatar-wrap sidebar-avatar">
+        <div class="profile-avatar-ring">
+            <div class="profile-avatar-inner" style="position: relative;">
+                
+                <i class="fas fa-user" id="sidebar-avatar-icon"></i>
+                
+                <img id="sidebar-avatar-img" 
+                     src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;" 
+                     alt="">
+                     
+            </div>
+        </div>
+        <div class="profile-avatar-status"></div>
+    </div>
+
+    <div class="user-info">
+        <span class="user-welcome"><?= $lang['welcome_back'] ?? 'Welcome back,' ?></span>
+        <span class="user-name" id="sidebar-username"><?= $lang['loading'] ?></span>
+    </div>
+    
+</a>
 
                 <nav class="nav-menu">
                     <h3><?= $lang['routine'] ?></h3>
@@ -214,6 +229,7 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/modules/core.js"></script>
     <script src="assets/modules/ui.js"></script>
     <script src="assets/modules/auth.js"></script>
+    <script src="assets/modules/profile.js"></script>
     <script type="text/javascript" src="assets/modules/language.js"></script>
     <script src="assets/modules/shared_ui.js"></script>
     <script src="assets/modules/forms.js"></script>

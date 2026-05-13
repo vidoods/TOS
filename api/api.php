@@ -53,7 +53,7 @@ try {
         case 'reset_password': handleResetPassword($conn); break;
         case 'get_user_info':
             $userId = $_SESSION['user_id'];
-            $stmt = $pdo->prepare("SELECT username, email, role, created_at, language FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT username, email, role, created_at, language, avatar_url FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($user) {
@@ -63,6 +63,7 @@ try {
                     'email'      => $user['email'],
                     'language' => $user['language'] ?? 'en',
                     'role'       => $user['role'] ?? 'Trader',
+                    'avatar_url' => $user['avatar_url'] ?? null,
                     'created_at' => $user['created_at'] ? date('d M Y', strtotime($user['created_at'])) : '-'
                 ]);
             } else {
@@ -70,6 +71,7 @@ try {
             }
             break;
 
+        case 'upload_avatar': uploadAvatar(); break;
         case 'change_language':
         $userId = $_SESSION['user_id'];
         $newLang = $_POST['lang'] ?? 'en';
