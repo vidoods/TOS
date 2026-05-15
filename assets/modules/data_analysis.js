@@ -17,14 +17,16 @@ async function loadDataAnalysis() {
         const json = await res.json();
 
         if (json.success) {
-            const d = json.data;
-            renderDataList('list-direction', d.direction);
-            renderDataList('list-style', d.style);
-            renderDataList('list-timeframe', d.timeframe);
-            renderDataList('list-model', d.model);
-            renderPairsGrid('list-pairs', d.pairs);
+            const { direction, style, timeframe, model, pairs } = json.data;
+            renderDataList('list-direction', direction);
+            renderDataList('list-style', style);
+            renderDataList('list-timeframe', timeframe);
+            renderDataList('list-model', model);
+            renderPairsGrid('list-pairs', pairs);
         }
-    } catch (e) { console.error(e); }
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 function renderDataList(containerId, items) {
@@ -40,12 +42,11 @@ function renderDataList(containerId, items) {
     items.forEach(item => {
         const label = item.label || 'N/A';
         const count = item.total_trades;
-        const winrate = parseInt(item.win_rate);
+        const winrate = parseInt(item.win_rate, 10);
 
         let color = '#6b7280';
         if (count > 0) {
-            if (winrate >= 50) color = '#00d66f';
-            else color = '#ff453a';
+            color = winrate >= 50 ? '#00d66f' : '#ff453a';
         }
 
         const strokeDash = `${winrate}, 100`;
@@ -83,13 +84,12 @@ function renderPairsGrid(containerId, items) {
 
     let html = '';
     items.forEach(item => {
-        const winrate = parseInt(item.win_rate);
+        const winrate = parseInt(item.win_rate, 10);
         const count = item.total_trades;
 
         let color = '#6b7280';
         if (count > 0) {
-            if (winrate >= 50) color = '#00d66f';
-            else color = '#ff453a';
+            color = winrate >= 50 ? '#00d66f' : '#ff453a';
         }
 
         const strokeDash = `${winrate}, 100`;
@@ -115,16 +115,28 @@ function renderPairsGrid(containerId, items) {
 
 function getLabelIcon(label) {
     const l = label.toLowerCase();
-    if (l === 'long') return '<i class="fas fa-arrow-up text-profit" style="font-size: 0.8rem;"></i>';
-    if (l === 'short') return '<i class="fas fa-arrow-down text-loss" style="font-size: 0.8rem;"></i>';
-    return '';
+    switch (l) {
+        case 'long':
+            return '<i class="fas fa-arrow-up text-profit" style="font-size: 0.8rem;"></i>';
+        case 'short':
+            return '<i class="fas fa-arrow-down text-loss" style="font-size: 0.8rem;"></i>';
+        default:
+            return '';
+    }
 }
 
 function getIconForLabel(label) {
     const l = label.toLowerCase();
-    if (l === 'long') return '<i class="fas fa-arrow-up text-profit small"></i>';
-    if (l === 'short') return '<i class="fas fa-arrow-down text-loss small"></i>';
-    if (l.includes('day')) return '<i class="fas fa-sun text-warning small"></i>';
-    if (l.includes('swing')) return '<i class="fas fa-history text-info small"></i>';
-    return '';
+    switch (l) {
+        case 'long':
+            return '<i class="fas fa-arrow-up text-profit small"></i>';
+        case 'short':
+            return '<i class="fas fa-arrow-down text-loss small"></i>';
+        case 'day':
+            return '<i class="fas fa-sun text-warning small"></i>';
+        case 'swing':
+            return '<i class="fas fa-history text-info small"></i>';
+        default:
+            return '';
+    }
 }
