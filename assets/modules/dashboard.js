@@ -9,20 +9,22 @@ function setupFiltersModal(loadFunction) {
     const closeBtn = document.getElementById('filters-close-btn');
     const form = document.getElementById('filters-form');
     const resetBtn = document.getElementById('reset-filters-btn');
+
     if (!modal || !openBtn || !form) return;
 
-    openBtn.onclick = async () => {
+    openBtn.addEventListener('click', async () => {
         modal.style.display = "block";
         const filterPairSelect = document.getElementById('filter-pair');
         if (filterPairSelect && filterPairSelect.options.length <= 1) {
             await loadLookups();
         }
-    };
+    });
+
     const close = () => modal.style.display = "none";
-    if (closeBtn) closeBtn.onclick = close;
+    if (closeBtn) closeBtn.addEventListener('click', close);
     window.onclick = e => { if (e.target === modal) close(); };
 
-    form.onsubmit = e => {
+    form.addEventListener('submit', e => {
         e.preventDefault();
         const filters = {};
         form.querySelectorAll('select, input').forEach(input => {
@@ -33,9 +35,9 @@ function setupFiltersModal(loadFunction) {
         });
         loadFunction(filters);
         close();
-    };
+    });
 
-    if (resetBtn) resetBtn.onclick = () => { form.reset(); loadFunction({}); close(); };
+    if (resetBtn) resetBtn.addEventListener('click', () => { form.reset(); loadFunction({}); close(); });
 }
 
 function setupLightbox() {
@@ -59,7 +61,7 @@ function setupLightbox() {
         document.body.style.overflow = '';
     };
 
-    if (closeBtn) closeBtn.onclick = close;
+    if (closeBtn) closeBtn.addEventListener('click', close);
     modal.onclick = e => { if (e.target === modal) close(); };
 }
 
@@ -124,49 +126,20 @@ async function loadDashboardMetrics(overrideAccountId = null, isDetailedView = f
         if (result.success) {
             const m = result.data;
 
-            if (document.getElementById(idMap.total_trades))
-                document.getElementById(idMap.total_trades).textContent = m.total_trades;
-
-            if (document.getElementById(idMap.breakdown))
-                document.getElementById(idMap.breakdown).innerHTML =
-                    `<span class="text-profit">${m.wins} W</span> /
-                     <span class="text-loss">${m.losses} L</span> /
-                     <span class="text-warning">${m.breakeven} B</span> /
-                     <span class="text-info">${m.pending || 0} P</span>`;
-
-            if (document.getElementById(idMap.win_rate))
-                document.getElementById(idMap.win_rate).textContent = m.win_rate + '%';
-
-            const winBarId = isDetailedView ? 'ad-winrate-bar' : 'winning-ratio-progress';
-            if (document.getElementById(winBarId))
-                document.getElementById(winBarId).style.width = m.win_rate + '%';
-
-            if (document.getElementById(idMap.avg_rr))
-                document.getElementById(idMap.avg_rr).textContent = m.avg_rr_per_trade + ' R';
-
-            if (document.getElementById(idMap.pnl)) {
-                const val = m.total_pnl;
-                const el = document.getElementById(idMap.pnl);
-                const text = (val >= 0 ? '+ ' : '') + val.toFixed(2);
-                el.innerHTML = text + ' $';
-                el.classList.remove('text-profit', 'text-loss');
-                el.classList.add(val >= 0 ? 'text-profit' : 'text-loss');
-            }
+            updateMetric(idMap.total_trades, m.total_trades);
+            updateBreakdown(idMap.breakdown, m.wins, m.losses, m.breakeven, m.pending || 0);
+            updateMetric(idMap.win_rate, `${m.win_rate}%`);
+            updateProgressBar(idMap.winRateBarId, m.win_rate);
+            updateMetric(idMap.avg_rr, `${m.avg_rr_per_trade} R`);
+            updatePnl(idMap.pnl, m.total_pnl);
 
             if (!isDetailedView) {
-                document.getElementById(idMap.monthly).innerHTML = `${window.lang['monthly_average']}: ${m.avg_monthly_profit} $`;
-                document.getElementById(idMap.avg_time).textContent = m.avg_time_in_position;
-                const mddEl = document.getElementById(idMap.mdd);
-                if (mddEl) {
-                    mddEl.innerHTML = `-${m.max_drawdown_pct}% (-${m.max_drawdown_abs} $)`;
-                    mddEl.className = 'metric-value text-loss';
-                }
+                updateMonthlyProfit(idMap.monthly, m.avg_monthly_profit);
+                updateMetric(idMap.avg_time, m.avg_time_in_position);
+                updateMaxDrawdown(idMap.mdd, m.max_drawdown_pct, m.max_drawdown_abs);
             }
 
-            const chartId = isDetailedView ? 'accountEquityChart' : 'equityChart';
-            if (m.equity_chart) {
-                renderEquityChart(m.equity_chart, chartId);
-            }
+            renderEquityChart(m.equity_chart, idMap.chartId);
         }
     } catch (e) { console.error(e); }
 }
@@ -253,4 +226,49 @@ function renderEquityChart(dataPoints, canvasId = 'equityChart') {
             interaction: { mode: 'nearest', axis: 'x', intersect: false }
         }
     });
+}
+
+function updateMetric(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function updateBreakdown(id, wins, losses, breakeven, pending) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerHTML = `
+            <span class="text-profit">${wins} W</span> /
+            <span class="text-loss">${losses} L</span> /
+            <span class="text-warning">${breakeven} B</span> /
+            <span class="text-info">${pending} P</span>
+        `;
+    }
+}
+
+function updateProgressBar(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.style.width = `${value}%`;
+}
+
+function updatePnl(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        const text = (value >= 0 ? '+ ' : '') + value.toFixed(2);
+        el.innerHTML = `${text} $`;
+        el.classList.remove('text-profit', 'text-loss');
+        el.classList.add(value >= 0 ? 'text-profit' : 'text-loss');
+    }
+}
+
+function updateMonthlyProfit(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `${window.lang['monthly_average']}: ${value} $`;
+}
+
+function updateMaxDrawdown(id, pct, abs) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerHTML = `-${pct}% (-${abs} $)`;
+        el.className = 'metric-value text-loss';
+    }
 }
