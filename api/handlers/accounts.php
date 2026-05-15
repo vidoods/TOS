@@ -92,3 +92,4 @@ function getAccountDetails($pdo) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+?>

@@ -147,3 +147,4 @@ function saveQPAReport($pdo) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+?>

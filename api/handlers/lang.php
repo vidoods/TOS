@@ -34,3 +34,4 @@ function get_translation($key, $pdo, $user_id) {
     // Возвращаем перевод, а если его нет — возвращаем сам ключ
     return isset($translations[$key]) ? $translations[$key] : $key;
 }
+?>

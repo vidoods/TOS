@@ -109,3 +109,4 @@ function getPlansForLookup($pdo) {
         echo json_encode(['success' => false, 'message' => 'Plans lookup error: ' . $e->getMessage()]);
     }
 }
+?>

@@ -136,3 +136,4 @@ function uploadAvatar() {
         echo json_encode(['success' => false, 'message' => 'Upload failed. Check folder permissions.']);
     }
 }
+?>
