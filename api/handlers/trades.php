@@ -228,3 +228,4 @@ function deleteTrade($pdo) {
         echo json_encode(['success' => false, 'message' => 'Trade delete error: ' . $e->getMessage()]);
     }
 }
+?>
