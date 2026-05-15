@@ -23,14 +23,7 @@ async function loadLookups() {
             populateSelect('trade-style', data.styles, 'name');
             populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
-            populateSelect('trade-note', data.notes, 'title', 'id', null, window.lang['no_note']);
-            populateSelect('plan-note', data.notes, 'title', 'id', null, window.lang['no_note']);
-
-            if (document.getElementById('note-plan')) {
-                populateSelect('note-plan', data.plans, 'title');
-                populateSelect('note-trade', data.trades, 'display_name', 'id', null, window.lang['choose_trade']);
-            }
-
+            populateSelect('note-trade', data.trades, 'display_name', 'id', null, window.lang['choose_trade']);
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, window.lang['all_pairs']);
 
             return data;
@@ -55,11 +48,13 @@ function populateSelect(selectId, items, displayKey, valueKey = 'id', selectedVa
 
     if (!items || items.length === 0) return;
     items.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item[valueKey];
-        option.textContent = item[displayKey] || item.id;
-        if (selectedValue && item[valueKey] == selectedValue) option.selected = true;
-        select.appendChild(option);
+        if (item) { // Проверка на null
+            const option = document.createElement('option');
+            option.value = item[valueKey];
+            option.textContent = item[displayKey] || item.id;
+            if (selectedValue && item[valueKey] == selectedValue) option.selected = true;
+            select.appendChild(option);
+        }
     });
 }
 
@@ -71,15 +66,18 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span>⏳</span> ' + window.lang['saving'];
 
+    // CSRF protection
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        showMessage(window.lang['csrf_token_missing'], 'error');
+        return;
+    }
+
     // Переносим HTML из редактора
     if (quillEditor) {
-        if (entityName === 'note') {
-            const el = document.getElementById('note-content-hidden');
-            if (el) el.value = quillEditor.root.innerHTML;
-        } else if (entityName === 'strategy') {
-            const el = document.getElementById('st-content-hidden');
-            if (el) el.value = quillEditor.root.innerHTML;
-        }
+        const target = document.getElementById(entityName === 'note' ? 'note-content-hidden' : 'st-content-hidden');
+        if (target) target.value = quillEditor.root.innerHTML;
     }
 
     try {
@@ -97,29 +95,17 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
         });
 
         // Добавляем ID если это редактирование
-        if (entityName === 'plan' && document.getElementById('edit-plan-id')) {
-            const idVal = document.getElementById('edit-plan-id').value;
-            if (idVal) data['id'] = idVal;
-        }
-        if (entityName === 'trade' && document.getElementById('edit-trade-id')) {
-            const idVal = document.getElementById('edit-trade-id').value;
-            if (idVal) data['id'] = idVal;
-        }
-        if (entityName === 'note' && document.getElementById('edit-note-id')) {
-            const idVal = document.getElementById('edit-note-id').value;
-            if (idVal) data['id'] = idVal;
-        }
-        if (entityName === 'strategy' && document.getElementById('edit-strategy-id')) {
-            const idVal = document.getElementById('edit-strategy-id').value;
-            if (idVal) data['id'] = idVal;
+        const idField = document.getElementById(`edit-${entityName}-id`);
+        if (idField && idField.value) {
+            data['id'] = idField.value;
         }
 
         // Обработка изображений
+        const imagePromises = [];
         ['timeframes', 'trade_images'].forEach(arrKey => {
             if (data[arrKey]) data[arrKey] = data[arrKey].filter(item => item && (item.url || item.notes || item.title));
         });
 
-        const imagePromises = [];
         const processImages = (containerClass, arrayName, type) => {
             form.querySelectorAll(`.${containerClass}`).forEach((card, index) => {
                 const fileInput = card.querySelector('input[type="file"]');
@@ -145,7 +131,10 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
 
         const response = await fetch(`api/api.php?action=${action}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
             body: JSON.stringify(data)
         });
         const result = await response.json();
@@ -169,10 +158,16 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
 }
 
 async function uploadFile(file, type = 'general') {
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxFileSize) {
+        throw new Error(window.lang['file_too_large']);
+    }
+
     const formData = new FormData();
     formData.append('action', 'upload_image');
     formData.append('image', file);
     formData.append('type', type);
+
     const response = await fetch('api/api.php', { method: 'POST', body: formData });
     const result = await response.json();
     if (result.success) return result.url;
