@@ -34,6 +34,17 @@ const tooltipOptions = {
     trigger: 'hover focus'
 };
 
+// Функция для защиты от XSS (экранирование опасных символов)
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function makeTooltip(el) {
     if (el.hasAttribute('title') && !bootstrap.Tooltip.getInstance(el)) {
         new bootstrap.Tooltip(el, tooltipOptions);
