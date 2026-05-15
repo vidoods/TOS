@@ -21,7 +21,6 @@ if (typeof Quill !== 'undefined') {
     if (Font) {
         Font.whitelist = ['inter', 'roboto', 'serif', 'monospace', 'Montserrat'];
         Quill.register(Font, true);
-        console.log("Quill successfully loaded");
     } else {
         console.warn("Failed to import Quill font module");
     }
