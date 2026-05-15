@@ -3,59 +3,70 @@
 // ФУНКЦИИ АВТОРИЗАЦИИ
 // ==================================================
 
+const API_URL = 'api/api.php';
+
 async function loadUserInfo() {
-    const sidebarName = document.getElementById('sidebar-username');
-    const profilePageName = document.getElementById('profile-page-name');
-    const profilePageEmail = document.getElementById('profile-page-email');
-    const profilePageDate = document.getElementById('profile-page-date');
-    
-    // Элементы профиля
-    const avatarImg = document.getElementById('profile-avatar-img');
-    const avatarIcon = document.getElementById('profile-avatar-icon');
-    
-    // Элементы бокового меню
-    const sidebarImg = document.getElementById('sidebar-avatar-img');
-    const sidebarIcon = document.getElementById('sidebar-avatar-icon');
+    const elements = {
+        sidebarName: document.getElementById('sidebar-username'),
+        profilePageName: document.getElementById('profile-page-name'),
+        profilePageEmail: document.getElementById('profile-page-email'),
+        profilePageDate: document.getElementById('profile-page-date'),
+        avatarImg: document.getElementById('profile-avatar-img'),
+        sidebarImg: document.getElementById('sidebar-avatar-img'),
+        avatarIcon: document.getElementById('profile-avatar-icon'),
+        sidebarIcon: document.getElementById('sidebar-avatar-icon')
+    };
 
     try {
-        const res = await fetch('api/api.php?action=get_user_info');
+        const res = await fetch(`${API_URL}?action=get_user_info`);
         const data = await res.json();
 
         if (data.success) {
-            // Подстановка текстовых данных
-            if (sidebarName) sidebarName.textContent = data.username;
-            if (profilePageName) profilePageName.textContent = data.username;
-            if (profilePageEmail) profilePageEmail.textContent = data.email;
-            if (profilePageDate) profilePageDate.textContent = data.created_at;
-            
-            // Логика отображения аватара (сразу для профиля и меню)
-            if (data.avatar_url && data.avatar_url !== '') {
-                // Если аватар есть — показываем картинки и прячем иконки
-                if (avatarImg) {
-                    avatarImg.src = data.avatar_url;
-                    avatarImg.style.display = 'block';
+            Object.entries(elements).forEach(([key, element]) => {
+                if (element) {
+                    switch (key) {
+                        case 'sidebarName':
+                        case 'profilePageName':
+                            element.textContent = data.username;
+                            break;
+                        case 'profilePageEmail':
+                            element.textContent = data.email;
+                            break;
+                        case 'profilePageDate':
+                            element.textContent = data.created_at;
+                            break;
+                    }
                 }
-                if (sidebarImg) {
-                    sidebarImg.src = data.avatar_url;
-                    sidebarImg.style.display = 'block';
-                }
-                
-                if (avatarIcon) avatarIcon.style.display = 'none';
-                if (sidebarIcon) sidebarIcon.style.display = 'none';
-                
-            } else {
-                // Если аватара нет — прячем картинки и показываем иконки
-                if (avatarImg) avatarImg.style.display = 'none';
-                if (sidebarImg) sidebarImg.style.display = 'none';
-                
-                if (avatarIcon) avatarIcon.style.display = 'block';
-                if (sidebarIcon) sidebarIcon.style.display = 'block';
-            }
+            });
+
+            updateAvatar(data.avatar_url, elements);
         }
-    } catch(e) {
+    } catch (e) {
         console.error(e);
-        // Резервное имя, если запрос упал
-        if (sidebarName) sidebarName.textContent = window.lang?.user || 'User';
+        if (elements.sidebarName) elements.sidebarName.textContent = window.lang?.user || 'User';
+    }
+}
+
+function updateAvatar(avatarUrl, elements) {
+    const { avatarImg, sidebarImg, avatarIcon, sidebarIcon } = elements;
+
+    if (avatarUrl) {
+        [avatarImg, sidebarImg].forEach(img => {
+            if (img) {
+                img.src = avatarUrl;
+                img.style.display = 'block';
+            }
+        });
+        [avatarIcon, sidebarIcon].forEach(icon => {
+            if (icon) icon.style.display = 'none';
+        });
+    } else {
+        [avatarImg, sidebarImg].forEach(img => {
+            if (img) img.style.display = 'none';
+        });
+        [avatarIcon, sidebarIcon].forEach(icon => {
+            if (icon) icon.style.display = 'block';
+        });
     }
 }
 
@@ -73,7 +84,7 @@ async function handleLoginSubmit(event) {
     submitBtn.innerHTML = window.lang['checking'];
 
     try {
-        const response = await fetch('api/api.php', { method: 'POST', body: formData });
+        const response = await fetch(API_URL, { method: 'POST', body: formData });
         const result = await response.json();
         if (result.success) {
             window.location.href = 'index.php?view=dashboard';
@@ -112,7 +123,7 @@ async function handleRegisterSubmit(event) {
 
     try {
         const data = Object.fromEntries(formData.entries());
-        const response = await fetch('api/api.php?action=register', {
+        const response = await fetch(`${API_URL}?action=register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -135,14 +146,14 @@ async function handleRegisterSubmit(event) {
 
 async function logout() {
     if (confirm(window.lang['confirm_logout'])) {
-        try { await fetch('api/api.php?action=logout'); } catch (e) { console.error(e); }
+        try { await fetch(`${API_URL}?action=logout`); } catch (e) { console.error(e); }
         window.location.href = 'index.php?view=login';
     }
 }
 
 async function loadSimpleProfile() {
     try {
-        const response = await fetch('api/api.php?action=get_user_info');
+        const response = await fetch(`${API_URL}?action=get_user_info`);
         const result = await response.json();
 
         if (result.success) {
@@ -154,7 +165,7 @@ async function loadSimpleProfile() {
             if (elEmail) elEmail.textContent = result.email;
             if (elJoined) elJoined.textContent = result.created_at || '-';
 
-            // ВАЖНО: Мы вызываем функцию из другого модуля для синхронизации языка
+            // Вызываем функцию из другого модуля для синхронизации языка
             if (typeof syncLanguageSelect === 'function') {
                 syncLanguageSelect(result.language);
             }
@@ -173,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file) return;
 
             if (file.size > 2 * 1024 * 1024) {
-                if(typeof showToast === 'function') showToast('File too large (max 2MB)', 'error');
+                if (typeof showToast === 'function') showToast('File too large (max 2MB)', 'error');
                 return;
             }
 
@@ -185,11 +196,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wrapper) wrapper.classList.add('avatar-uploading'); // Анимация пульсации
 
             try {
-                const res = await fetch('api/api.php', { method: 'POST', body: fd });
+                const res = await fetch(API_URL, { method: 'POST', body: fd });
                 const json = await res.json();
 
                 if (json.success) {
-                    const newSrc = json.avatar_url + '?t=' + new Date().getTime();
+                    const newSrc = `${json.avatar_url}?t=${new Date().getTime()}`;
                     
                     // Элементы профиля
                     const avatarImg = document.getElementById('profile-avatar-img');
@@ -200,22 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const sidebarIcon = document.getElementById('sidebar-avatar-icon');
                     
                     // Обновляем картинки
-                    if (avatarImg) {
-                        avatarImg.src = newSrc;
-                        avatarImg.style.display = 'block';
-                    }
-                    if (sidebarImg) {
-                        sidebarImg.src = newSrc;
-                        sidebarImg.style.display = 'block';
-                    }
-                    
-                    // Прячем иконки
-                    if (avatarIcon) avatarIcon.style.display = 'none';
-                    if (sidebarIcon) sidebarIcon.style.display = 'none';
+                    updateAvatar(newSrc, { avatarImg, sidebarImg, avatarIcon, sidebarIcon });
 
-                    if(typeof showToast === 'function') showToast('Avatar updated!', 'success');
+                    if (typeof showToast === 'function') showToast('Avatar updated!', 'success');
                 } else {
-                    if(typeof showToast === 'function') showToast(json.message, 'error');
+                    if (typeof showToast === 'function') showToast(json.message, 'error');
                 }
             } catch (error) {
                 console.error(error);
