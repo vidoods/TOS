@@ -71,7 +71,7 @@ function savePlan($pdo) {
 function getPlans($pdo) {
     try {
         $user_id = $_SESSION['user_id'];
-        $sql     = "SELECT p.*, rp.symbol as pair_symbol FROM plans p LEFT JOIN ref_pairs rp ON p.pair_id = rp.id WHERE p.user_id = :user_id";
+        $sql     = "SELECT p.*, rp.symbol as pair_symbol FROM plans p LEFT JOIN user_pairs rp ON p.pair_id = rp.id WHERE p.user_id = :user_id";
         $params  = ['user_id' => $user_id];
 
         if (!empty($_GET['pair_id'])) { $sql .= " AND p.pair_id = :pair_id"; $params['pair_id'] = $_GET['pair_id']; }
@@ -105,7 +105,7 @@ function getPlanDetails($pdo) {
         $plan_id = $_GET['id'] ?? null;
         if (!$plan_id) throw new Exception('ID not stated.');
 
-        $stmt = $pdo->prepare("SELECT p.*, rp.symbol as pair_symbol, rp.type as pair_type FROM plans p LEFT JOIN ref_pairs rp ON p.pair_id = rp.id WHERE p.id = ? AND p.user_id = ?");
+        $stmt = $pdo->prepare("SELECT p.*, rp.symbol as pair_symbol, rp.type as pair_type FROM plans p LEFT JOIN user_pairs rp ON p.pair_id = rp.id WHERE p.id = ? AND p.user_id = ?");
         $stmt->execute([$plan_id, $_SESSION['user_id']]);
         $plan = $stmt->fetch();
 

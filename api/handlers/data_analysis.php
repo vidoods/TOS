@@ -13,10 +13,14 @@ function getDataAnalysis($pdo) {
                         SUM(CASE WHEN t.status IN ('win', 'loss', 'breakeven') THEN 1 ELSE 0 END) as completed
                     FROM $refTable r
                     LEFT JOIN trades t ON t.$tradeFkCol = r.id AND t.user_id = ? AND t.status != 'cancelled'
+                    WHERE r.user_id = ?
                     GROUP BY r.id, r.$refNameCol
                     ORDER BY total_trades DESC, label ASC";
+            
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$uid]);
+            // Передаем $uid дважды: один для JOIN (сделки), второй для WHERE (список моделей)
+            $stmt->execute([$uid, $uid]);
+            
             $rows = $stmt->fetchAll();
             return array_map(function($row) {
                 $comp = (int)$row['completed'];
@@ -77,9 +81,9 @@ function getDataAnalysis($pdo) {
         $data = [
             'direction' => $getSimpleStats('direction'),
             'timeframe' => $getTimeframeStats(),
-            'style'     => $getRefStats('ref_styles', 'name', 'style_id'),
-            'model'     => $getRefStats('ref_models', 'name', 'model_id'),
-            'pairs'     => $getRefStats('ref_pairs', 'symbol', 'pair_id')
+            'style'     => $getRefStats('user_styles', 'name', 'style_id'),
+            'model'     => $getRefStats('user_models', 'name', 'model_id'),
+            'pairs'     => $getRefStats('user_pairs', 'symbol', 'pair_id')
         ];
 
         echo json_encode(['success' => true, 'data' => $data]);

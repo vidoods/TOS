@@ -85,7 +85,7 @@ function getMPAMonthDetails($pdo) {
 
         $sqlTrades = "SELECT t.*, rp.symbol as pair_name
                       FROM trades t
-                      LEFT JOIN ref_pairs rp ON t.pair_id = rp.id
+                      LEFT JOIN user_pairs rp ON t.pair_id = rp.id
                       WHERE t.user_id = ? AND YEAR(t.entry_date) = ? AND MONTH(t.entry_date) = ?
                       ORDER BY t.entry_date DESC";
         $stmt = $pdo->prepare($sqlTrades);
@@ -94,7 +94,7 @@ function getMPAMonthDetails($pdo) {
 
         $sqlPlans = "SELECT p.*, rp.symbol as pair_symbol
                      FROM plans p
-                     LEFT JOIN ref_pairs rp ON p.pair_id = rp.id
+                     LEFT JOIN user_pairs rp ON p.pair_id = rp.id
                      WHERE p.user_id = ? AND YEAR(p.date) = ? AND MONTH(p.date) = ?
                      ORDER BY p.date DESC";
         $stmtPlans = $pdo->prepare($sqlPlans);

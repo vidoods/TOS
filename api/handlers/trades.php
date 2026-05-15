@@ -8,7 +8,7 @@ function getTrades($pdo) {
 
         $query  = "SELECT t.*, rp.symbol AS pair_symbol, a.name AS account_name, p.title AS plan_title
                    FROM trades t
-                   JOIN ref_pairs rp ON t.pair_id = rp.id
+                   JOIN user_pairs rp ON t.pair_id = rp.id
                    JOIN accounts a ON t.account_id = a.id
                    LEFT JOIN plans p ON t.plan_id = p.id
                    WHERE t.user_id = :user_id";
@@ -63,11 +63,11 @@ function getTradeDetails($pdo) {
                          rs.name AS style_name,
                          rm.name AS model_name
                   FROM trades t
-                  JOIN ref_pairs rp ON t.pair_id = rp.id
+                  JOIN user_pairs rp ON t.pair_id = rp.id
                   JOIN accounts a ON t.account_id = a.id
                   LEFT JOIN plans p ON t.plan_id = p.id
-                  LEFT JOIN ref_styles rs ON t.style_id = rs.id
-                  LEFT JOIN ref_models rm ON t.model_id = rm.id
+                  LEFT JOIN user_styles rs ON t.style_id = rs.id
+                  LEFT JOIN user_models rm ON t.model_id = rm.id
                   WHERE t.id = ? AND t.user_id = ?";
         $stmt  = $pdo->prepare($query);
         $stmt->execute([$trade_id, $_SESSION['user_id']]);

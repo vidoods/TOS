@@ -68,7 +68,7 @@ function getDashboardMetrics($pdo) {
         }
         $current_balance_end = (float)$stmtBal->fetchColumn();
 
-        $stmtAllPnl = $pdo->prepare("SELECT COALESCE(SUM(pnl), 0) FROM trades $baseWhere AND status IN ('win', 'loss', 'breakeven', 'partial')");
+        $stmtAllPnl = $pdo->prepare("SELECT COALESCE(SUM(pnl), 0) FROM trades $baseWhere AND status IN ('win', 'loss', 'breakeven', 'pending')");
         $stmtAllPnl->execute($baseParams);
         $total_pnl_all_time = (float)$stmtAllPnl->fetchColumn();
         $initial_deposit    = $current_balance_end - $total_pnl_all_time;
@@ -79,7 +79,7 @@ function getDashboardMetrics($pdo) {
             if (!empty($month)) $startDateStr = "$year-$month-01";
             $beforeParams   = $baseParams;
             $beforeParams[] = $startDateStr;
-            $stmtBefore = $pdo->prepare("SELECT COALESCE(SUM(pnl), 0) FROM trades $baseWhere AND status IN ('win', 'loss', 'breakeven', 'partial') AND entry_date < ?");
+            $stmtBefore = $pdo->prepare("SELECT COALESCE(SUM(pnl), 0) FROM trades $baseWhere AND status IN ('win', 'loss', 'breakeven', 'pending') AND entry_date < ?");
             $stmtBefore->execute($beforeParams);
             $start_balance += (float)$stmtBefore->fetchColumn();
         }
@@ -89,11 +89,11 @@ function getDashboardMetrics($pdo) {
         $chartData[]     = ['x' => !empty($year) ? "$year-" . ($month ?? '01') . "-01" : "Start", 'y' => round($running_balance, 2)];
 
         if (!empty($year) && empty($month)) {
-            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m') as date_label, SUM(pnl) as pnl FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'partial') GROUP BY date_label ORDER BY date_label ASC";
+            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m') as date_label, SUM(pnl) as pnl FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'pending') GROUP BY date_label ORDER BY date_label ASC";
         } elseif (!empty($year) && !empty($month)) {
-            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m-%d') as date_label, SUM(pnl) as pnl FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'partial') GROUP BY date_label ORDER BY date_label ASC";
+            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m-%d') as date_label, SUM(pnl) as pnl FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'pending') GROUP BY date_label ORDER BY date_label ASC";
         } else {
-            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m-%d') as date_label, pnl FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'partial') ORDER BY entry_date ASC, id ASC";
+            $sqlChart = "SELECT DATE_FORMAT(entry_date, '%Y-%m-%d') as date_label, pnl FROM trades $periodWhere AND status IN ('win', 'loss', 'breakeven', 'pending') ORDER BY entry_date ASC, id ASC";
         }
         $stmtChart = $pdo->prepare($sqlChart);
         $stmtChart->execute($periodParams);

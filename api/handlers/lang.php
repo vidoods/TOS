@@ -1,46 +1,36 @@
 <?php
-function get_user_language($user_id) {
-    // Подключение к базе данных (замените на вашу реальную логику)
-    $conn = mysqli_connect('host', 'user', 'pass', 'db');
+// api/handlers/lang.php
+
+function get_user_language($pdo, $user_id) {
+    // Используем уже готовое подключение $pdo
+    $stmt = $pdo->prepare("SELECT language FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $lang = $stmt->fetchColumn(); // Получаем только одну колонку
     
-    if (!$conn) {
-        die("Connection failed: " . mysqli_connect_error());
-    }
-    
-    // Получение языка пользователя из базы данных
-    $stmt = $conn->prepare("SELECT language FROM users WHERE id = ?");
-    if (!$stmt) {
-        die("Prepare failed: " . mysqli_error($conn));
-    }
-    
-    $stmt->bind_param('i', $user_id);
-    if (!$stmt->execute()) {
-        die("Execute failed: " . mysqli_stmt_error($stmt));
-    }
-    
-    $stmt->bind_result($language);
-    $stmt->fetch();
-    $stmt->close();
-    
-    // Закрытие соединения
-    mysqli_close($conn);
-    
-    return $language ?: 'en'; // Возвращаем английский язык по умолчанию
+    return $lang ? $lang : 'en';
 }
 
-function get_translation($key, $user_id) {
-    // Получить язык пользователя из базы данных
-    $language = get_user_language($user_id);
+function get_translation($key, $pdo, $user_id) {
+    // Ключевое слово static сохранит словарь в памяти. 
+    // При переводе следующих слов скрипт больше не будет дергать базу и файлы.
+    static $translations = null;
     
-    // Проверка существования файла перевода
-    $lang_file = __DIR__ . '/../../assets/lang/' . $language . '.php';
-    if (!file_exists($lang_file)) {
-        die("Файл перевода для языка '$language' не найден.");
+    if ($translations === null) {
+        $language = get_user_language($pdo, $user_id);
+        
+        // Исправленный путь (проверьте, правильное ли количество '../')
+        $lang_file = __DIR__ . '/../../assets/lang/' . $language . '.php';
+        
+        if (file_exists($lang_file)) {
+            // Так как ваши файлы возвращают массив (return [...]), 
+            // мы присваиваем результат переменной
+            $translations = require $lang_file;
+        } else {
+            // Фолбэк на английский, если файл не найден
+            $translations = require __DIR__ . '/../../assets/lang/en.php';
+        }
     }
-    
-    require_once $lang_file;
-    $translations = $lang;
 
-    return isset($translations[$key]) ? $translations[$key] : '';
+    // Возвращаем перевод, а если его нет — возвращаем сам ключ
+    return isset($translations[$key]) ? $translations[$key] : $key;
 }
-?>

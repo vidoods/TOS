@@ -50,7 +50,7 @@ function getNoteDetails($pdo) {
         SELECT t.id, CONCAT(rp.symbol, ' (', UPPER(t.direction), ') ', DATE_FORMAT(t.entry_date, '%d.%m.%y')) as label
         FROM note_to_trade nt
         JOIN trades t ON nt.trade_id = t.id
-        JOIN ref_pairs rp ON t.pair_id = rp.id
+        JOIN user_pairs rp ON t.pair_id = rp.id
         WHERE nt.note_id = $id LIMIT 1
     ")->fetch(PDO::FETCH_ASSOC);
 

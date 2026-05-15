@@ -61,7 +61,7 @@ function getQPADetails($pdo) {
 
         $sqlTrades = "SELECT t.*, rp.symbol as pair_name, rp.symbol as pair_symbol, a.name as account_name
                       FROM trades t
-                      LEFT JOIN ref_pairs rp ON t.pair_id = rp.id
+                      LEFT JOIN user_pairs rp ON t.pair_id = rp.id
                       LEFT JOIN accounts a ON t.account_id = a.id
                       WHERE t.user_id = ? AND YEAR(t.entry_date) = ? AND MONTH(t.entry_date) BETWEEN ? AND ?
                       ORDER BY t.entry_date DESC";
@@ -71,7 +71,7 @@ function getQPADetails($pdo) {
 
         $sqlPlans = "SELECT p.*, rp.symbol as pair_symbol
                      FROM plans p
-                     LEFT JOIN ref_pairs rp ON p.pair_id = rp.id
+                     LEFT JOIN user_pairs rp ON p.pair_id = rp.id
                      WHERE p.user_id = ? AND YEAR(p.date) = ? AND MONTH(p.date) BETWEEN ? AND ?
                      ORDER BY p.date DESC";
         $stmtPlans = $pdo->prepare($sqlPlans);
