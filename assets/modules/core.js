@@ -18,9 +18,13 @@ let currentMpaData = null;
 // --- Регистрация шрифтов Quill ---
 if (typeof Quill !== 'undefined') {
     const Font = Quill.import('formats/font');
-    Font.whitelist = ['inter', 'roboto', 'serif', 'monospace', 'Montserrat'];
-    Quill.register(Font, true);
-    console.log("Quill succesfully loaded");
+    if (Font) {
+        Font.whitelist = ['inter', 'roboto', 'serif', 'monospace', 'Montserrat'];
+        Quill.register(Font, true);
+        console.log("Quill successfully loaded");
+    } else {
+        console.warn("Failed to import Quill font module");
+    }
 } else {
     console.warn("Quill not found");
 }
@@ -46,16 +50,18 @@ function escapeHTML(str) {
 }
 
 function makeTooltip(el) {
-    if (el.hasAttribute('title') && !bootstrap.Tooltip.getInstance(el)) {
+    if (el && el.hasAttribute('title') && !bootstrap.Tooltip.getInstance(el)) {
         new bootstrap.Tooltip(el, tooltipOptions);
     }
 }
 
 // MutationObserver для автоматической инициализации тултипов
 const observer = new MutationObserver((mutationsList) => {
+    const processedNodes = new Set();
     mutationsList.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) {
+            if (node.nodeType === 1 && !processedNodes.has(node)) {
+                processedNodes.add(node);
                 makeTooltip(node);
                 node.querySelectorAll('[title]').forEach(makeTooltip);
             }
