@@ -166,17 +166,17 @@ function saveTrade($pdo) {
 
         $pdo->prepare("DELETE FROM note_to_trade WHERE trade_id = ?")->execute([$trade_id]);
         if (!empty($data['note_id'])) {
-            $pdo->prepare("INSERT INTO note_to_trade (note_id, trade_id) VALUES (?, ?)")->execute([$data['note_id'], $trade_id]);
+            $pdo->prepare("INSERT INTO note_to_trade (note_id, trade_id, user_id) VALUES (?, ?, ?)")->execute([$data['note_id'], $trade_id, $user_id]);
         }
 
         if (!empty($data['trade_images']) && is_array($data['trade_images'])) {
             if ($is_update) {
                 $pdo->prepare("DELETE FROM trade_analysis_images WHERE trade_id = ? AND is_plan_image = 0")->execute([$trade_id]);
             }
-            $img_stmt = $pdo->prepare("INSERT INTO trade_analysis_images (trade_id, image_url, notes, title, is_plan_image) VALUES (?, ?, ?, ?, 0)");
+            $img_stmt = $pdo->prepare("INSERT INTO trade_analysis_images (trade_id, user_id, image_url, notes, title, is_plan_image) VALUES (?, ?, ?, ?, ?, 0)");
             foreach ($data['trade_images'] as $i => $img) {
                 if (!empty($img['url'])) {
-                    $img_stmt->execute([$trade_id, $img['url'], $img['notes'] ?? null, $img['title'] ?? ('Screenshot ' . ($i + 1))]);
+                    $img_stmt->execute([$trade_id, $user_id, $img['url'], $img['notes'] ?? null, $img['title'] ?? ('Screenshot ' . ($i + 1))]);
                 }
             }
         }
