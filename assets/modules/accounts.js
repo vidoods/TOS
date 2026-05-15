@@ -84,7 +84,7 @@ async function loadAccounts() {
                         <button title="${window.lang['delete']}" class="acc-btn delete" onclick="deleteAccount(${acc.id})"><i class="fas fa-trash" style="font-size:0.8rem"></i></button>
                     </div>
                     <div class="acc-header">
-                        <div class="acc-name"><i class="fas fa-wallet" style="color:var(--accent-blue)"></i> ${acc.name}</div>
+                        <div class="acc-name"><i class="fas fa-wallet" style="color:var(--accent-blue)"></i> ${escapeHTML(acc.name)}</div>
                         <span class="acc-type-badge">${acc.type}</span>
                     </div>
                     <div class="acc-balance">$${parseFloat(currentEquity).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
@@ -234,7 +234,7 @@ async function loadPayouts() {
                             <span class="text-muted"><i class="far fa-calendar-alt me-2"></i> ${date}</span>
                         </div>
                         <div class="payout-col" data-label="Account">
-                            <strong>${p.account_name}</strong>
+                            <strong>${escapeHTML(p.account_name)}</strong>
                         </div>
                         <div class="payout-col" data-label="Status">
                             ${statusBadge}
