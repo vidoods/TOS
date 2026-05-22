@@ -72,6 +72,8 @@ return [
     'all_types' => 'Все типы',
     'all_narrative' => 'Все наративы',
     'neutral' => 'Нейтральный',
+    'bullish' => 'Бычий',
+    'bearish' => 'Медвежий',
     'clear' => 'Очистить',
     'apply_filter' => 'Применить фильтр',
     'new_trade' => 'Новая сделка',

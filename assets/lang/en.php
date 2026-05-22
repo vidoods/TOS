@@ -72,6 +72,8 @@ return [
     'all_types' => 'All types',
     'all_narrative' => 'All narrative',
     'neutral' => 'Neutral',
+    'bullish' => 'Bullish',
+    'bearish' => 'Bearish',
     'clear' => 'Clear',
     'apply_filter' => 'Apply filter',
     'new_trade' => 'New Trade',

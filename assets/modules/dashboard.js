@@ -79,21 +79,26 @@ async function loadDashboardMetrics(overrideAccountId = null, isDetailedView = f
             month = document.getElementById('dashboard-month-select')?.value || '';
         }
 
+        // idMap: привязка ключей метрик к ID элементов страницы
         const idMap = isDetailedView ? {
             total_trades: 'ad-total-trades',
             breakdown: 'ad-trades-breakdown',
             win_rate: 'ad-winrate',
+            winRateBarId: 'ad-winrate-bar',       // прогресс-бар винрейта на странице аккаунта
             avg_rr: 'ad-avg-rr',
             pnl: 'ad-pnl-value',
+            chartId: 'accountEquityChart'          // холст графика на странице аккаунта
         } : {
             total_trades: 'total-trades-value',
             breakdown: 'total-trades-breakdown',
             win_rate: 'winning-ratio-value',
+            winRateBarId: 'winning-ratio-progress', // прогресс-бар винрейта на дашборде
             avg_rr: 'average-rr-value',
             pnl: 'net-profit-value',
             monthly: 'avg-monthly-profit',
             mdd: 'max-drawdown-value',
-            avg_time: 'avg-time-in-position-value'
+            avg_time: 'avg-time-in-position-value',
+            chartId: 'equityChart'                  // холст главного графика на дашборде
         };
 
         const showSkel = (id, type) => {
@@ -207,7 +212,7 @@ function renderEquityChart(dataPoints, canvasId = 'equityChart') {
                     borderWidth: 1,
                     displayColors: false,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             return window.lang['balance'] + ': ' + context.parsed.y.toFixed(2) + ' $';
                         }
                     }

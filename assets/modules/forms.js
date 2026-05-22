@@ -18,12 +18,15 @@ async function loadLookups() {
             }
 
             populateSelect('plan-pair', data.pairs, 'symbol');
+            populateSelect('plan-note', data.notes, 'title');
             populateSelect('trade-pair', data.pairs, 'symbol');
             populateSelect('trade-account', data.accounts, 'name');
             populateSelect('trade-style', data.styles, 'name');
             populateSelect('trade-model', data.models, 'name');
             populateSelect('trade-plan', data.plans, 'title');
+            populateSelect('trade-note', data.notes, 'title');
             populateSelect('note-trade', data.trades, 'display_name', 'id', null, window.lang['choose_trade']);
+            populateSelect('note-plan', data.plans, 'title');
             populateSelect('filter-pair', data.pairs, 'symbol', 'id', null, window.lang['all_pairs']);
 
             return data;
@@ -66,12 +69,11 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span>⏳</span> ' + window.lang['saving'];
 
-    // CSRF protection
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    // Защита CSRF (безопасное извлечение)
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
     if (!csrfToken) {
-        console.error('CSRF token not found');
-        showMessage(window.lang['csrf_token_missing'], 'error');
-        return;
+        console.warn('CSRF token not found (CSRF-токен не найден в мета-тегах)');
     }
 
     // Переносим HTML из редактора
@@ -129,12 +131,16 @@ async function handleFormSubmit(event, action, entityName, redirectView) {
 
         await Promise.all(imagePromises);
 
+        const headers = { 
+            'Content-Type': 'application/json'
+        };
+        if (csrfToken) {
+            headers['X-CSRF-TOKEN'] = csrfToken;
+        }
+
         const response = await fetch(`api/api.php?action=${action}`, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
+            headers: headers,
             body: JSON.stringify(data)
         });
         const result = await response.json();
