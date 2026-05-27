@@ -79,6 +79,12 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
 <html lang="ru">
 
 <head>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?php echo htmlspecialchars($currentTitle); ?> | TradeOS</title>

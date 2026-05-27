@@ -532,3 +532,172 @@
             font-size: 1.5rem;
         }
     }
+
+    /* Theme Toggle Button Style */
+    .profile-theme-toggle {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text-main);
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1.15rem;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+            background: var(--glass-bg-hover);
+            border-color: var(--glass-border-hover);
+            transform: scale(1.08) rotate(15deg);
+            box-shadow: var(--glass-shadow);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+        
+        i {
+            transition: transform 0.5s ease;
+        }
+    }
+
+    /* Light Theme specific adjustments for high quality aesthetics */
+    :root[data-theme="light"] {
+        .profile-page-header {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);
+            border-color: rgba(99, 102, 241, 0.15);
+        }
+        .profile-username {
+            background: linear-gradient(135deg, #0f172a 60%, #6366f1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .profile-info-value, .profile-stat-value {
+            color: #0f172a;
+        }
+        .lang-name, .profile-card-title {
+            color: #0f172a;
+        }
+        .profile-avatar-inner {
+            background-color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .profile-avatar-status {
+            border-color: #f0f2f5;
+        }
+        .btn-add {
+            background: #4f46e5;
+        }
+        .profile-input {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #0f172a;
+            
+            &::placeholder {
+                color: #94a3b8;
+            }
+        }
+        .settings-item {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            span {
+                color: #0f172a;
+            }
+        }
+
+        /* 1. profile-stats-strip */
+        .profile-stats-strip {
+            background: var(--glass-bg) !important;
+            border-color: var(--glass-border) !important;
+            
+            .profile-stat-value {
+                color: var(--text-main) !important;
+            }
+            .profile-stat-divider {
+                background: var(--glass-border) !important;
+            }
+        }
+
+        /* 2. Sidebar & Navigation */
+        .sidebar {
+            h3 {
+                color: rgba(15, 23, 42, 0.5) !important;
+            }
+            .nav-links a:hover,
+            .nav-links a.active {
+                background: rgba(0, 0, 0, 0.05) !important;
+            }
+        }
+        .user-profile-widget {
+            background: rgba(0, 0, 0, 0.02) !important;
+            border-color: rgba(0, 0, 0, 0.08) !important;
+            &:hover {
+                background: rgba(0, 0, 0, 0.05) !important;
+                border-color: rgba(0, 0, 0, 0.15) !important;
+            }
+        }
+
+        /* 3. Buttons (Filters, Edit, Secondary) */
+        .btn-outline-secondary,
+        .page-header-actions .btn-outline-secondary {
+            border-color: rgba(0, 0, 0, 0.25) !important;
+            color: var(--text-main) !important;
+            &:hover {
+                background: rgba(0, 0, 0, 0.05) !important;
+                border-color: var(--text-main) !important;
+            }
+        }
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: var(--text-main) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            &:hover {
+                background: rgba(0, 0, 0, 0.1) !important;
+            }
+        }
+
+        /* 4. MPA / QPA Select fields */
+        select#mpa-year-select,
+        select#mpa-quarter-select,
+        select.form-select.form-select-sm {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            border: 1px solid rgba(0, 0, 0, 0.15) !important;
+            option {
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+        }
+
+        /* 5. Monthly & Quarterly Conclusion Text Area (Quill) */
+        #mpa-editor-container,
+        #qpa-editor-container,
+        #editor-container {
+            background: #ffffff !important;
+            color: #0f172a !important;
+        }
+        .ql-toolbar.ql-snow {
+            background: #f8fafc !important;
+            border-color: rgba(0, 0, 0, 0.12) !important;
+        }
+        .ql-container.ql-snow {
+            border-color: rgba(0, 0, 0, 0.12) !important;
+            background: #ffffff !important;
+        }
+        .ql-editor.ql-blank::before {
+            color: rgba(0, 0, 0, 0.35) !important;
+        }
+
+        /* 6. Calendar Picker */
+        ::-webkit-calendar-picker-indicator {
+            filter: none !important;
+        }
+    }

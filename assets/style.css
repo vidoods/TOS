@@ -171,6 +171,32 @@
   --border-radius-md: 10px;
   --border-radius-sm: 8px;
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --bg-gradient-1: rgba(41, 151, 255, 0.1);
+  --bg-gradient-2: rgba(0, 214, 111, 0.05);
+  --sidebar-bg: rgba(9, 12, 20, 0.98);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme=light] {
+  --bg-dark: #f0f2f5;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-hover: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.07);
+  --glass-border-hover: rgba(0, 0, 0, 0.15);
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-profit: #10b981;
+  --text-loss: #ef4444;
+  --accent-blue: #3b82f6;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-red-hover: #dc2626;
+  --accent-gray: #64748b;
+  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08);
+  --bg-gradient-1: rgba(59, 130, 246, 0.06);
+  --bg-gradient-2: rgba(16, 185, 129, 0.04);
+  --sidebar-bg: rgba(255, 255, 255, 0.98);
+  --sidebar-border: rgba(0, 0, 0, 0.08);
 }
 
 *, *::before, *::after {
@@ -183,7 +209,7 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-main);
   min-height: 100vh;
-  background-image: radial-gradient(circle at 0% 0%, rgba(41, 151, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(0, 214, 111, 0.05) 0%, transparent 50%);
+  background-image: radial-gradient(circle at 0% 0%, var(--bg-gradient-1) 0%, transparent 50%), radial-gradient(circle at 100% 100%, var(--bg-gradient-2) 0%, transparent 50%);
   background-attachment: fixed;
   scroll-behavior: smooth;
 }
@@ -200,8 +226,8 @@ body {
 .sidebar {
   width: var(--sidebar-width);
   padding: 20px;
-  background: rgba(9, 12, 20, 0.98);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
   position: fixed;
   top: 0;
   bottom: 0;
@@ -4308,6 +4334,174 @@ a.info-badge:hover {
   .profile-username {
     font-size: 1.5rem;
   }
+}
+/* Theme Toggle Button Style */
+.profile-theme-toggle {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.15rem;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.profile-theme-toggle:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  transform: scale(1.08) rotate(15deg);
+  box-shadow: var(--glass-shadow);
+}
+.profile-theme-toggle:active {
+  transform: scale(0.95);
+}
+.profile-theme-toggle i {
+  transition: transform 0.5s ease;
+}
+
+/* Light Theme specific adjustments for high quality aesthetics */
+:root[data-theme=light] .profile-page-header {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);
+  border-color: rgba(99, 102, 241, 0.15);
+}
+:root[data-theme=light] .profile-username {
+  background: linear-gradient(135deg, #0f172a 60%, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+:root[data-theme=light] .profile-info-value, :root[data-theme=light] .profile-stat-value {
+  color: #0f172a;
+}
+:root[data-theme=light] .lang-name, :root[data-theme=light] .profile-card-title {
+  color: #0f172a;
+}
+:root[data-theme=light] .profile-avatar-inner {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+:root[data-theme=light] .profile-avatar-status {
+  border-color: #f0f2f5;
+}
+:root[data-theme=light] .btn-add {
+  background: #4f46e5;
+}
+:root[data-theme=light] .profile-input {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+}
+:root[data-theme=light] .profile-input::placeholder {
+  color: #94a3b8;
+}
+:root[data-theme=light] .settings-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+:root[data-theme=light] .settings-item span {
+  color: #0f172a;
+}
+:root[data-theme=light] {
+  /* 1. profile-stats-strip */
+}
+:root[data-theme=light] .profile-stats-strip {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+}
+:root[data-theme=light] .profile-stats-strip .profile-stat-value {
+  color: var(--text-main) !important;
+}
+:root[data-theme=light] .profile-stats-strip .profile-stat-divider {
+  background: var(--glass-border) !important;
+}
+:root[data-theme=light] {
+  /* 2. Sidebar & Navigation */
+}
+:root[data-theme=light] .sidebar h3 {
+  color: rgba(15, 23, 42, 0.5) !important;
+}
+:root[data-theme=light] .sidebar .nav-links a:hover,
+:root[data-theme=light] .sidebar .nav-links a.active {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+:root[data-theme=light] .user-profile-widget {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+:root[data-theme=light] .user-profile-widget:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+:root[data-theme=light] {
+  /* 3. Buttons (Filters, Edit, Secondary) */
+}
+:root[data-theme=light] .btn-outline-secondary,
+:root[data-theme=light] .page-header-actions .btn-outline-secondary {
+  border-color: rgba(0, 0, 0, 0.25) !important;
+  color: var(--text-main) !important;
+}
+:root[data-theme=light] .btn-outline-secondary:hover,
+:root[data-theme=light] .page-header-actions .btn-outline-secondary:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: var(--text-main) !important;
+}
+:root[data-theme=light] .btn-secondary {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-main) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+:root[data-theme=light] .btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+:root[data-theme=light] {
+  /* 4. MPA / QPA Select fields */
+}
+:root[data-theme=light] select#mpa-year-select,
+:root[data-theme=light] select#mpa-quarter-select,
+:root[data-theme=light] select.form-select.form-select-sm {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+:root[data-theme=light] select#mpa-year-select option,
+:root[data-theme=light] select#mpa-quarter-select option,
+:root[data-theme=light] select.form-select.form-select-sm option {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+:root[data-theme=light] {
+  /* 5. Monthly & Quarterly Conclusion Text Area (Quill) */
+}
+:root[data-theme=light] #mpa-editor-container,
+:root[data-theme=light] #qpa-editor-container,
+:root[data-theme=light] #editor-container {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+:root[data-theme=light] .ql-toolbar.ql-snow {
+  background: #f8fafc !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+:root[data-theme=light] .ql-container.ql-snow {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  background: #ffffff !important;
+}
+:root[data-theme=light] .ql-editor.ql-blank::before {
+  color: rgba(0, 0, 0, 0.35) !important;
+}
+:root[data-theme=light] {
+  /* 6. Calendar Picker */
+}
+:root[data-theme=light] ::-webkit-calendar-picker-indicator {
+  filter: none !important;
 }
 
 /*# sourceMappingURL=style.css.map */

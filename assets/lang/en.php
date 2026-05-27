@@ -419,4 +419,5 @@ return [
     'logout' => 'Logout',
     'settings' => 'Settings',
     'change' => 'Change',
+    'toggle_theme' => 'Toggle Theme',
 ];

@@ -261,6 +261,36 @@ document.addEventListener('DOMContentLoaded', function () {
         const accSelect = document.getElementById('profile-account-select');
         accSelect?.addEventListener('change', () => loadProfileStats(accSelect.value || null));
 
+        // Theme toggle setup
+        const themeBtn = document.getElementById('profile-theme-toggle');
+        const themeIcon = document.getElementById('profile-theme-icon');
+
+        function updateThemeUI(theme) {
+            if (!themeIcon) return;
+            if (theme === 'light') {
+                themeIcon.className = 'fas fa-sun';
+                themeIcon.style.color = '#f59e0b';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeIcon.style.color = '';
+            }
+        }
+
+        // Initialize UI icon based on active theme
+        const currentTheme = localStorage.getItem('theme') || 'dark';
+        updateThemeUI(currentTheme);
+
+        themeBtn?.addEventListener('click', function () {
+            const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeUI(newTheme);
+            
+            window.dispatchEvent(new Event('themeChanged'));
+        });
+
         // Initial load
         loadProfileStats(null);
     });

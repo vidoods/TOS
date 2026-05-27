@@ -19,6 +19,12 @@
     <!-- Page Header -->
     <div class="profile-page-header">
         <div class="profile-header-glow"></div>
+        
+        <!-- Theme Toggle Button -->
+        <button class="profile-theme-toggle" id="profile-theme-toggle" title="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>" aria-label="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>">
+            <i class="fas fa-moon" id="profile-theme-icon"></i>
+        </button>
+
         <div class="profile-avatar-wrap">
     <div class="profile-avatar-ring">
         <div class="profile-avatar-inner" style="cursor: pointer; position: relative;" onclick="document.getElementById('avatar-input').click()">
