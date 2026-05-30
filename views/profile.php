@@ -54,8 +54,8 @@
             <input type="file" id="avatar-input" hidden accept="image/jpeg, image/png, image/webp">
         </div>
         <div class="profile-header-info">
-            <h1 class="profile-username" id="profile-page-name"><?= $lang['loading'] ?></h1>
-            <p class="profile-email" id="profile-page-email">...</p>
+            <h1 class="profile-username" id="profile-page-name"><span class="skeleton" style="height: 30px; width: 150px; display: inline-block;"></span></h1>
+            <p class="profile-email" id="profile-page-email"><span class="skeleton" style="height: 15px; width: 220px; display: inline-block; margin-top: 5px;"></span></p>
             <div class="profile-badge">
                 <i class="fas fa-shield-alt me-1"></i>
                 <span id="profile-page-role"><?= $lang['trader'] ?? 'Trader' ?></span>

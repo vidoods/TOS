@@ -3,7 +3,7 @@
 
     <div class="d-flex justify-content-between align-items-start mb-4 responsive-header">
         <div>
-            <h2 class="m-0" id="ad-name" style="font-weight: 700; font-size: 2rem; line-height: 1.2;"><?= $lang['loading'] ?></h2>
+            <h2 class="m-0" id="ad-name" style="font-weight: 700; font-size: 2rem; line-height: 1.2;"><span class="skeleton" style="height: 38px; width: 180px; display: inline-block;"></span></h2>
             <div class="mt-2">
                 <span id="ad-type" class="badge-neutral" style="padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; letter-spacing: 0.5px;">TYPE</span>
                 <span id="ad-status" class="ms-2 text-muted" style="font-size: 0.85rem;"><?= $lang['active'] ?></span>
@@ -98,7 +98,18 @@
 
     <div id="tab-trades" class="tab-content">
         <div id="trades-list-container">
-            <div class="loading-spinner"><?= $lang['loading_trades'] ?></div>
+            <div class="skeleton-row">
+                <div class="skeleton" style="height: 15px; width: 80px;"></div>
+                <div class="skeleton" style="height: 15px; width: 60px;"></div>
+                <div class="skeleton" style="height: 15px; width: 100px;"></div>
+                <div class="skeleton" style="height: 25px; width: 60px; border-radius: 12px; margin-left: auto;"></div>
+            </div>
+            <div class="skeleton-row">
+                <div class="skeleton" style="height: 15px; width: 80px;"></div>
+                <div class="skeleton" style="height: 15px; width: 60px;"></div>
+                <div class="skeleton" style="height: 15px; width: 100px;"></div>
+                <div class="skeleton" style="height: 25px; width: 60px; border-radius: 12px; margin-left: auto;"></div>
+            </div>
         </div>
     </div>
 
@@ -109,8 +120,15 @@
             </button>
         </div>
         <div id="account-payouts-list-container" class="payout-table-border">
-             <div class="glass-panel p-4 text-center text-muted">
-                <div class="loading-spinner"><?= $lang['loading_payouts'] ?></div>
+             <div class="glass-panel p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 p-2">
+                    <div class="skeleton" style="height: 15px; width: 40%;"></div>
+                    <div class="skeleton" style="height: 15px; width: 20%;"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center p-2">
+                    <div class="skeleton" style="height: 15px; width: 40%;"></div>
+                    <div class="skeleton" style="height: 15px; width: 20%;"></div>
+                </div>
             </div>
         </div>
     </div>

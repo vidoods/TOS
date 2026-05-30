@@ -3,7 +3,7 @@
 
     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
         <h1 class="page-title" style="margin: 0; display: flex; align-items: center; gap: 15px;">
-            <span id="trade-details-title"><?= $lang['loading'] ?></span>
+            <span id="trade-details-title"><span class="skeleton" style="height: 38px; width: 180px; display: inline-block;"></span></span>
         </h1>
         
         <div class="trade-actions" style="display: flex; gap: 10px;">

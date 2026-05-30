@@ -16,7 +16,24 @@
 	</br>
 
     <div id="trades-list-container">
-        <div class="loading-spinner"><?= $lang['loading_trades'] ?></div>
+        <div class="skeleton-row">
+            <div class="skeleton" style="height: 15px; width: 80px;"></div>
+            <div class="skeleton" style="height: 15px; width: 60px;"></div>
+            <div class="skeleton" style="height: 15px; width: 100px;"></div>
+            <div class="skeleton" style="height: 25px; width: 60px; border-radius: 12px; margin-left: auto;"></div>
+        </div>
+        <div class="skeleton-row">
+            <div class="skeleton" style="height: 15px; width: 80px;"></div>
+            <div class="skeleton" style="height: 15px; width: 60px;"></div>
+            <div class="skeleton" style="height: 15px; width: 100px;"></div>
+            <div class="skeleton" style="height: 25px; width: 60px; border-radius: 12px; margin-left: auto;"></div>
+        </div>
+        <div class="skeleton-row">
+            <div class="skeleton" style="height: 15px; width: 80px;"></div>
+            <div class="skeleton" style="height: 15px; width: 60px;"></div>
+            <div class="skeleton" style="height: 15px; width: 100px;"></div>
+            <div class="skeleton" style="height: 25px; width: 60px; border-radius: 12px; margin-left: auto;"></div>
+        </div>
     </div>
 </div>
 

@@ -10,7 +10,28 @@
     </div>
 
     <div id="accounts-grid" class="accounts-grid mb-5">
-        <div class="loading-spinner"><?= $lang['loading_accounts'] ?></div>
+        <div class="row w-100">
+            <div class="col-md-6 mb-4">
+                <div class="skeleton-card">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="skeleton" style="height: 20px; width: 40%;"></div>
+                        <div class="skeleton" style="height: 20px; width: 20%;"></div>
+                    </div>
+                    <div class="skeleton" style="height: 15px; width: 70%; margin-bottom: 10px;"></div>
+                    <div class="skeleton" style="height: 15px; width: 50%;"></div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="skeleton-card">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="skeleton" style="height: 20px; width: 40%;"></div>
+                        <div class="skeleton" style="height: 20px; width: 20%;"></div>
+                    </div>
+                    <div class="skeleton" style="height: 15px; width: 70%; margin-bottom: 10px;"></div>
+                    <div class="skeleton" style="height: 15px; width: 50%;"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="section-header d-flex justify-content-between align-items-center mb-3">
@@ -21,8 +42,19 @@
     </div>
     
     <div id="payouts-list-container" class="payout-table-border">
-        <div class="glass-panel p-4 text-center text-muted">
-            <div class="loading-spinner"><?= $lang['loading_payouts'] ?></div>
+        <div class="glass-panel p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2">
+                <div class="skeleton" style="height: 15px; width: 40%;"></div>
+                <div class="skeleton" style="height: 15px; width: 20%;"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2">
+                <div class="skeleton" style="height: 15px; width: 40%;"></div>
+                <div class="skeleton" style="height: 15px; width: 20%;"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center p-2">
+                <div class="skeleton" style="height: 15px; width: 40%;"></div>
+                <div class="skeleton" style="height: 15px; width: 20%;"></div>
+            </div>
         </div>
     </div>
 </div>

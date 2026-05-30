@@ -19,7 +19,7 @@ if (!$plan_id) {
 <input type="hidden" id="current-plan-id" value="<?= htmlspecialchars($plan_id) ?>">
 
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
-    <h1 id="plan-details-title" class="page-title" style="margin: 0;"><?= $lang['loading_plan'] ?></h1>
+    <h1 id="plan-details-title" class="page-title" style="margin: 0;"><span class="skeleton" style="height: 38px; width: 180px; display: inline-block;"></span></h1>
     
     <div class="plan-actions" style="display: flex; gap: 10px;">
 		<a href="index.php?view=plans" class="btn btn-outline">
@@ -40,24 +40,24 @@ if (!$plan_id) {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 25px;">
             <div class="detail-item">
                 <span class="detail-label"><?= $lang['plan_type_label'] ?></span>
-                <span id="plan-type" class="detail-value"><?= $lang['loading'] ?></span>
+                <span id="plan-type" class="detail-value"><span class="skeleton" style="height: 20px; width: 100px; display: inline-block;"></span></span>
             </div>
             <div class="detail-item">
                 <span class="detail-label"><?= $lang['pair_label'] ?></span>
-                <span id="plan-pair-symbol" class="detail-value"><?= $lang['loading'] ?></span>
+                <span id="plan-pair-symbol" class="detail-value"><span class="skeleton" style="height: 20px; width: 80px; display: inline-block;"></span></span>
             </div>
             <div class="detail-item">
                 <span class="detail-label"><?= $lang['plan_date_label'] ?></span>
-                <span id="plan-date" class="detail-value"><?= $lang['loading'] ?></span>
+                <span id="plan-date" class="detail-value"><span class="skeleton" style="height: 20px; width: 120px; display: inline-block;"></span></span>
             </div>
             <div class="detail-item">
                 <span class="detail-label"><?= $lang['bias_label'] ?></span>
-                <span id="plan-bias" class="detail-value plan-bias-tag" style="align-self: flex-start;"><?= $lang['loading'] ?></span>
+                <span id="plan-bias" class="detail-value plan-bias-tag" style="align-self: flex-start;"><span class="skeleton" style="height: 20px; width: 80px; display: inline-block;"></span></span>
             </div>
         </div>
         <div class="detail-item" style="display: inline-flex;">
             <span class="detail-label"><?= $lang['created_label'] ?></span>
-            <span id="plan-created-at" class="detail-value" style="font-size: 0.9rem; color: var(--text-secondary);"><?= $lang['loading'] ?></span>
+            <span id="plan-created-at" class="detail-value" style="font-size: 0.9rem; color: var(--text-secondary);"><span class="skeleton" style="height: 15px; width: 150px; display: inline-block;"></span></span>
         </div>
     </section>
 
@@ -65,8 +65,9 @@ if (!$plan_id) {
         <h2 style="margin-bottom: 25px; font-size: 1.5rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px;"><?= $lang['timeframe_analysis'] ?></h2>
         
         <div id="timeframes-list" style="display: flex; flex-direction: column; gap: 30px;">
-            <div class="loading-spinner" style="text-align: center; padding: 50px; color: var(--text-secondary);">
-                <?= $lang['loading_timeframe_analysis'] ?>
+            <div class="skeleton-card" style="margin-bottom: 20px;">
+                <div class="skeleton" style="height: 20px; width: 30%; margin-bottom: 15px;"></div>
+                <div class="skeleton" style="height: 150px; width: 100%;"></div>
             </div>
         </div>
     </section>
