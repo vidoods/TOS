@@ -94,20 +94,20 @@ async function loadAccounts() {
                     ${barHtml}
                     <div class="acc-stats-grid">
                         <div class="acc-stat-row"><span>${window.lang['total_trades']}:</span><span class="acc-stat-val">${acc.total_trades}</span></div>
-                        <div class="acc-stat-row"><span>${window.lang['winrate']}:</span><span class="acc-stat-val">${acc.total_trades > 0 ? ((acc.wins/acc.total_trades)*100).toFixed(1) : 0}%</span></div>
+                        <div class="acc-stat-row"><span>${window.lang['winrate']}:</span><span class="acc-stat-val">${acc.total_trades > 0 ? ((acc.wins / acc.total_trades) * 100).toFixed(1) : 0}%</span></div>
                         <div class="acc-stat-row"><span>${window.lang['avg_rr']}:</span><span class="acc-stat-val">${acc.avg_rr}R</span></div>
-                        <div class="acc-stat-row"><span>${window.lang['journal_pnl']}:</span><span class="acc-stat-val ${acc.profit >=0 ? 'text-profit':'text-loss'}">${acc.profit >=0?'+':''}${acc.profit.toFixed(2)}</span></div>
+                        <div class="acc-stat-row"><span>${window.lang['journal_pnl']}:</span><span class="acc-stat-val ${acc.profit >= 0 ? 'text-profit' : 'text-loss'}">${acc.profit >= 0 ? '+' : ''}${acc.profit.toFixed(2)}</span></div>
                     </div>
                 </div>`;
             });
 
             container.innerHTML = html;
         }
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
 }
 
 async function deleteAccount(id) {
-    if (!confirm(window.lang['confirm_delete_account'])) return;
+    if (!await showConfirm(window.lang['confirm_delete_account'])) return;
     const fd = new FormData(); fd.append('id', id);
     try {
         const res = await fetch('api/api.php?action=delete_account', { method: 'POST', body: fd });
@@ -122,7 +122,7 @@ async function deleteAccount(id) {
         } else {
             showToast(window.lang['delete_error'] + ': ' + json.message, 'error');
         }
-    } catch(e) {
+    } catch (e) {
         console.error(e);
         showToast(window.lang['network_error'], 'error');
     }
@@ -146,7 +146,7 @@ async function initAccountForm() {
                 document.getElementById('acc-dd').value = d.max_drawdown_percent;
                 togglePropFields();
             }
-        } catch(e) { console.error(e); }
+        } catch (e) { console.error(e); }
     } else {
         togglePropFields();
     }
@@ -175,7 +175,7 @@ async function initAccountForm() {
                 } else {
                     showMessage(window.lang['error'] + ' ' + json.message, 'error');
                 }
-            } catch(err) {
+            } catch (err) {
                 showMessage(window.lang['network_error'], 'error');
             }
         };
@@ -300,7 +300,7 @@ function editPayout(id, accId, amount, date, status) {
 }
 
 async function deletePayout(id) {
-    if (!confirm(window.lang['confirm_delete_payout'])) return;
+    if (!await showConfirm(window.lang['confirm_delete_payout'])) return;
     const fd = new FormData(); fd.append('id', id);
     await fetch('api/api.php?action=delete_payout', { method: 'POST', body: fd });
     loadPayouts();
@@ -428,7 +428,7 @@ function renderAccountProgressBarDOM(acc, containerId) {
             <div class="acc-bar-right"><div class="acc-fill-profit" style="width: ${wProfit}%"></div></div>
         </div>
         <div class="acc-split-labels">
-            <span class="text-loss">${maxDD > 0 ? window.lang['max_dd']+': '+maxDD+'%' : ''}</span>
-            <span class="text-profit">${target > 0 ? window.lang['target']+': '+target+'%' : ''}</span>
+            <span class="text-loss">${maxDD > 0 ? window.lang['max_dd'] + ': ' + maxDD + '%' : ''}</span>
+            <span class="text-profit">${target > 0 ? window.lang['target'] + ': ' + target + '%' : ''}</span>
         </div>`;
 }

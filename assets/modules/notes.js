@@ -65,7 +65,7 @@ async function initNoteForm() {
                 toolbar: {
                     container: fullToolbarOptions,
                     handlers: {
-                        'image': function() {
+                        'image': function () {
                             const input = document.createElement('input');
                             input.setAttribute('type', 'file');
                             input.setAttribute('accept', 'image/*');
@@ -80,10 +80,10 @@ async function initNoteForm() {
                                         quillEditor.insertEmbed(range.index, 'image', url);
                                     } catch (e) {
                                         console.error('Upload failed:', e);
-                                        alert(window.lang['failed_load_image']);
+                                        showToast(window.lang['failed_load_image'], 'error');
                                     }
                                 } else {
-                                    alert(window.lang['select_image']);
+                                    showToast(window.lang['select_image'], 'warning');
                                 }
                             };
                         }
@@ -141,7 +141,7 @@ async function loadNoteDetails() {
 }
 
 async function deleteNote(id) {
-    if (!confirm(window.lang['confirm_delete_note'])) return;
+    if (!await showConfirm(window.lang['confirm_delete_note'])) return;
     const fd = new FormData(); fd.append('id', id);
     await fetch('api/api.php?action=delete_note', { method: 'POST', body: fd });
     window.location.href = 'index.php?view=notes';

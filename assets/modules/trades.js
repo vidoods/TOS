@@ -107,15 +107,15 @@ function addTradeImage(data = null) {
              <div class="d-flex justify-content-between align-items-start mb-3">
                 <div style="flex-grow: 1; margin-right: 15px;">
                      <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">${window.lang['timeframe_context']}</label>
-                     <input type="text" name="trade_images[${tradeImgCount-1}][title]" class="input-field" placeholder="${window.lang['example_timeframe']}" value="${escapeHTML(title)}">
+                     <input type="text" name="trade_images[${tradeImgCount - 1}][title]" class="input-field" placeholder="${window.lang['example_timeframe']}" value="${escapeHTML(title)}">
                 </div>
             </div>
             <div class="form-group">
-                 ${getImageInputHtml(imgId, url, `trade_images[${tradeImgCount-1}][url]`)}
+                 ${getImageInputHtml(imgId, url, `trade_images[${tradeImgCount - 1}][url]`)}
             </div>
              <div class="form-group">
                 <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">${window.lang['description_idea']}</label>
-                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="${window.lang['describe_screenshot']}">${escapeHTML(notes)}</textarea>
+                <textarea class="textarea-field" name="trade_images[${tradeImgCount - 1}][notes]" rows="2" placeholder="${window.lang['describe_screenshot']}">${escapeHTML(notes)}</textarea>
             </div>
             <div class="text-end mt-2">
                 <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${imgId}').remove()">
@@ -139,7 +139,7 @@ function getImageInputHtml(id, url, name) {
         <div id="${id}-preview" class="image-preview-box">
             ${url ? `<img src="${url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                      <span class="image-preview-placeholder" style="display:none;">${window.lang['loading_error']}</span>`
-                  : `<span class="image-preview-placeholder">${window.lang['image_preview']}</span>`}
+            : `<span class="image-preview-placeholder">${window.lang['image_preview']}</span>`}
         </div>
     `;
 }
@@ -288,38 +288,38 @@ async function loadTradeDetails() {
             }
 
             ['pair_symbol', 'account_name', 'style_name', 'model_name', 'risk_percent', 'rr_achieved',
-             'pnl', 'status', 'trade_conclusions', 'key_lessons',
-             'notes', 'mistakes_made', 'emotional_state']
-            .forEach(key => {
-                const el = document.getElementById(`trade-${key.replace('formatted_', '')}`);
-                if (el) {
-                    if (key === 'pnl') {
-                        // ИСПРАВЛЕНИЕ: Интегрирован CurrencyManager.format для вывода PnL в деталях сделки
-                        const val = parseFloat(trade[key]);
-                        el.textContent = CurrencyManager.format(val);
-                        el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
-                    } else if (key === 'rr_achieved') {
-                        const val = parseFloat(trade[key]);
-                        el.textContent = val.toFixed(2) + 'R';
-                        el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
-                    } else if (key === 'status') {
-                        const val = trade[key].toLowerCase();
-                        el.textContent = val.toUpperCase();
-                        el.className = 'detail-value info-badge';
-                        if (val === 'win') el.classList.add('badge-profit');
-                        else if (val === 'loss') el.classList.add('badge-loss');
-                        else if (val === 'breakeven') el.classList.add('badge-blue');
-                        else el.classList.add('badge-neutral');
-                    } else if (key === 'risk_percent') {
-                        el.textContent = `${trade[key]}%`;
-                        el.className = 'detail-value info-badge badge-neutral';
-                    } else if (key === 'notes' || key === 'trade_conclusions' || key === 'key_lessons' || key === 'mistakes_made' || key === 'emotional_state') {
-                        el.textContent = trade[key] || '-';
-                    } else {
-                        el.textContent = trade[key] || window.lang['empty'];
+                'pnl', 'status', 'trade_conclusions', 'key_lessons',
+                'notes', 'mistakes_made', 'emotional_state']
+                .forEach(key => {
+                    const el = document.getElementById(`trade-${key.replace('formatted_', '')}`);
+                    if (el) {
+                        if (key === 'pnl') {
+                            // ИСПРАВЛЕНИЕ: Интегрирован CurrencyManager.format для вывода PnL в деталях сделки
+                            const val = parseFloat(trade[key]);
+                            el.textContent = CurrencyManager.format(val);
+                            el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
+                        } else if (key === 'rr_achieved') {
+                            const val = parseFloat(trade[key]);
+                            el.textContent = val.toFixed(2) + 'R';
+                            el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
+                        } else if (key === 'status') {
+                            const val = trade[key].toLowerCase();
+                            el.textContent = val.toUpperCase();
+                            el.className = 'detail-value info-badge';
+                            if (val === 'win') el.classList.add('badge-profit');
+                            else if (val === 'loss') el.classList.add('badge-loss');
+                            else if (val === 'breakeven') el.classList.add('badge-blue');
+                            else el.classList.add('badge-neutral');
+                        } else if (key === 'risk_percent') {
+                            el.textContent = `${trade[key]}%`;
+                            el.className = 'detail-value info-badge badge-neutral';
+                        } else if (key === 'notes' || key === 'trade_conclusions' || key === 'key_lessons' || key === 'mistakes_made' || key === 'emotional_state') {
+                            el.textContent = trade[key] || '-';
+                        } else {
+                            el.textContent = trade[key] || window.lang['empty'];
+                        }
                     }
-                }
-            });
+                });
 
             const entryTfEl = document.getElementById('trade-entry_timeframe');
             if (entryTfEl) entryTfEl.textContent = trade.entry_tf || window.lang['empty'];
@@ -380,7 +380,7 @@ async function loadTradeDetails() {
 }
 
 async function deleteEntity(id, action, redirectView) {
-    if (!confirm(window.lang['confirm_delete_action'])) return;
+    if (!await showConfirm(window.lang['confirm_delete_action'])) return;
     try {
         const formData = new FormData();
         formData.append('action', action);

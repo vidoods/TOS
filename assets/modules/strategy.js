@@ -99,7 +99,7 @@ async function loadStrategyDetails() {
 }
 
 async function deleteStrategy(id) {
-    if (!confirm(window.lang['confirm_delete_module'])) return;
+    if (!await showConfirm(window.lang['confirm_delete_module'])) return;
     const fd = new FormData(); fd.append('id', id);
     await fetch('api/api.php?action=delete_strategy', { method: 'POST', body: fd });
     window.location.href = 'index.php?view=strategy';

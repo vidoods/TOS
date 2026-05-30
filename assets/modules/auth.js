@@ -145,7 +145,7 @@ async function handleRegisterSubmit(event) {
 }
 
 async function logout() {
-    if (confirm(window.lang['confirm_logout'])) {
+    if (await showConfirm(window.lang['confirm_logout'])) {
         try { await fetch(`${API_URL}?action=logout`); } catch (e) { console.error(e); }
         window.location.href = 'index.php?view=login';
     }

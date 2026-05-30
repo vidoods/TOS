@@ -43,7 +43,7 @@ async function initQuickTrade() {
 }
 
 // Quick Trade form submit handler
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const quickForm = document.getElementById('quick-trade-form');
 
     if (quickForm) {
@@ -71,21 +71,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     modal.hide();
 
-                    if (typeof Toastify === 'function') {
-                        Toastify({text: window.lang['trade_added_successfully'], backgroundColor: "#198754"}).showToast();
-                    } else {
-                        alert(window.lang['trade_added_successfully']);
-                    }
+                    showToast(window.lang['trade_added_successfully'], 'success');
 
                     setTimeout(() => location.reload(), 500);
                 } else {
-                    alert(window.lang['error'] + ': ' + (result.message || window.lang['unknown_error']));
+                    showToast(window.lang['error'] + ': ' + (result.message || window.lang['unknown_error']), 'error');
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 }
             } catch (err) {
                 console.error(err);
-                alert(window.lang['network_error']);
+                showToast(window.lang['network_error'], 'error');
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
