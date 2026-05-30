@@ -313,19 +313,22 @@ async function loadTradingHeatmap(year = new Date().getFullYear(), accountId = '
         const startDate = new Date(year, 0, 1);
         const endDate = new Date(year, 11, 31);
 
-        // Делаем правильный сдвиг, чтобы первый день года попал на нужный день недели (Понедельник = 0)
+        // Сдвиг для начала недели (Понедельник = 0)
         let startDayOfWeek = startDate.getDay();
         if (startDayOfWeek === 0) startDayOfWeek = 7;
         startDayOfWeek--; 
 
-        // Вставляем пустые скрытые квадратики для выравнивания
+        // Вставляем пустые блоки для выравнивания
         for (let i = 0; i < startDayOfWeek; i++) {
             const emptyDiv = document.createElement('div');
             emptyDiv.style.visibility = 'hidden';
             container.appendChild(emptyDiv);
         }
 
-        // Рисуем все 365/366 дней
+        // Массив ключей для перевода месяцев
+        const monthKeys = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+
+        // Рисуем дни
         let currentDate = new Date(startDate);
         while (currentDate <= endDate) {
             const yyyy = currentDate.getFullYear();
@@ -333,41 +336,32 @@ async function loadTradingHeatmap(year = new Date().getFullYear(), accountId = '
             const dd = String(currentDate.getDate()).padStart(2, '0');
             const dateStr = `${yyyy}-${mm}-${dd}`;
 
+            // Получаем перевод месяца из window.lang
+            const monthName = window.lang[monthKeys[currentDate.getMonth()]] || '';
+            const humanDate = `${dd} ${monthName}`;
+
             const dayDiv = document.createElement('div');
             dayDiv.className = 'hm-day';
 
-if (serverData[dateStr] !== undefined) {
-    const pnl = serverData[dateStr];
-    
-    // Определяем класс уровня (как было раньше)
-    let levelClass = 'lvl-0';
-    if (pnl > 0) {
-        levelClass = pnl > 500 ? 'lvl-profit-2' : 'lvl-profit-1';
-    } else if (pnl < 0) {
-        levelClass = pnl < -500 ? 'lvl-loss-2' : 'lvl-loss-1';
-    }
-    dayDiv.classList.add(levelClass);
+            if (serverData[dateStr] !== undefined) {
+                const pnl = parseFloat(serverData[dateStr]);
+                
+                // Классификация уровня
+                let levelClass = 'lvl-0';
+                if (pnl > 0) {
+                    levelClass = pnl > 500 ? 'lvl-profit-2' : 'lvl-profit-1';
+                } else if (pnl < 0) {
+                    levelClass = pnl < -500 ? 'lvl-loss-2' : 'lvl-loss-1';
+                }
+                dayDiv.classList.add(levelClass);
 
-    // --- ИСПРАВЛЕНИЕ: Используем window.lang для тултипа ---
-    const humanDate = currentDate.toLocaleDateString(undefined, {day: '2-digit', month: 'long'});
-    const formattedPnL = window.CurrencyManager ? CurrencyManager.format(pnl) : pnl.toFixed(2);
-    
-    // Формируем сообщение через window.lang
-    // Предполагаем, что у вас есть ключи 'pnl' или 'result' в файлах перевода
-    const tooltipText = `${humanDate}: ${window.lang['pnl'] || 'PnL'} ${formattedPnL}`;
-    dayDiv.setAttribute('title', tooltipText);
+                const formattedPnL = window.CurrencyManager ? CurrencyManager.format(pnl) : pnl.toFixed(2);
+                dayDiv.setAttribute('title', `${humanDate}: ${window.lang['pnl'] || 'PnL'} ${formattedPnL}`);
+            } else {
+                dayDiv.classList.add('lvl-0');
+                dayDiv.setAttribute('title', `${humanDate}: ${window.lang['no_trades'] || 'No trades'}`);
+            }
 
-} else {
-    // Дни без сделок
-    dayDiv.classList.add('lvl-0');
-    
-    // И тултип для этих дней
-    const humanDate = currentDate.toLocaleDateString(undefined, {day: '2-digit', month: 'long'});
-    const noTradesText = (window.lang && window.lang['no_trades']) ? window.lang['no_trades'] : 'No trades';
-    dayDiv.setAttribute('title', `${humanDate}: ${noTradesText}`);
-}
-
-            // Клик по дню перенаправит в Журнал на конкретную дату
             dayDiv.addEventListener('click', () => {
                 window.location.href = `index.php?view=journal&date=${dateStr}`;
             });
@@ -377,6 +371,6 @@ if (serverData[dateStr] !== undefined) {
         }
     } catch (e) {
         console.error('Ошибка тепловой карты:', e);
-        container.innerHTML = '<div class="text-danger small">Ошибка отрисовки карты</div>';
+        container.innerHTML = `<div class="text-danger small">${window.lang['error'] || 'Error'}</div>`;
     }
 }
