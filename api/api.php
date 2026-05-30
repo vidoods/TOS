@@ -72,6 +72,10 @@ try {
             break;
 
         case 'upload_avatar': uploadAvatar(); break;
+        case 'get_heatmap_data':
+            require_once 'handlers/dashboard.php';
+            getHeatmapData($pdo);
+        break;
         case 'change_language':
         $userId = $_SESSION['user_id'];
         $newLang = $_POST['lang'] ?? 'en';

@@ -1281,3 +1281,17 @@ a.info-badge:hover {
         width: 100% !important;
     }
 }
+
+@media (max-width: 480px) {
+    .heatmap-container {
+        grid-template-rows: repeat(7, 16px); /* Увеличиваем размер дня */
+        grid-auto-columns: 16px;
+        gap: 6px;
+    }
+    
+}
+@media (max-width: 1417px) {
+    .heatmap-scroll-wrapper {
+        justify-content: flex-start; /* На мобильных прижимаем к левому краю для удобства скролла */
+    }
+}

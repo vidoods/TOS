@@ -122,4 +122,52 @@ function getDashboardMetrics($pdo) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+
+/**
+ * Получить данные для тепловой карты (Heatmap)
+ */
+function getHeatmapData($pdo) {
+    $userId = $_SESSION['user_id'] ?? null;
+    if (!$userId) {
+        echo json_encode(['success' => false, 'message' => 'Ошибка авторизации']);
+        return;
+    }
+
+    $year = !empty($_GET['year']) ? intval($_GET['year']) : intval(date('Y'));
+    $accountId = $_GET['account_id'] ?? '';
+
+    try {
+        // Считаем PnL за каждый день, исключая открытые/отложенные сделки
+        $sql = "SELECT DATE(entry_date) as date_str, SUM(pnl) as daily_pnl 
+                FROM trades 
+                WHERE user_id = ? AND YEAR(entry_date) = ? AND status NOT IN ('Open', 'Pending')";
+        
+        $params = [$userId, $year];
+
+        if (!empty($accountId)) {
+            $sql .= " AND account_id = ?";
+            $params[] = $accountId;
+        }
+
+        $sql .= " GROUP BY DATE(entry_date) ORDER BY DATE(entry_date) ASC";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Форматируем для JS в виде "ГГГГ-ММ-ДД" => PnL
+        $heatmapData = [];
+        foreach ($rows as $row) {
+            $heatmapData[$row['date_str']] = floatval($row['daily_pnl']);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'year' => $year,
+            'data' => $heatmapData
+        ]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 ?>

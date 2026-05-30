@@ -94,3 +94,22 @@
         </div>
     </div>
 </div>
+
+<div class="glass-panel p-4 mt-4 text-white">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="m-0"><i class="far fa-calendar-check me-2" style="color: var(--accent-blue);"></i><?= $lang['trading_activity'] ?></h5>
+        <div class="heatmap-legend d-flex align-items-center gap-1 small text-muted">
+            <span class="me-2"><?= $lang['loss'] ?></span>
+            <div class="hm-box lvl-loss-2"></div>
+            <div class="hm-box lvl-loss-1"></div>
+            <div class="hm-box lvl-0 ms-2 me-2"></div>
+            <div class="hm-box lvl-profit-1"></div>
+            <div class="hm-box lvl-profit-2"></div>
+            <span class="ms-2"><?= $lang['profit'] ?></span>
+        </div>
+    </div>
+    
+    <div class="heatmap-scroll-wrapper" style="overflow-x: auto; width: 100%; padding-bottom: 10px;">
+        <div id="github-heatmap-container" class="heatmap-container"></div>
+    </div>
+</div>

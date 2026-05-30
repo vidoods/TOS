@@ -420,4 +420,7 @@ return [
     'settings' => 'Налаштування',
     'change' => 'Змінити',
     'toggle_theme' => 'Перемкнути тему',
+    'trading_activity' => 'Торгова активність',
+    'loss' => 'Збитки',
+    'profit' => 'Прибуток'
 ];

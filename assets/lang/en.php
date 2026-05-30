@@ -420,4 +420,7 @@ return [
     'settings' => 'Settings',
     'change' => 'Change',
     'toggle_theme' => 'Toggle Theme',
+    'trading_activity' => 'Trading Activity',
+    'loss' => 'Loss',
+    'profit' => 'Profit'
 ];
