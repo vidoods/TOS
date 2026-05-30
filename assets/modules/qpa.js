@@ -99,8 +99,10 @@ function renderQPAHeader(stats) {
 
     const pnlElem = document.getElementById('qpa-pnl');
     if (pnlElem) {
-        pnlElem.textContent = `$${parseFloat(stats.pnl).toFixed(2)}`;
-        pnlElem.className = `fs-4 fw-bold ${parseFloat(stats.pnl) >= 0 ? 'text-success' : 'text-danger'}`;
+        const pnlValue = parseFloat(stats.pnl);
+        // ИСПРАВЛЕНИЕ: Интегрировали CurrencyManager для вывода квартальной прибыли в хедере
+        pnlElem.textContent = CurrencyManager.format(pnlValue);
+        pnlElem.className = `fs-4 fw-bold ${pnlValue >= 0 ? 'text-success' : 'text-danger'}`;
     }
 
     const wrElem = document.getElementById('qpa-winrate');
@@ -124,11 +126,13 @@ function renderQPAMonths(months) {
     }
 
     months.forEach(m => {
-        const isPositive = parseFloat(m.pnl) >= 0;
+        const pnlValue = parseFloat(m.pnl);
+        const isPositive = pnlValue >= 0;
         const colorClass = isPositive ? 'text-success' : 'text-danger';
         const iconClass = isPositive ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
         const iconColor = isPositive ? 'text-success' : 'text-danger';
 
+        // ИСПРАВЛЕНИЕ: Форматируем PnL месяцев внутри квартала через валютный менеджер
         const html = `
         <div class="metric-card glass-panel h-100">
             <div class="metric-icon">
@@ -136,10 +140,10 @@ function renderQPAMonths(months) {
             </div>
             <div class="metric-content w-100">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="metric-label text-white opacity-75">${m.name}</div>
+                    <div class="metric-label text-white opacity-75">${escapeHTML(m.name)}</div>
                     <span class="badge bg-secondary opacity-25 small">M${m.num}</span>
                 </div>
-                <div class="metric-value ${colorClass} mb-1">$${parseFloat(m.pnl).toFixed(2)}</div>
+                <div class="metric-value ${colorClass} mb-1">${CurrencyManager.format(pnlValue)}</div>
                 <div class="d-flex gap-3 text-muted small" style="font-size: 0.8rem;">
                     <div><i class="fas fa-chart-pie me-1"></i>${m.winrate}%</div>
                     <div><i class="fas fa-list me-1"></i>${m.count}</div>
@@ -227,7 +231,8 @@ async function fetchQPAData(year) {
         if (json.success) {
             renderQpaListGrid(json.data, container);
         } else {
-            container.innerHTML = `<div class="col-12 text-center text-danger">${window.lang['error']}: ${json.message}</div>`;
+            // ИСПРАВЛЕНИЕ: Безопасное экранирование вывода ошибок с сервера
+            container.innerHTML = `<div class="col-12 text-center text-danger">${window.lang['error']}: ${escapeHTML(json.message)}</div>`;
         }
     } catch (e) {
         console.error(e);
@@ -246,12 +251,12 @@ function renderQpaListGrid(quarters, container) {
     quarters.forEach(q => {
         const pnlVal = parseFloat(q.pnl);
         const pnlClass = pnlVal >= 0 ? 'text-success' : 'text-danger';
-        const pnlSign = pnlVal > 0 ? '+' : '';
 
         const cardBg = pnlVal >= 0
             ? 'background: linear-gradient(160deg, rgba(25, 135, 84, 0.08) 0%, rgba(0,0,0,0) 100%);'
             : 'background: linear-gradient(160deg, rgba(220, 53, 69, 0.08) 0%, rgba(0,0,0,0) 100%);';
 
+        // ИСПРАВЛЕНИЕ: Использовали CurrencyManager.format для отображения чистого результата квартала в общем списке
         const html = `
         <div class="glass-panel qpa-card p-4 h-100 d-flex flex-column justify-content-between"
              style="${cardBg}"
@@ -267,7 +272,7 @@ function renderQpaListGrid(quarters, container) {
             <div class="mb-4">
                 <div class="small text-muted text-uppercase fw-bold mb-1" style="font-size: 0.75rem;">${window.lang['net_result']}</div>
                 <div class="display-6 fw-bold ${pnlClass}">
-                    ${pnlSign}${pnlVal.toFixed(2)}<small class="fs-6 opacity-50 ms-1">$</small>
+                    ${CurrencyManager.format(pnlVal)}
                 </div>
             </div>
 

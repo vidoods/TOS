@@ -32,33 +32,37 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderPairs(data.pairs);
                 }
             });
-    // 2. НОВОЕ: Загружаем список доступных ТИПОВ из базы данных для селекта
-    fetch('api/api.php?action=get_pair_types')
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                const select = document.getElementById('new-pair-type');
-                // Очищаем старые опции, кроме первой (если нужно) или просто пересоздаем
-                select.innerHTML = ''; 
-                data.types.forEach(type => {
-                    const opt = document.createElement('option');
-                    opt.value = type;
-                    opt.textContent = type;
-                    select.appendChild(opt);
-                });
-            }
-        })
-        .catch(err => console.error("Error loading pair types:", err));
+
+        // Загружаем список доступных ТИПОВ из базы данных для селекта
+        fetch('api/api.php?action=get_pair_types')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const select = document.getElementById('new-pair-type');
+                    if (select) {
+                        select.innerHTML = ''; 
+                        data.types.forEach(type => {
+                            const opt = document.createElement('option');
+                            opt.value = type;
+                            opt.textContent = type;
+                            select.appendChild(opt);
+                        });
+                    }
+                }
+            })
+            .catch(err => console.error("Error loading pair types:", err));
     }
 
     function renderList(elementId, items, type) {
         const container = document.getElementById(elementId);
+        if (!container) return;
         container.innerHTML = '';
         items.forEach(item => {
             const li = document.createElement('li');
             li.className = 'settings-item';
+            // ИСПРАВЛЕНИЕ УЯЗВИМОСТИ XSS: Безопасное экранирование названия настройки через escapeHTML
             li.innerHTML = `
-                <span>${item.name}</span>
+                <span>${escapeHTML(item.name)}</span>
                 <i class="fas fa-trash btn-del" onclick="deleteSetting('${type}', ${item.id})"></i>
             `;
             container.appendChild(li);
@@ -67,21 +71,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderPairs(pairs) {
         const container = document.getElementById('list-pairs');
+        if (!container) return;
         container.innerHTML = '';
         pairs.forEach(p => {
             const li = document.createElement('li');
             li.className = 'settings-item';
+            // ИСПРАВЛЕНИЕ УЯЗВИМОСТИ XSS: Безопасное экранирование тикера и типа пары
             li.innerHTML = `
-                <span>${p.symbol} <small class='text-muted'>(${p.type})</small></span>
-                <i class="fas fa-trash btn-del" onclick="deleteSetting('pair', ${p.id}, '${p.symbol}')"></i>
+                <span>${escapeHTML(p.symbol)} <small class='text-muted'>(${escapeHTML(p.type)})</small></span>
+                <i class="fas fa-trash btn-del" onclick="deleteSetting('pair', ${p.id}, '${escapeHTML(p.symbol)}')"></i>
             `;
             container.appendChild(li);
         });
     }
 
-    // Add Timeframe or Style
+    // Add Timeframe, Style, or Model
     window.addSetting = function(type, inputId) {
         const input = document.getElementById(inputId);
+        if (!input) return;
         const val = input.value.trim();
         if (!val) return;
 
@@ -102,8 +109,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Add Pair
     window.addPair = function() {
-        const symbol = document.getElementById('new-pair-symbol').value.trim();
-        const type = document.getElementById('new-pair-type').value;
+        const symbolEl = document.getElementById('new-pair-symbol');
+        const typeEl = document.getElementById('new-pair-type');
+        if (!symbolEl || !typeEl) return;
+
+        const symbol = symbolEl.value.trim();
+        const type = typeEl.value;
         if (!symbol) return;
 
         const formData = new FormData();
@@ -116,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(r => r.json())
             .then(res => {
                 if (res.success) {
-                    document.getElementById('new-pair-symbol').value = '';
+                    symbolEl.value = '';
                     loadUserSettings();
                 }
             });
@@ -136,79 +147,83 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (res.success) loadUserSettings();
             });
     };
-});
 
+    // --- LANGUAGE AND REGULAR PROFILE LOGIC ---
+    
+    const langOptions = document.querySelectorAll('.lang-option');
+    const hiddenSelect = document.getElementById('profile-language-select');
 
-    document.addEventListener('DOMContentLoaded', function () {
-        // Wire up language card to hidden select + existing handler
-        const langOptions = document.querySelectorAll('.lang-option');
-        const hiddenSelect = document.getElementById('profile-language-select');
-
-        langOptions.forEach(opt => {
-            opt.addEventListener('click', function () {
-                const val = this.querySelector('input[type="radio"]').value;
-                hiddenSelect.value = val;
-                hiddenSelect.dispatchEvent(new Event('change'));
-            });
-        });
-
-        // Sync visual state of language UI
-        function syncLangUI(lang) {
-            document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
-            const target = document.getElementById('lang-opt-' + lang);
-            if (target) target.classList.add('active');
-        }
-
-        // Override syncLanguageSelect to also update the visual lang buttons
-        const _origSync = window.syncLanguageSelect;
-        window.syncLanguageSelect = function (lang) {
-            if (_origSync) _origSync(lang);
-            syncLangUI(lang);
-        };
-
-        // Load user info directly and populate all profile elements
-        fetch('api/api.php?action=get_user_info')
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    // Header
-                    const nameEl = document.getElementById('profile-page-name');
-                    if (nameEl) nameEl.textContent = data.username || '—';
-
-                    const emailEl = document.getElementById('profile-page-email');
-                    if (emailEl) emailEl.textContent = data.email || '—';
-
-                    const roleEl = document.getElementById('profile-page-role');
-                    if (roleEl && data.role) roleEl.textContent = data.role;
-
-                    const dateEl = document.getElementById('profile-page-date');
-                    if (dateEl) dateEl.textContent = data.created_at || '—';
-
-                    // Info card rows
-                    const infoName = document.getElementById('profile-info-name');
-                    if (infoName) infoName.textContent = data.username || '—';
-
-                    const infoEmail = document.getElementById('profile-info-email');
-                    if (infoEmail) infoEmail.textContent = data.email || '—';
-
-                    const infoDate = document.getElementById('profile-info-date');
-                    if (infoDate) infoDate.textContent = data.created_at || '—';
-
-                    // Sync lang UI
-                    if (data.language) syncLangUI(data.language);
+    langOptions.forEach(opt => {
+        opt.addEventListener('click', function () {
+            const inputRadio = this.querySelector('input[type="radio"]');
+            if (inputRadio) {
+                const val = inputRadio.value;
+                if (hiddenSelect) {
+                    hiddenSelect.value = val;
+                    hiddenSelect.dispatchEvent(new Event('change'));
                 }
-            })
-            .catch(() => { });
+            }
+        });
+    });
 
-        // Logout button
-        document.getElementById('profile-logout-btn')?.addEventListener('click', logout);
+    // Sync visual state of language UI
+    function syncLangUI(lang) {
+        document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+        const target = document.getElementById('lang-opt-' + lang);
+        if (target) target.classList.add('active');
+    }
 
-        // Populate accounts dropdown
-        fetch('api/api.php?action=get_accounts_data')
-            .then(r => r.json())
-            .then(data => {
-                if (data.success && data.data.length > 0) {
-                    const sel = document.getElementById('profile-account-select');
+    // Override syncLanguageSelect to also update the visual lang buttons
+    const _origSync = window.syncLanguageSelect;
+    window.syncLanguageSelect = function (lang) {
+        if (_origSync) _origSync(lang);
+        syncLangUI(lang);
+    };
+
+    // Load user info directly and populate all profile elements
+    fetch('api/api.php?action=get_user_info')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Header
+                const nameEl = document.getElementById('profile-page-name');
+                if (nameEl) nameEl.textContent = data.username || '—';
+
+                const emailEl = document.getElementById('profile-page-email');
+                if (emailEl) emailEl.textContent = data.email || '—';
+
+                const roleEl = document.getElementById('profile-page-role');
+                if (roleEl && data.role) roleEl.textContent = data.role;
+
+                const dateEl = document.getElementById('profile-page-date');
+                if (dateEl) dateEl.textContent = data.created_at || '—';
+
+                // Info card rows
+                const infoName = document.getElementById('profile-info-name');
+                if (infoName) infoName.textContent = data.username || '—';
+
+                const infoEmail = document.getElementById('profile-info-email');
+                if (infoEmail) infoEmail.textContent = data.email || '—';
+
+                const infoDate = document.getElementById('profile-info-date');
+                if (infoDate) infoDate.textContent = data.created_at || '—';
+
+                // Sync lang UI
+                if (data.language) syncLangUI(data.language);
+            }
+        })
+        .catch(() => { });
+
+    // Logout button
+    document.getElementById('profile-logout-btn')?.addEventListener('click', logout);
+
+    // Populate accounts dropdown
+    fetch('api/api.php?action=get_accounts_data')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                const sel = document.getElementById('profile-account-select');
+                if (sel) {
                     data.data.forEach(acc => {
                         const opt = document.createElement('option');
                         opt.value = acc.id;
@@ -216,81 +231,83 @@ document.addEventListener('DOMContentLoaded', function () {
                         sel.appendChild(opt);
                     });
                 }
-            })
-            .catch(() => { });
-
-        // Load stats — optionally filtered by account
-        function loadProfileStats(accountId) {
-            const url = accountId
-                ? `api/api.php?action=get_dashboard_metrics&account_id=${accountId}`
-                : 'api/api.php?action=get_dashboard_metrics';
-
-            ['profile-stat-trades', 'profile-stat-winrate', 'profile-stat-pnl'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) { el.textContent = '…'; el.style.color = ''; }
-            });
-
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        const m = data.data || {};
-
-                        const total = m.total_trades ?? null;
-                        document.getElementById('profile-stat-trades').textContent = total != null ? total : '—';
-
-                        const wr = m.win_rate != null ? parseFloat(m.win_rate).toFixed(1) + '%' : null;
-                        document.getElementById('profile-stat-winrate').textContent = wr ?? '—';
-
-                        const pnlRaw = m.total_pnl ?? null;
-                        const pnlEl = document.getElementById('profile-stat-pnl');
-                        if (pnlRaw != null) {
-                            const pnlVal = parseFloat(pnlRaw);
-                            pnlEl.textContent = (pnlVal >= 0 ? '+' : '') + pnlVal.toFixed(2) + '$';
-                            pnlEl.style.color = pnlVal >= 0 ? 'var(--accent-green, #22c55e)' : 'var(--accent-red, #ef4444)';
-                        } else {
-                            pnlEl.textContent = '—';
-                            pnlEl.style.color = '';
-                        }
-                    }
-                })
-                .catch(() => { });
-        }
-
-        // Wire account selector to reload stats
-        const accSelect = document.getElementById('profile-account-select');
-        accSelect?.addEventListener('change', () => loadProfileStats(accSelect.value || null));
-
-        // Theme toggle setup
-        const themeBtn = document.getElementById('profile-theme-toggle');
-        const themeIcon = document.getElementById('profile-theme-icon');
-
-        function updateThemeUI(theme) {
-            if (!themeIcon) return;
-            if (theme === 'light') {
-                themeIcon.className = 'fas fa-sun';
-                themeIcon.style.color = '#f59e0b';
-            } else {
-                themeIcon.className = 'fas fa-moon';
-                themeIcon.style.color = '';
             }
-        }
+        })
+        .catch(() => { });
 
-        // Initialize UI icon based on active theme
-        const currentTheme = localStorage.getItem('theme') || 'dark';
-        updateThemeUI(currentTheme);
+    // Load stats — optionally filtered by account
+    function loadProfileStats(accountId) {
+        const url = accountId
+            ? `api/api.php?action=get_dashboard_metrics&account_id=${accountId}`
+            : 'api/api.php?action=get_dashboard_metrics';
 
-        themeBtn?.addEventListener('click', function () {
-            const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-            const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeUI(newTheme);
-            
-            window.dispatchEvent(new Event('themeChanged'));
+        ['profile-stat-trades', 'profile-stat-winrate', 'profile-stat-pnl'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = '…'; el.style.color = ''; }
         });
 
-        // Initial load
-        loadProfileStats(null);
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const m = data.data || {};
+
+                    const total = m.total_trades ?? null;
+                    document.getElementById('profile-stat-trades').textContent = total != null ? total : '—';
+
+                    const wr = m.win_rate != null ? parseFloat(m.win_rate).toFixed(1) + '%' : null;
+                    document.getElementById('profile-stat-winrate').textContent = wr ?? '—';
+
+                    const pnlRaw = m.total_pnl ?? null;
+                    const pnlEl = document.getElementById('profile-stat-pnl');
+                    if (pnlRaw != null) {
+                        const pnlVal = parseFloat(pnlRaw);
+                        // ИСПРАВЛЕНИЕ: Интегрировали CurrencyManager.format() для вывода чистого профита в профиле
+                        pnlEl.textContent = CurrencyManager.format(pnlVal);
+                        pnlEl.style.color = pnlVal >= 0 ? 'var(--accent-green, #22c55e)' : 'var(--accent-red, #ef4444)';
+                    } else {
+                        pnlEl.textContent = '—';
+                        pnlEl.style.color = '';
+                    }
+                }
+            })
+            .catch(() => { });
+    }
+
+    // Wire account selector to reload stats
+    const accSelect = document.getElementById('profile-account-select');
+    accSelect?.addEventListener('change', () => loadProfileStats(accSelect.value || null));
+
+    // Theme toggle setup
+    const themeBtn = document.getElementById('profile-theme-toggle');
+    const themeIcon = document.getElementById('profile-theme-icon');
+
+    function updateThemeUI(theme) {
+        if (!themeIcon) return;
+        if (theme === 'light') {
+            themeIcon.className = 'fas fa-sun';
+            themeIcon.style.color = '#f59e0b';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+            themeIcon.style.color = '';
+        }
+    }
+
+    // Initialize UI icon based on active theme
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    updateThemeUI(currentTheme);
+
+    themeBtn?.addEventListener('click', function () {
+        const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeUI(newTheme);
+        
+        window.dispatchEvent(new Event('themeChanged'));
     });
+
+    // Initial load
+    loadProfileStats(null);
+});

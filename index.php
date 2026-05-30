@@ -235,6 +235,7 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/modules/core.js"></script>
     <script src="assets/modules/ui.js"></script>
     <script src="assets/modules/auth.js"></script>
+    <script src="assets/modules/currency.js"></script>
     <script src="assets/modules/profile.js"></script>
     <script type="text/javascript" src="assets/modules/language.js"></script>
     <script src="assets/modules/shared_ui.js"></script>

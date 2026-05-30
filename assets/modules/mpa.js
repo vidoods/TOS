@@ -43,7 +43,8 @@ async function loadMPAData(year) {
             result = JSON.parse(text);
         } catch (e) {
             console.error("Server response:", text);
-            container.innerHTML = `<div class="alert alert-danger"><strong>${window.lang['server_error']}:</strong><br>${text.substring(0, 300)}</div>`;
+            // ИСПРАВЛЕНИЕ УЯЗВИМОСТИ XSS: Экранируем сырой ответ сервера перед выводом в DOM
+            container.innerHTML = `<div class="alert alert-danger"><strong>${window.lang['server_error']}:</strong><br>${escapeHTML(text.substring(0, 300))}</div>`;
             return;
         }
 
@@ -51,11 +52,11 @@ async function loadMPAData(year) {
             currentMpaData = result.data;
             renderMPAGrid(result.data, container, year);
         } else {
-            container.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+            container.innerHTML = `<div class="alert alert-danger">${escapeHTML(result.message)}</div>`;
         }
     } catch (e) {
         console.error(e);
-        container.innerHTML = `<div class="text-danger">${window.lang['network_error']}: ${e.message}</div>`;
+        container.innerHTML = `<div class="text-danger">${window.lang['network_error']}: ${escapeHTML(e.message)}</div>`;
     }
 }
 
@@ -74,18 +75,18 @@ function renderMPAGrid(quartersData, container, year) {
 
         const qPnl = parseFloat(qData.pnl || 0);
         const qPercent = parseFloat(qData.percent || 0);
-        const pnlSign = qPnl > 0 ? '+' : '';
         const pnlClass = qPnl >= 0 ? 'text-profit' : 'text-loss';
 
         const section = document.createElement('div');
         section.className = 'quarter-section';
 
+        // ИСПРАВЛЕНИЕ: Применили CurrencyManager для вывода абсолютной прибыли за квартал
         section.innerHTML = `
             <div class="quarter-header" onclick="this.parentElement.classList.toggle('collapsed')">
                 <i class="fas fa-chevron-down quarter-toggle-icon"></i>
                 <h4 class="m-0 me-3">Q${q}</h4>
                 <span class="${pnlClass}" style="font-weight: 500;">
-                    ${qPercent.toFixed(1)}% <span class="text-muted ms-2" style="font-size: 0.9em">(${pnlSign}${qPnl.toFixed(0)}$)</span>
+                    ${qPercent.toFixed(1)}% <span class="text-muted ms-2" style="font-size: 0.9em">(${CurrencyManager.format(qPnl)})</span>
                 </span>
             </div>
             <div class="quarter-grid"></div>
@@ -100,10 +101,11 @@ function renderMPAGrid(quartersData, container, year) {
             const avgRR = closedTrades > 0 ? (m.rr_total / closedTrades).toFixed(2) : '0.00';
             const winRate = m.winrate || 0;
             const profitColorClass = m.pnl_total >= 0 ? 'text-profit' : 'text-loss';
-            const profitSign = m.pnl_total > 0 ? '+' : '';
+            
             let progressColor = m.pnl_total < 0 ? '#f44336' : '#4caf50';
             if (!hasTrades) progressColor = 'rgba(255,255,255,0.1)';
 
+            // ИСПРАВЛЕНИЕ: Форматируем PnL месяца через мультивалютный менеджер
             const cardHTML = `
                 <div class="mpa-card" onclick="window.location.href='index.php?view=mpa_details&year=${year}&month=${m.month_num}'">
                     <div class="mpa-card-title">
@@ -119,7 +121,7 @@ function renderMPAGrid(quartersData, container, year) {
                     <div class="mpa-stat-row mt-2">
                         <span>
                             ${window.lang['profit_label']}: <span class="${profitColorClass}" style="font-weight: 600;">${m.pnl_percent.toFixed(1)}%</span>
-                            <span class="${profitColorClass}" style="font-size: 0.9em; opacity: 0.8;"> / ${profitSign}${m.pnl_total.toFixed(0)}$</span>
+                            <span class="${profitColorClass}" style="font-size: 0.9em; opacity: 0.8;"> / ${CurrencyManager.format(parseFloat(m.pnl_total))}</span>
                         </span>
                         <span class="text-muted" style="font-size: 0.85em;">${window.lang['avg_label']}: <span class="text-white">${avgRR} RR</span></span>
                     </div>
@@ -176,7 +178,8 @@ async function loadMPAMonthDetails() {
 
             const pnlEl = document.getElementById('month-pnl');
             if (pnlEl) {
-                pnlEl.textContent = `${s.pnl > 0 ? '+' : ''}${s.pnl.toFixed(2)} $`;
+                // ИСПРАВЛЕНИЕ: Выводим суммарный профит месяца в деталях через CurrencyManager
+                pnlEl.textContent = CurrencyManager.format(parseFloat(s.pnl));
                 pnlEl.className = `metric-value-pro ${s.pnl >= 0 ? 'text-success' : 'text-danger'}`;
             }
             if (document.getElementById('month-pnl-percent')) {
@@ -211,18 +214,19 @@ async function loadMPAMonthDetails() {
 
                         const col = document.createElement('div');
                         col.className = 'col-md-4 mb-3';
+                        // БЕЗОПАСНОСТЬ: Добавили экранирование escapeHTML для защиты от XSS в названии планов и пар
                         col.innerHTML = `
                             <a href="index.php?view=plan_details&id=${plan.id}" class="plan-card glass-panel d-block text-decoration-none" style="position: relative; padding: 20px; min-height: 140px;">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                      <div class="plan-date-box text-white">
                                         <span style="font-size: 1.2rem; font-weight: bold;">${day}</span>
-                                        <span class="plan-date-type text-muted ms-1" style="font-size: 0.8rem; text-transform: uppercase;">${typeChar}</span>
+                                        <span class="plan-date-type text-muted ms-1" style="font-size: 0.8rem; text-transform: uppercase;">${escapeHTML(typeChar)}</span>
                                      </div>
-                                     <div class="plan-bias-tag ${biasClass}">${plan.bias}</div>
+                                     <div class="plan-bias-tag ${biasClass}">${escapeHTML(plan.bias)}</div>
                                 </div>
                                 <div class="plan-info mt-3">
-                                    <div class="fw-bold text-white fs-5">${pair}</div>
-                                    <div class="text-white-50 small text-truncate">${plan.title}</div>
+                                    <div class="fw-bold text-white fs-5">${escapeHTML(pair)}</div>
+                                    <div class="text-white-50 small text-truncate">${escapeHTML(plan.title)}</div>
                                 </div>
                             </a>
                         `;
@@ -258,22 +262,23 @@ async function loadMPAMonthDetails() {
 
                         const col = document.createElement('div');
                         col.className = 'col-md-4 mb-3';
+                        // ИСПРАВЛЕНИЕ: Форматируем PnL каждой сделки внутри детального MPA-просмотра через CurrencyManager.format
                         col.innerHTML = `
                             <a href="index.php?view=trade_details&id=${t.id}" class="glass-panel d-block text-decoration-none" style="padding: 20px; border-radius: 12px; transition: transform 0.2s; position: relative;">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="text-muted small">${dateStr}</span>
-                                        <span class="badge-soft ${badgeClass}">${st}</span>
+                                        <span class="badge-soft ${badgeClass}">${escapeHTML(st)}</span>
                                     </div>
-                                    <div class="fw-bold ${dirColor}" style="text-transform: uppercase; font-size: 0.85rem;">${t.direction}</div>
+                                    <div class="fw-bold ${dirColor}" style="text-transform: uppercase; font-size: 0.85rem;">${escapeHTML(t.direction)}</div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
                                     <div>
-                                        <div class="fw-bold text-white fs-4 mb-0">${pair}</div>
+                                        <div class="fw-bold text-white fs-4 mb-0">${escapeHTML(pair)}</div>
                                         <div class="text-muted small mt-1">${window.lang['result_label']}: <span class="text-white">${rrVal} R</span></div>
                                     </div>
                                     <div class="text-end">
-                                        <div class="fs-4 fw-bold ${pnlColor} font-mono">${pnlVal > 0 ? '+' : ''}${pnlVal.toFixed(2)} $</div>
+                                        <div class="fs-4 fw-bold ${pnlColor} font-mono">${CurrencyManager.format(pnlVal)}</div>
                                     </div>
                                 </div>
                             </a>

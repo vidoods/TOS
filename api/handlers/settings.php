@@ -38,7 +38,9 @@ function getUserSettings($conn) {
             'timeframes' => $timeframes,
             'styles' => $styles,
             'pairs' => $pairs,
-            'models' => $models
+            'models' => $models,
+            // ИСПРАВЛЕНИЕ: Возвращаем текущую валюту из сессии (по умолчанию USD)
+            'current_currency' => $_SESSION['currency'] ?? 'USD'
         ]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -50,7 +52,7 @@ function getUserSettings($conn) {
  */
 function addUserSettings($conn) {
     $userId = $_SESSION['user_id'] ?? null;
-    $type = $_POST['type'] ?? ''; // 'timeframe', 'style', 'pair' или 'model'
+    $type = $_POST['type'] ?? ''; // 'timeframe', 'style', 'pair', 'model' или 'currency'
 
     try {
         if (!$userId) throw new Exception("Ошибка авторизации");
@@ -84,6 +86,23 @@ function addUserSettings($conn) {
             $stmt = $conn->prepare("INSERT INTO user_models (user_id, name) VALUES (?, ?)");
             $stmt->execute([$userId, $name]);
         } 
+        // ИСПРАВЛЕНИЕ: Безопасное сохранение выбранной валюты в сессию
+        elseif ($type === 'currency') {
+            $currency = trim($_POST['currency'] ?? 'USD');
+            $allowedCurrencies = ['USD', 'EUR', 'RUB', 'UAH'];
+
+            if (!in_array($currency, $allowedCurrencies)) {
+                throw new Exception("Указанная валюта не поддерживается");
+            }
+
+            // Записываем в текущую сессию
+            $_SESSION['currency'] = $currency;
+
+            // Если решите хранить валюту в базе данных у каждого пользователя, 
+            // раскомментируйте код ниже (предварительно добавив колонку currency в таблицу users):
+            $stmt = $conn->prepare("UPDATE users SET currency = ? WHERE id = ?");
+            $stmt->execute([$currency, $userId]);
+        }
         else {
             throw new Exception("Неизвестный тип настройки");
         }
@@ -98,7 +117,6 @@ function addUserSettings($conn) {
  * Удаление настройки
  */
 function deleteUserSettings($conn) {
-    // ИСПРАВЛЕНИЕ: Убрали опечатку $_SESSION['user_php_id']
     $userId = $_SESSION['user_id'] ?? null;
     $type = $_POST['type'] ?? '';
     $id = $_POST['id'] ?? null;

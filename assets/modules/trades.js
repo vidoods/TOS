@@ -107,7 +107,7 @@ function addTradeImage(data = null) {
              <div class="d-flex justify-content-between align-items-start mb-3">
                 <div style="flex-grow: 1; margin-right: 15px;">
                      <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">${window.lang['timeframe_context']}</label>
-                     <input type="text" name="trade_images[${tradeImgCount-1}][title]" class="input-field" placeholder="${window.lang['example_timeframe']}" value="${title}">
+                     <input type="text" name="trade_images[${tradeImgCount-1}][title]" class="input-field" placeholder="${window.lang['example_timeframe']}" value="${escapeHTML(title)}">
                 </div>
             </div>
             <div class="form-group">
@@ -115,7 +115,7 @@ function addTradeImage(data = null) {
             </div>
              <div class="form-group">
                 <label class="form-label" style="font-size: 0.8em; margin-bottom: 4px;">${window.lang['description_idea']}</label>
-                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="${window.lang['describe_screenshot']}">${notes}</textarea>
+                <textarea class="textarea-field" name="trade_images[${tradeImgCount-1}][notes]" rows="2" placeholder="${window.lang['describe_screenshot']}">${escapeHTML(notes)}</textarea>
             </div>
             <div class="text-end mt-2">
                 <button type="button" class="btn btn-danger btn-sm" onclick="document.getElementById('${imgId}').remove()">
@@ -190,10 +190,10 @@ async function loadTrades(filters = {}) {
             let html = '';
             groupedTrades.forEach(group => {
                 const pnlClass = group.total_pnl >= 0 ? 'text-profit' : 'text-loss';
-                const pnlSign = group.total_pnl >= 0 ? '+' : '';
                 const pctVal = group.total_percent || 0;
                 const pctSign = pctVal >= 0 ? '+' : '';
 
+                // ИСПРАВЛЕНИЕ: Интегрирован CurrencyManager.format для вывода суммарных PnL по месяцам
                 html += `
                     <div class="month-group">
                         <div class="month-header" onclick="this.parentElement.classList.toggle('collapsed')">
@@ -204,7 +204,7 @@ async function loadTrades(filters = {}) {
                             </div>
                             <div class="month-summary">
                                 <div class="sum-item ${pnlClass}">
-                                    PnL: ${pnlSign}${group.total_pnl.toFixed(2)}
+                                    PnL: ${CurrencyManager.format(group.total_pnl)}
                                 </div>
                                 <div class="sum-item ${pnlClass}">
                                     ${pctSign}${pctVal.toFixed(2)}%
@@ -251,7 +251,7 @@ async function loadTradeDetails() {
         if (result.success) {
             const trade = result.data;
 
-            document.getElementById('trade-details-title').innerHTML = `${trade.pair_symbol} <span class="dir-tag dir-${trade.direction}" style="font-size: 0.6em; vertical-align: middle;">${trade.direction.toUpperCase()}</span>`;
+            document.getElementById('trade-details-title').innerHTML = `${escapeHTML(trade.pair_symbol)} <span class="dir-tag dir-${trade.direction}" style="font-size: 0.6em; vertical-align: middle;">${trade.direction.toUpperCase()}</span>`;
             const editBtn = document.querySelector('.trade-actions .btn-secondary');
             const deleteBtn = document.querySelector('.trade-actions .btn-danger');
             if (editBtn) editBtn.onclick = () => window.location.href = `index.php?view=trade_create&id=${trade.id}`;
@@ -293,11 +293,15 @@ async function loadTradeDetails() {
             .forEach(key => {
                 const el = document.getElementById(`trade-${key.replace('formatted_', '')}`);
                 if (el) {
-                    if (key === 'pnl' || key === 'rr_achieved') {
+                    if (key === 'pnl') {
+                        // ИСПРАВЛЕНИЕ: Интегрирован CurrencyManager.format для вывода PnL в деталях сделки
                         const val = parseFloat(trade[key]);
-                        el.textContent = val.toFixed(2) + (key === 'risk_percent' ? '%' : (key === 'rr_achieved' ? 'R' : ''));
+                        el.textContent = CurrencyManager.format(val);
                         el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
-                        if (key === 'risk_percent') el.textContent += '%';
+                    } else if (key === 'rr_achieved') {
+                        const val = parseFloat(trade[key]);
+                        el.textContent = val.toFixed(2) + 'R';
+                        el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
                     } else if (key === 'status') {
                         const val = trade[key].toLowerCase();
                         el.textContent = val.toUpperCase();
@@ -332,7 +336,8 @@ async function loadTradeDetails() {
             const tagsEl = document.getElementById('trade-tags');
             if (tagsEl) {
                 if (trade.tags) {
-                    tagsEl.innerHTML = trade.tags.split(',').map(tag => `<span class="trade-tag">${tag.trim()}</span>`).join('');
+                    // ИСПРАВЛЕНИЕ УЯЗВИМОСТИ XSS: Безопасное экранирование каждого кастомного тега через escapeHTML()
+                    tagsEl.innerHTML = trade.tags.split(',').map(tag => `<span class="trade-tag">${escapeHTML(tag.trim())}</span>`).join('');
                 } else {
                     tagsEl.textContent = window.lang['none'];
                 }
@@ -343,7 +348,7 @@ async function loadTradeDetails() {
                 if (trade.plan_id && trade.plan_title) {
                     planLink.href = `index.php?view=plan_details&id=${trade.plan_id}`;
                     planLink.className = 'info-badge badge-blue';
-                    planLink.innerHTML = `<i class="fas fa-solid fa-link me-2"></i> ${trade.plan_title}`;
+                    planLink.innerHTML = `<i class="fas fa-solid fa-link me-2"></i> ${escapeHTML(trade.plan_title)}`;
                 } else {
                     planLink.textContent = window.lang['no_linked_plan'];
                     planLink.removeAttribute('href');
@@ -356,10 +361,11 @@ async function loadTradeDetails() {
                 tradeImgList.innerHTML = '';
                 if (trade.trade_images && trade.trade_images.length) {
                     trade.trade_images.forEach(img => {
+                        // ИСПРАВЛЕНИЕ XSS: Описание скриншота (img.notes) экранируется
                         tradeImgList.innerHTML += `
                             <div class="trade-image-item">
                                 ${img.image_url ? `<img src="${img.image_url}" class="lightbox-trigger">` : `<p class="text-muted">${window.lang['no_image']}</p>`}
-                                ${img.notes ? `<div class="notes small text-muted mt-2">${img.notes}</div>` : ''}
+                                ${img.notes ? `<div class="notes small text-muted mt-2">${escapeHTML(img.notes)}</div>` : ''}
                             </div>`;
                     });
                 } else { tradeImgList.innerHTML = `<div class="empty-state-small">${window.lang['no_screenshots_trade']}</div>`; }

@@ -73,7 +73,7 @@ async function loadAccounts() {
                     </div>
                     <div class="acc-split-labels">
                         <span class="text-loss">${labelLeft}</span>
-                        <span style="color:#fff; opacity:0.5; font-size:0.65rem;">${window.lang['start_label']}: $${startEquity.toLocaleString()}</span>
+                        <span style="color:#fff; opacity:0.5; font-size:0.65rem;">${window.lang['start_label']}: ${CurrencyManager.format(startEquity)}</span>
                         <span class="text-profit">${labelRight}</span>
                     </div>`;
 
@@ -87,16 +87,16 @@ async function loadAccounts() {
                         <div class="acc-name"><i class="fas fa-wallet" style="color:var(--accent-blue)"></i> ${escapeHTML(acc.name)}</div>
                         <span class="acc-type-badge">${acc.type}</span>
                     </div>
-                    <div class="acc-balance">$${parseFloat(currentEquity).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    <div class="acc-balance">${CurrencyManager.format(currentEquity)}</div>
                     <div style="font-size: 0.9rem; margin-bottom: 5px;" class="${profitClass}">
-                        ${profitSign}${totalGainAbs.toFixed(2)}$ (${profitSign}${totalGainPct.toFixed(2)}%)
+                        ${profitSign}${totalGainAbs.toFixed(2)} (${profitSign}${totalGainPct.toFixed(2)}%)
                     </div>
                     ${barHtml}
                     <div class="acc-stats-grid">
                         <div class="acc-stat-row"><span>${window.lang['total_trades']}:</span><span class="acc-stat-val">${acc.total_trades}</span></div>
                         <div class="acc-stat-row"><span>${window.lang['winrate']}:</span><span class="acc-stat-val">${acc.total_trades > 0 ? ((acc.wins/acc.total_trades)*100).toFixed(1) : 0}%</span></div>
                         <div class="acc-stat-row"><span>${window.lang['avg_rr']}:</span><span class="acc-stat-val">${acc.avg_rr}R</span></div>
-                        <div class="acc-stat-row"><span>${window.lang['journal_pnl']}:</span><span class="acc-stat-val ${acc.profit >=0 ? 'text-profit':'text-loss'}">${acc.profit >=0?'+':''}${acc.profit.toFixed(2)}$</span></div>
+                        <div class="acc-stat-row"><span>${window.lang['journal_pnl']}:</span><span class="acc-stat-val ${acc.profit >=0 ? 'text-profit':'text-loss'}">${acc.profit >=0?'+':''}${acc.profit.toFixed(2)}</span></div>
                     </div>
                 </div>`;
             });
@@ -115,7 +115,7 @@ async function deleteAccount(id) {
         if (json.success) {
             showToast(window.lang['account_deleted'], 'success');
             if (window.location.search.includes('view=account_details')) {
-                window.location.href = 'index.php?view=accounts';
+                window.location.href = 'index.php=accounts';
             } else {
                 loadAccounts();
             }
@@ -241,7 +241,7 @@ async function loadPayouts() {
                         </div>
                         <div class="payout-col" data-label="Amount" style="text-align: right;">
                             <span style="color: var(--accent-green); font-weight: 700; font-size: 1.1rem;">
-                                +$${amount.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                                ${CurrencyManager.format(amount)}
                             </span>
                         </div>
                         <div class="payout-col payout-actions" style="text-align: right;">
@@ -257,7 +257,7 @@ async function loadPayouts() {
 
             html += `
                 <div style="padding: 20px; text-align: right; font-size: 0.95rem; color: var(--text-secondary); margin-top: 10px;">
-                    ${window.lang['total_paid']}: <span style="color: var(--text-main); font-weight: 700; font-size: 1.2rem;">$${totalPayouts.toLocaleString()}</span>
+                    ${window.lang['total_paid']}: <span style="color: var(--text-main); font-weight: 700; font-size: 1.2rem;">${CurrencyManager.format(totalPayouts)}</span>
                 </div>
             </div>`;
 
@@ -283,6 +283,7 @@ function openPayoutModal() {
     }
 }
 
+// Прячем модалку выплат
 function closePayoutModal() {
     const modal = document.getElementById('payout-modal');
     if (modal) modal.style.display = 'none';
@@ -326,9 +327,9 @@ async function loadAccountDetailsPage(id) {
                 const profitAbs = bal - start;
                 const profitPct = start > 0 ? (profitAbs / start) * 100 : 0;
 
-                document.getElementById('ad-balance').textContent = '$ ' + bal.toLocaleString('en-US', {minimumFractionDigits: 2});
+                document.getElementById('ad-balance').textContent = CurrencyManager.format(bal);
                 const profAbsEl = document.getElementById('ad-profit-abs');
-                profAbsEl.textContent = (profitAbs >= 0 ? '+' : '') + profitAbs.toFixed(2) + ' $';
+                profAbsEl.textContent = CurrencyManager.format(profitAbs);
                 profAbsEl.className = profitAbs >= 0 ? 'text-profit' : 'text-loss';
                 document.getElementById('ad-profit-pct').textContent = `(${profitPct.toFixed(2)} %)`;
 
@@ -394,7 +395,7 @@ async function loadAccountPayouts(accountId) {
                     <div class="payout-card" style="grid-template-columns: 1fr 1fr 1fr 80px;">
                         <div class="payout-col"><span class="text-muted">${date}</span></div>
                         <div class="payout-col">${statusBadge}</div>
-                        <div class="payout-col" style="text-align: right;"><span style="color: var(--accent-green); font-weight: 700;">+$${amount.toLocaleString()}</span></div>
+                        <div class="payout-col" style="text-align: right;"><span style="color: var(--accent-green); font-weight: 700;">${CurrencyManager.format(amount)}</span></div>
                         <div class="payout-col payout-actions" style="text-align: right;">
                             <button class="acc-btn" style="width:32px; height:32px;" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')"><i class="fas fa-pen" style="font-size: 0.8rem;"></i></button>
                         </div>

@@ -213,7 +213,8 @@ function renderEquityChart(dataPoints, canvasId = 'equityChart') {
                     displayColors: false,
                     callbacks: {
                         label: function (context) {
-                            return window.lang['balance'] + ': ' + context.parsed.y.toFixed(2) + ' $';
+                            // ИСПРАВЛЕНИЕ: Используем CurrencyManager.format для динамического отображения баланса на точках графика
+                            return window.lang['balance'] + ': ' + CurrencyManager.format(context.parsed.y);
                         }
                     }
                 }
@@ -241,11 +242,12 @@ function updateMetric(id, value) {
 function updateBreakdown(id, wins, losses, breakeven, pending) {
     const el = document.getElementById(id);
     if (el) {
+        // БЕЗОПАСНОСТЬ: Изолируем вывод через escapeHTML (на случай, если значения типов прилетят строками)
         el.innerHTML = `
-            <span class="text-profit">${wins} W</span> /
-            <span class="text-loss">${losses} L</span> /
-            <span class="text-warning">${breakeven} B</span> /
-            <span class="text-info">${pending} P</span>
+            <span class="text-profit">${escapeHTML(String(wins))} W</span> /
+            <span class="text-loss">${escapeHTML(String(losses))} L</span> /
+            <span class="text-warning">${escapeHTML(String(breakeven))} B</span> /
+            <span class="text-info">${escapeHTML(String(pending))} P</span>
         `;
     }
 }
@@ -258,22 +260,29 @@ function updateProgressBar(id, value) {
 function updatePnl(id, value) {
     const el = document.getElementById(id);
     if (el) {
-        const text = (value >= 0 ? '+ ' : '') + value.toFixed(2);
-        el.innerHTML = `${text} $`;
+        const pnlVal = parseFloat(value);
+        // ИСПРАВЛЕНИЕ: Интегрирован CurrencyManager для автоматического знака и кода валюты в Net Profit
+        el.innerHTML = CurrencyManager.format(pnlVal);
         el.classList.remove('text-profit', 'text-loss');
-        el.classList.add(value >= 0 ? 'text-profit' : 'text-loss');
+        el.classList.add(pnlVal >= 0 ? 'text-profit' : 'text-loss');
     }
 }
 
 function updateMonthlyProfit(id, value) {
     const el = document.getElementById(id);
-    if (el) el.innerHTML = `${window.lang['monthly_average']}: ${value} $`;
+    if (el) {
+        const monthlyVal = parseFloat(value);
+        // ИСПРАВЛЕНИЕ: Форматируем среднюю прибыль за месяц динамически через валютный менеджер
+        el.innerHTML = `${window.lang['monthly_average']}: ${CurrencyManager.format(monthlyVal)}`;
+    }
 }
 
 function updateMaxDrawdown(id, pct, abs) {
     const el = document.getElementById(id);
     if (el) {
-        el.innerHTML = `-${pct}% (-${abs} $)`;
+        const drawdownAbs = parseFloat(abs);
+        // ИСПРАВЛЕНИЕ: Заменили захардкоженный знак $ на динамическое форматирование абсолютной просадки
+        el.innerHTML = `-${pct}% (-${CurrencyManager.format(drawdownAbs)})`;
         el.className = 'metric-value text-loss';
     }
 }

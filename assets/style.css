@@ -4320,6 +4320,28 @@ a.info-badge:hover {
     flex-direction: column;
     text-align: center;
     padding: 28px 20px;
+    padding-top: 60px; /* Оставляем место для кнопки темы сверху */
+  }
+  .profile-avatar-wrap {
+    order: 1;
+  }
+  .profile-header-info {
+    order: 2;
+  }
+  /* Блок с валютой перемещается под profile-header-info */
+  .profile-controls-wrap {
+    position: static !important;
+    order: 3;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .profile-controls-wrap .profile-currency-selector {
+    display: flex !important;
   }
   .profile-stats-strip {
     flex-wrap: wrap;
