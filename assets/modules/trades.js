@@ -393,3 +393,87 @@ async function deleteEntity(id, action, redirectView) {
         else showMessage(window.lang['delete_error'] + ': ' + result.message, 'error');
     } catch (e) { console.error(e); showMessage(window.lang['network_error'], 'error'); }
 }
+
+// ==========================================
+// ЛОГИКА ШАРИНГА (МОДАЛЬНОЕ ОКНО)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const btnShare = document.getElementById('btn-share-trade');
+    const shareModal = document.getElementById('share-trade-modal');
+    
+    if (btnShare && shareModal) {
+        const closeShare = document.getElementById('close-share-modal');
+        const copyBtn = document.getElementById('copy-share-link');
+        const shareInput = document.getElementById('share-link-input');
+        
+        // ИСПРАВЛЕНИЕ 1: Берем правильный ID новой картинки
+        const cardImg = document.getElementById('share-generated-card'); 
+        const loadingDiv = document.getElementById('share-loading');
+        const downloadBtn = document.getElementById('download-card-btn');
+
+        // Открытие модалки по клику
+        btnShare.addEventListener('click', async () => {
+            const tradeId = document.getElementById('current-trade-id').value;
+            if (!tradeId) return;
+
+            // Показываем окно и лоадер
+            shareModal.style.display = 'flex';
+            
+            // ИСПРАВЛЕНИЕ 2: Прячем новую картинку (а не старый qrCodeImg)
+            if (cardImg) cardImg.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            shareInput.value = '';
+
+            try {
+                // Отправляем запрос на создание токена
+                const formData = new FormData();
+                formData.append('action', 'generate_share_token');
+                formData.append('trade_id', tradeId);
+                
+                const response = await fetch('api/api.php', { method: 'POST', body: formData });
+                const result = await response.json();
+                
+                if (result.success) {
+                    const publicUrl = result.url;
+                    const token = result.token;
+                    
+                    shareInput.value = publicUrl;
+                    
+                    // Берем картинку из нашего PHP генератора!
+                    if (cardImg) {
+                        cardImg.src = `api/handlers/generate_card.php?token=${token}`;
+                        cardImg.onload = () => {
+                            loadingDiv.style.display = 'none';
+                            cardImg.style.display = 'block';
+                        };
+                    }
+                    if (downloadBtn) {
+                        downloadBtn.href = `api/handlers/generate_card.php?token=${token}`;
+                    }
+                } else {
+                    Toastify({text: "Ошибка: " + result.message, duration: 3000, style: {background: "#ef4444"}}).showToast();
+                    shareModal.style.display = 'none';
+                }
+            } catch (e) {
+                console.error(e);
+                Toastify({text: "Ошибка сети", duration: 3000, style: {background: "#ef4444"}}).showToast();
+                shareModal.style.display = 'none';
+            }
+        });
+
+        // Закрытие модалки
+        closeShare.addEventListener('click', () => { shareModal.style.display = 'none'; });
+        shareModal.addEventListener('click', (e) => { if(e.target === shareModal) shareModal.style.display = 'none'; });
+
+        // Копирование в буфер
+        copyBtn.addEventListener('click', () => {
+            shareInput.select();
+            document.execCommand('copy');
+            Toastify({
+                text: window.lang?.copied || "Ссылка скопирована!",
+                duration: 2500, gravity: "top", position: "right",
+                style: { background: "#22c55e" }
+            }).showToast();
+        });
+    }
+});

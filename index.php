@@ -4,11 +4,13 @@
 // 1. Инициализация сессии (ДОЛЖНО БЫТЬ В САМОМ НАЧАЛЕ ФАЙЛА)
 session_start();
 
+require_once __DIR__ . '/api/db.php';
+
 // 2. Определение текущего представления (view)
 $view = $_GET['view'] ?? 'dashboard';
 
 // Список страниц, доступных БЕЗ авторизации (Guest Pages)
-$guestPages = ['login', 'register', 'forgot_password', 'reset_password'];
+$guestPages = ['login', 'register', 'forgot_password', 'reset_password', 'shared_trade'];
 
 // 3. ПРОВЕРКА АВТОРИЗАЦИИ
 // Если пользователь НЕ авторизован И пытается зайти на защищенную страницу
@@ -18,7 +20,7 @@ if (!isset($_SESSION['user_id']) && !in_array($view, $guestPages)) {
 }
 
 // Если пользователь уже авторизован, но пытается зайти на страницы входа/регистрации
-if (isset($_SESSION['user_id']) && in_array($view, $guestPages)) {
+if (isset($_SESSION['user_id']) && in_array($view, $guestPages) && $view !== 'shared_trade') {
     header('Location: index.php?view=dashboard');
     exit;
 }
@@ -237,7 +239,7 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/modules/core.js"></script>
     <script src="assets/modules/ui.js"></script>
     <script src="assets/modules/auth.js"></script>
-    <script src="assets/modules/currency.js"></script>
+    <script src="assets/modules/currency.js?v=<?php echo time(); ?>"></script>
     <script src="assets/modules/profile.js"></script>
     <script type="text/javascript" src="assets/modules/language.js"></script>
     <script src="assets/modules/shared_ui.js"></script>

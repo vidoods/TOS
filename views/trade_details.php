@@ -7,9 +7,15 @@
         </h1>
         
         <div class="trade-actions" style="display: flex; gap: 10px;">
-			<a href="index.php?view=journal" class="btn btn-outline">
+            <a href="index.php?view=journal" class="btn btn-outline">
                 <i class="fas fa-arrow-left"></i> <?= $lang['back'] ?>
             </a>
+            
+            <!-- НОВАЯ КНОПКА ГЕНЕРАЦИИ ТОКЕНА И ШАРИНГА -->
+            <button id="btn-share-trade" class="btn btn-primary">
+                <i class="fas fa-share-alt"></i> <?= $lang['share'] ?? 'Поделиться' ?>
+            </button>
+            
             <button class="btn btn-secondary">
                 <i class="fas fa-edit"></i> <?= $lang['edit'] ?>
             </button>
@@ -87,9 +93,9 @@
                     <span id="trade-exit_date" class="info-badge badge-neutral">-</span>
                 </div>
                 <div class="detail-item">
-					<span class="detail-label"><?= $lang['linked_plan'] ?></span>
-					<a href="#" id="trade-plan-link" class="info-badge badge-neutral">-</a> 
-				</div>
+                    <span class="detail-label"><?= $lang['linked_plan'] ?></span>
+                    <a href="#" id="trade-plan-link" class="info-badge badge-neutral">-</a> 
+                </div>
             </div>
         </section>
 
@@ -131,5 +137,42 @@
             </div>
         </section>
 
+    </div>
+</div>
+
+<div id="share-trade-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 1050; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+    <div class="glass-panel fade-in" style="width: 90%; max-width: 420px; padding: 30px; position: relative;">
+        <button id="close-share-modal" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; transition: 0.2s;">
+            &times;
+        </button>
+        
+        <h4 style="margin-top: 0; text-align: center; margin-bottom: 5px;">
+            <i class="fas fa-share-alt" style="color: var(--accent-blue); margin-right: 8px;"></i> Поделиться сделкой
+        </h4>
+        <p class="text-muted text-center" style="font-size: 14px; margin-bottom: 25px;">Публичная ссылка на вашу статистику готова</p>
+        
+        <div style="text-align: center; margin: 20px 0; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <img id="share-generated-card" src="" alt="Trade Card" style="width: 100%; max-width: 350px; border-radius: 8px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid var(--glass-border);">
+            <div id="share-loading" class="text-muted">
+                <i class="fas fa-circle-notch fa-spin fa-2x mb-2" style="color: var(--accent-blue);"></i><br>
+                <span>Генерация ссылки...</span>
+            </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label class="detail-label" style="font-size: 12px; margin-bottom: 5px; display: block;">Публичная ссылка:</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="share-link-input" class="form-control" readonly style="flex: 1; background: rgba(0,0,0,0.2); color: white; border: 1px solid var(--glass-border); font-size: 13px;">
+                <button id="copy-share-link" class="btn btn-primary" title="Скопировать">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 10px;">
+            <a id="download-card-btn" href="#" download="TradeOS_Card.png" class="btn btn-outline w-100" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <i class="fas fa-image"></i> Скачать карточку (PNG)
+            </a>
+        </div>
     </div>
 </div>

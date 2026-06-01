@@ -122,6 +122,10 @@ try {
         case 'create_trade':
         case 'update_trade':  saveTrade($conn); break;
         case 'delete_trade':     deleteTrade($conn); break;
+        case 'generate_share_token':
+            require_once 'handlers/trades.php';
+            generateShareToken($pdo);
+        break;
 
         // --- ДАШБОРД ---
         case 'get_dashboard_metrics': getDashboardMetrics($conn); break;

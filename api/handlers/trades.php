@@ -228,4 +228,54 @@ function deleteTrade($pdo) {
         echo json_encode(['success' => false, 'message' => 'Trade delete error: ' . $e->getMessage()]);
     }
 }
+
+/**
+ * Генерирует уникальный токен для шаринга сделки
+ */
+function generateShareToken($pdo) {
+    $userId = $_SESSION['user_id'] ?? null;
+    $tradeId = intval($_POST['trade_id'] ?? 0);
+
+    if (!$userId || !$tradeId) {
+        echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        return;
+    }
+
+    try {
+        // Проверяем, есть ли уже токен у этой сделки
+        $stmt = $pdo->prepare("SELECT share_token FROM trades WHERE id = ? AND user_id = ?");
+        $stmt->execute([$tradeId, $userId]);
+        $trade = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$trade) {
+            echo json_encode(['success' => false, 'message' => 'Сделка не найдена']);
+            return;
+        }
+
+        $token = $trade['share_token'];
+
+        // Если токена нет, создаем новый (случайная строка 10 символов)
+        if (empty($token)) {
+            $token = bin2hex(random_bytes(5)); 
+            
+            $updateStmt = $pdo->prepare("UPDATE trades SET share_token = ? WHERE id = ?");
+            $updateStmt->execute([$token, $tradeId]);
+        }
+
+        // ВАЖНО: Замените на ваш домен в будущем (например, https://wrkspace.pro)
+        // Если тестируете на локалке, можете оставить как есть.
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $domain = $protocol . $_SERVER['HTTP_HOST'];
+        $publicUrl = $domain . "/index.php?view=shared_trade&token=" . $token;
+
+        echo json_encode([
+            'success' => true,
+            'token' => $token,
+            'url' => $publicUrl
+        ]);
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 ?>

@@ -12,10 +12,6 @@ const CurrencyManager = {
         'UAH': 'uk-UA'
     },
 
-    /**
-     * Инициализация менеджера валют
-     * @param {string} sessionCurrency - Валюта из PHP сессии
-     */
     init(sessionCurrency) {
         if (sessionCurrency) {
             this.currentCurrency = sessionCurrency;
@@ -23,11 +19,6 @@ const CurrencyManager = {
         }
     },
 
-    /**
-     * Главная функция форматирования денежных сумм
-     * @param {number|string} amount - Число
-     * @returns {string} - Строка с символом валюты
-     */
     format(amount) {
         const value = parseFloat(amount);
         if (isNaN(value)) return '0.00';
@@ -42,48 +33,42 @@ const CurrencyManager = {
                 maximumFractionDigits: 2
             }).format(value);
 
-            // Если выбрана гривна, заменяем текст "грн" на красивый символ "₴"
             if (this.currentCurrency === 'UAH') {
                 formatted = formatted.replace(/грн\.?|UAH/g, '').trim() + ' ₴';
             }
             return formatted;
         } catch (e) {
-            // Резервный вариант, если Intl в браузере сбойнул, чтобы сайт не ломался
             return value.toFixed(2) + ' ' + this.currentCurrency;
         }
     },
 
-    /**
-     * Смена глобальной валюты
-     * @param {string} newCurrency - Код валюты
-     */
     async change(newCurrency) {
         if (!this.locales[newCurrency]) return;
 
+        // Сразу меняем визуально
         this.currentCurrency = newCurrency;
         localStorage.setItem('tradeos_currency', newCurrency);
 
         try {
             const formData = new FormData();
+            formData.append('action', 'add_user_setting'); // (или то слово, которое у вас заработало)
             formData.append('type', 'currency');
             formData.append('currency', newCurrency);
 
-            await fetch('api/api.php?action=add_settings', {
+            // Отправляем в базу
+            await fetch('api/api.php', {
                 method: 'POST',
                 body: formData
             });
 
-            if (window.showToast) {
-                window.showToast('Валюта успешно изменена!', 'success');
-            }
-
+            // Мгновенная перезагрузка без задержек
             location.reload(); 
         } catch (e) {
             console.error('Ошибка сохранения валюты на сервере:', e);
-            location.reload(); // Перезагружаем в любом случае, чтобы применить фронтенд
+            location.reload(); 
         }
     }
 };
 
-// Экспортируем в глобальный объект window, чтобы другие файлы сразу его видели
+// ВАЖНО: Делаем объект доступным глобально (для onclick)
 window.CurrencyManager = CurrencyManager;
