@@ -422,5 +422,9 @@ return [
     'toggle_theme' => 'Toggle Theme',
     'trading_activity' => 'Trading Activity',
     'loss' => 'Loss',
-    'profit' => 'Profit'
+    'profit' => 'Profit',
+    'share' => 'Share',
+    'screenshots' => 'Screenshots',
+    'duration' => 'Duration',
+    'create_your_free_trading_journal' => 'Create your free trading journal',
 ];

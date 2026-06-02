@@ -2745,6 +2745,14 @@ a.info-badge:hover {
     justify-content: flex-start; /* На мобильных прижимаем к левому краю для удобства скролла */
   }
 }
+@media (max-width: 768px) {
+  .d-flex.flex-wrap.gap-3 {
+    flex-direction: column;
+  }
+  .trade-image-item {
+    margin-bottom: 10px;
+  }
+}
 /* =========================================
    11. СТИЛИ ДЛЯ СТРАНИЦЫ АККАУНТА И ВКЛАДОК
    ========================================= */

@@ -422,5 +422,9 @@ return [
     'toggle_theme' => 'Перемкнути тему',
     'trading_activity' => 'Торгова активність',
     'loss' => 'Збитки',
-    'profit' => 'Прибуток'
+    'profit' => 'Прибуток',
+    'share' => 'Поділитися',
+    'screenshots' => 'Скріншоти',
+    'duration' => 'Тривалість',
+    'create_your_free_trading_journal' => 'Створіть ваш власний журнал торгівлі безкоштовно',
 ];

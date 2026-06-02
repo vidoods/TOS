@@ -13,7 +13,7 @@
             
             <!-- НОВАЯ КНОПКА ГЕНЕРАЦИИ ТОКЕНА И ШАРИНГА -->
             <button id="btn-share-trade" class="btn btn-primary">
-                <i class="fas fa-share-alt"></i> <?= $lang['share'] ?? 'Поделиться' ?>
+                <i class="fas fa-share-alt"></i> <?= $lang['share'] ?? 'Share' ?>
             </button>
             
             <button class="btn btn-secondary">
