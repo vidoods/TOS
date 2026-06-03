@@ -427,4 +427,8 @@ return [
     'screenshots' => 'Скріншоти',
     'duration' => 'Тривалість',
     'create_your_free_trading_journal' => 'Створіть ваш власний журнал торгівлі безкоштовно',
+    'change_currency_usd' => 'Змінити валюту на USD ($)',
+    'change_currency_eur' => 'Змінити валюту на EUR (€)',
+    'change_currency_rub' => 'Змінити валюту на RUB (₽)',
+    'change_currency_uah' => 'Змінити валюту на UAH (₴)',
 ];

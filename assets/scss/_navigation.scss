@@ -179,3 +179,11 @@ a.user-profile-widget {
     color: var(--text-main) !important; /* Принудительно возвращаем белый/основной цвет */
     letter-spacing: 0.3px;
 }
+
+    /* Light Theme specific adjustments for high quality aesthetics */
+    :root[data-theme="light"] {
+    /* Для активного пункта меню */
+        .nav-links a.active i {
+            color: #bababa;
+        }
+    }

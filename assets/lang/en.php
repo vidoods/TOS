@@ -427,4 +427,8 @@ return [
     'screenshots' => 'Screenshots',
     'duration' => 'Duration',
     'create_your_free_trading_journal' => 'Create your free trading journal',
+    'change_currency_usd' => 'Change currency to USD ($)',
+    'change_currency_eur' => 'Change currency to EUR (€)',
+    'change_currency_rub' => 'Change currency to RUB (₽)',
+    'change_currency_uah' => 'Change currency to UAH (₴)',
 ];

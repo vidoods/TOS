@@ -397,7 +397,7 @@ async function loadAccountPayouts(accountId) {
                         <div class="payout-col">${statusBadge}</div>
                         <div class="payout-col" style="text-align: right;"><span style="color: var(--accent-green); font-weight: 700;">${CurrencyManager.format(amount)}</span></div>
                         <div class="payout-col payout-actions" style="text-align: right;">
-                            <button class="acc-btn" style="width:32px; height:32px;" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')"><i class="fas fa-pen" style="font-size: 0.8rem;"></i></button>
+                            <button class="acc-btn" style="width:32px; height:32px;" onclick="editPayout(${p.id}, '${p.account_id}', '${p.amount}', '${p.payout_date}', '${p.confirmation_status}')"><i title="${window.lang['edit']}" class="fas fa-pen" style="font-size: 0.8rem;"></i></button>
                         </div>
                     </div>`;
             });

@@ -108,3 +108,10 @@
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.4);
 }
+
+    /* Light Theme specific adjustments for high quality aesthetics */
+    :root[data-theme="light"] {
+        .select-field, .form-select {
+            background-color: rgba(255, 255, 255, 0.1);    
+        }
+    }

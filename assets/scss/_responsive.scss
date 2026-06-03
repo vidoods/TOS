@@ -1305,3 +1305,10 @@ a.info-badge:hover {
         margin-bottom: 10px;
     }
 }
+
+    /* Light Theme specific adjustments for high quality aesthetics */
+    :root[data-theme="light"] {
+        .month-summary {
+            background-color: rgba(255, 255, 255, 0.1);    
+        }
+    }

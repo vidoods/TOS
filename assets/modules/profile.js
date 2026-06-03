@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const activeCurrency = CurrencyManager.currentCurrency || 'USD';
+    const activeBtn = document.querySelector(`.currency-badge-btn[data-currency="${activeCurrency}"]`);
+    if (activeBtn) {
+        activeBtn.style.background = 'var(--accent-color, #00ff9d)';
+        activeBtn.style.color = '#0d1117';
+        activeBtn.style.boxShadow = '0 0 10px var(--accent-glow, rgba(0, 255, 157, 0.4))';
+    }
+
     // --- TAB SWITCHING LOGIC ---
     const tabBtns = document.querySelectorAll('.profile-tab-btn');
     const tabContents = document.querySelectorAll('.profile-tab-content');

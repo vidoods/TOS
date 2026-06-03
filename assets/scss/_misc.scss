@@ -124,3 +124,10 @@
 @media (max-width: 768px) {
     .data-grid-4 { grid-template-columns: 1fr; }
 }
+
+    /* Light Theme specific adjustments for high quality aesthetics */
+    :root[data-theme="light"] {
+        .circle-bg {
+            stroke: rgba(94, 94, 94, 0.1);
+        }
+    }

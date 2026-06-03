@@ -17,33 +17,33 @@
     <div class="profile-page-header" style="position: relative;">
         <div class="profile-header-glow"></div>
         
-        <div class="profile-controls-wrap" style="position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; align-items: flex-end; gap: 15px; z-index: 10;">
-            <button class="profile-theme-toggle" id="profile-theme-toggle" title="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>" aria-label="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>" style="position: static; margin: 0;">
+        <div class="profile-controls-wrap">
+            <div class="profile-currency-selector glass-panel">
+                <button class="currency-badge-btn" data-currency="USD" onclick="CurrencyManager.change('USD')" title="<?= $lang['change_currency_usd'] ?? 'Change currency to USD ($)' ?>">$</button>
+                <button class="currency-badge-btn" data-currency="EUR" onclick="CurrencyManager.change('EUR')" title="<?= $lang['change_currency_eur'] ?? 'Change currency to EUR (€)' ?>">€</button>
+                <button class="currency-badge-btn" data-currency="UAH" onclick="CurrencyManager.change('UAH')" title="<?= $lang['change_currency_uah'] ?? 'Change currency to UAH (₴)' ?>">₴</button>
+                <button class="currency-badge-btn" data-currency="RUB" onclick="CurrencyManager.change('RUB')" title="<?= $lang['change_currency_rub'] ?? 'Change currency to RUB (₽)' ?>">₽</button>
+
+                <button class="profile-theme-toggle" id="profile-theme-toggle" title="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>" aria-label="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>" style="position: static; margin: 0;">
                 <i class="fas fa-moon" id="profile-theme-icon"></i>
             </button>
-
-            <div class="profile-currency-selector glass-panel" style="display: flex; gap: 6px; padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(22, 27, 34, 0.4); backdrop-filter: blur(8px);">
-                <button class="currency-badge-btn" data-currency="USD" onclick="CurrencyManager.change('USD')" title="Change currency to USD ($)" style="background: none; border: none; color: var(--text-main); font-weight: 600; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">$</button>
-                <button class="currency-badge-btn" data-currency="EUR" onclick="CurrencyManager.change('EUR')" title="Change currency to EUR (€)" style="background: none; border: none; color: var(--text-main); font-weight: 600; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">€</button>
-                <button class="currency-badge-btn" data-currency="RUB" onclick="CurrencyManager.change('RUB')" title="Change currency to RUB (₽)" style="background: none; border: none; color: var(--text-main); font-weight: 600; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">₽</button>
-                <button class="currency-badge-btn" data-currency="UAH" onclick="CurrencyManager.change('UAH')" title="Change currency to UAH (₴)" style="background: none; border: none; color: var(--text-main); font-weight: 600; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;">₴</button>
             </div>
         </div>
 
         <div class="profile-avatar-wrap">
             <div class="profile-avatar-ring">
-                <div class="profile-avatar-inner" style="cursor: pointer; position: relative;" onclick="document.getElementById('avatar-input').click()">
+                <div class="profile-avatar-inner" onclick="document.getElementById('avatar-input').click()">
                     
                     <i class="fas fa-user" id="profile-avatar-icon"></i>
                     
                     <img id="profile-avatar-img" 
                          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
-                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;" 
+                         class="profile-avatar-img" 
                          alt="">
                     
                     <div class="avatar-upload-overlay" style="border-radius: 50%;">
                         <i class="fas fa-camera mb-1"></i>
-                        <span style="font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">
+                        <span class="avatar-upload-overlay-txt">
                             <?= $lang['change'] ?? 'Change' ?>
                         </span>
                     </div>
@@ -54,8 +54,8 @@
             <input type="file" id="avatar-input" hidden accept="image/jpeg, image/png, image/webp">
         </div>
         <div class="profile-header-info">
-            <h1 class="profile-username" id="profile-page-name"><span class="skeleton" style="height: 30px; width: 150px; display: inline-block;"></span></h1>
-            <p class="profile-email" id="profile-page-email"><span class="skeleton" style="height: 15px; width: 220px; display: inline-block; margin-top: 5px;"></span></p>
+            <h1 class="profile-username" id="profile-page-name"><span class="skeleton profile-page-name"></span></h1>
+            <p class="profile-email" id="profile-page-email"><span class="skeleton profile-page-email"></span></p>
             <div class="profile-badge">
                 <i class="fas fa-shield-alt me-1"></i>
                 <span id="profile-page-role"><?= $lang['trader'] ?? 'Trader' ?></span>
@@ -113,7 +113,7 @@
 
         <div class="profile-card glass-panel">
             <div class="profile-card-header">
-                <div class="profile-card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2)">
+                <div class="profile-card-icon icon-lang">
                     <i class="fas fa-globe"></i>
                 </div>
                 <div>
@@ -152,7 +152,7 @@
 
         <div class="profile-card glass-panel">
             <div class="profile-card-header">
-                <div class="profile-card-icon" style="background: linear-gradient(135deg, #0ea5e9, #06b6d4)">
+                <div class="profile-card-icon icon-acc">
                     <i class="fas fa-id-card"></i>
                 </div>
                 <div>
@@ -186,7 +186,9 @@
 
             <div class="profile-card glass-panel">
                 <div class="profile-card-header">
-                    <div class="profile-card-icon" style="background: #6366f1;"><i class="fas fa-clock"></i></div>
+                    <div class="profile-card-icon icon-tf">
+                        <i class="fas fa-clock"></i>
+                    </div>
                     <div class="profile-card-title"><?= $lang['timeframe'] ?? 'Timeframe' ?></div>
                 </div>
                 <div class="profile-card-body">
@@ -200,7 +202,9 @@
 
             <div class="profile-card glass-panel">
                 <div class="profile-card-header">
-                    <div class="profile-card-icon" style="background: #a855f7;"><i class="fas fa-paint-brush"></i></div>
+                    <div class="profile-card-icon icon-style">
+                        <i class="fas fa-paint-brush"></i>
+                    </div>
                     <div class="profile-card-title"><?= $lang['trading_style'] ?? 'Style' ?></div>
                 </div>
                 <div class="profile-card-body">
@@ -213,7 +217,7 @@
             </div>
             <div class="profile-card glass-panel">
                 <div class="profile-card-header">
-                    <div class="profile-card-icon" style="background: linear-gradient(135deg, #f87171, #ef4444);">
+                    <div class="profile-card-icon icon-model">
                         <i class="fas fa-bullseye"></i>
                     </div>
                     <div class="profile-card-title"><?= $lang['entry_model'] ?? 'Entry Model' ?></div>
@@ -230,7 +234,9 @@
 
             <div class="profile-card glass-panel" style="grid-column: 1 / -1; margin-top: 15px;">
                 <div class="profile-card-header">
-                    <div class="profile-card-icon" style="background: #06b6d4;"><i class="fas fa-coins"></i></div>
+                    <div class="profile-card-icon icon-pair">
+                        <i class="fas fa-coins"></i>
+                    </div>
                     <div class="profile-card-title"><?= $lang['pair'] ?? 'Pair' ?></div>
                 </div>
                 <div class="profile-card-body">
@@ -249,15 +255,3 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const activeCurrency = CurrencyManager.currentCurrency || 'USD';
-    const activeBtn = document.querySelector(`.currency-badge-btn[data-currency="${activeCurrency}"]`);
-    if (activeBtn) {
-        activeBtn.style.background = 'var(--accent-color, #00ff9d)';
-        activeBtn.style.color = '#0d1117';
-        activeBtn.style.boxShadow = '0 0 10px var(--accent-glow, rgba(0, 255, 157, 0.4))';
-    }
-});
-</script>
