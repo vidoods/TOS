@@ -4499,6 +4499,10 @@ a.info-badge:hover {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+:root[data-theme=light] .profile-acc-select {
+  border: 1px solid rgba(139, 139, 139, 0.15);
+  color: #000000;
+}
 :root[data-theme=light] .profile-info-value,
 :root[data-theme=light] .profile-stat-value {
   color: #0f172a;
