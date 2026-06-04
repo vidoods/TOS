@@ -146,6 +146,18 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
                     <span class="user-name" id="sidebar-username"><?= $lang['loading'] ?></span>
                 </div>   
                 </a>
+                <h3>
+                    <?= $lang['toggle_theme'] ?? 'ToggleTheme' ?>
+                </h3>
+                <div class="theme-switcher-container">
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-toggle-checkbox">
+                            <span class="slider">
+                                <i class="fas fa-moon icon-moon" style="color: #94a3b8;"></i>
+                                <i class="fas fa-sun icon-sun" style="color: #f59e0b;"></i>
+                            </span>
+                    </label>
+                </div>
 
                 <nav class="nav-menu">
                     <h3><?= $lang['routine'] ?></h3>

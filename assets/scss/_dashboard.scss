@@ -115,3 +115,8 @@
     display: flex;           /* Добавляем flex-контейнер */
     justify-content: center; /* Центрируем содержимое по горизонтали */
 }
+
+    /* Light Theme specific adjustments for high quality aesthetics */
+    :root[data-theme="light"] {
+        .hm-box.lvl-0, .hm-day.lvl-0 { background-color: #bababa; }
+    }

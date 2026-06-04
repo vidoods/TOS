@@ -16,17 +16,16 @@
     <div id="tab-overview" class="profile-tab-content active">
     <div class="profile-page-header" style="position: relative;">
         <div class="profile-header-glow"></div>
-        
         <div class="profile-controls-wrap">
+            <h3 style="align-items: center; display: flex; gap: 10px;">
+                <i class="fas fa-coins"></i>
+                <?= $lang['change_currency'] ?? 'Change currency' ?>
+            </h3>
             <div class="profile-currency-selector glass-panel">
                 <button class="currency-badge-btn" data-currency="USD" onclick="CurrencyManager.change('USD')" title="<?= $lang['change_currency_usd'] ?? 'Change currency to USD ($)' ?>">$</button>
                 <button class="currency-badge-btn" data-currency="EUR" onclick="CurrencyManager.change('EUR')" title="<?= $lang['change_currency_eur'] ?? 'Change currency to EUR (€)' ?>">€</button>
                 <button class="currency-badge-btn" data-currency="UAH" onclick="CurrencyManager.change('UAH')" title="<?= $lang['change_currency_uah'] ?? 'Change currency to UAH (₴)' ?>">₴</button>
                 <button class="currency-badge-btn" data-currency="RUB" onclick="CurrencyManager.change('RUB')" title="<?= $lang['change_currency_rub'] ?? 'Change currency to RUB (₽)' ?>">₽</button>
-
-                <button class="profile-theme-toggle" id="profile-theme-toggle" title="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>" aria-label="<?= htmlspecialchars($lang['toggle_theme'] ?? 'Toggle Theme') ?>" style="position: static; margin: 0;">
-                <i class="fas fa-moon" id="profile-theme-icon"></i>
-            </button>
             </div>
         </div>
 

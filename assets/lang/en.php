@@ -431,4 +431,5 @@ return [
     'change_currency_eur' => 'Change currency to EUR (€)',
     'change_currency_rub' => 'Change currency to RUB (₽)',
     'change_currency_uah' => 'Change currency to UAH (₴)',
+    'change_currency' => 'Change currency',
 ];

@@ -187,3 +187,63 @@ a.user-profile-widget {
             color: #bababa;
         }
     }
+
+/* Контейнер-центровщик в сайдбаре */
+.theme-switcher-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрирует по горизонтали */
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 65px; 
+    height: 34px;
+}
+
+.theme-switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    transition: 0.4s;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px; /* Отступы по краям */
+}
+
+/* ИКОНКИ СВЕРХУ */
+.icon-sun, .icon-moon {
+    position: relative; /* ОБЯЗАТЕЛЬНО для работы z-index */
+    z-index: 2;         /* Поднимаем иконки на самый верх */
+    font-size: 0.9rem;
+    pointer-events: none; /* Чтобы клик не застревал на иконке */
+}
+
+/* КРУГЛЫЙ БЕГУНОК (ЕЗДИТ СНИЗУ) */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 6px;
+    bottom: 3px;
+    background-color: var(--glass-border-hover); /* Легкий цвет бегунка, чтобы иконки на нем читались */
+    transition: 0.4s cubic-bezier(0.4, 0.0, 0.2, 1); /* Более плавная "яблочная" анимация */
+    border-radius: 50%;
+    z-index: 1; /* Опускаем бегунок ПОД иконки */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Сдвиг бегунка при переключении */
+input:checked + .slider:before {
+    transform: translateX(24px); 
+}

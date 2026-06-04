@@ -451,6 +451,73 @@ a.user-profile-widget {
   color: #bababa;
 }
 
+/* Контейнер-центровщик в сайдбаре */
+.theme-switcher-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Центрирует по горизонтали */
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 65px;
+  height: 34px;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  transition: 0.4s;
+  border-radius: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px; /* Отступы по краям */
+}
+
+/* ИКОНКИ СВЕРХУ */
+.icon-sun, .icon-moon {
+  position: relative; /* ОБЯЗАТЕЛЬНО для работы z-index */
+  z-index: 2; /* Поднимаем иконки на самый верх */
+  font-size: 0.9rem;
+  pointer-events: none; /* Чтобы клик не застревал на иконке */
+}
+
+/* КРУГЛЫЙ БЕГУНОК (ЕЗДИТ СНИЗУ) */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 6px;
+  bottom: 3px;
+  background-color: var(--glass-border-hover); /* Легкий цвет бегунка, чтобы иконки на нем читались */
+  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Более плавная "яблочная" анимация */
+  border-radius: 50%;
+  z-index: 1; /* Опускаем бегунок ПОД иконки */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Сдвиг бегунка при переключении */
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
 /* =========================================
    4. КОМПОНЕНТЫ (Панели, Кнопки)
    ========================================= */
@@ -1349,6 +1416,11 @@ a.user-profile-widget {
   -webkit-overflow-scrolling: touch;
   display: flex; /* Добавляем flex-контейнер */
   justify-content: center; /* Центрируем содержимое по горизонтали */
+}
+
+/* Light Theme specific adjustments for high quality aesthetics */
+:root[data-theme=light] .hm-box.lvl-0, :root[data-theme=light] .hm-day.lvl-0 {
+  background-color: #bababa;
 }
 
 /* =========================================
@@ -4566,39 +4638,6 @@ a.info-badge:hover {
     font-size: 1.5rem;
   }
 }
-/* Theme Toggle Button Style */
-.profile-theme-toggle {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--text-main);
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 1.15rem;
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.profile-theme-toggle:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hover);
-  transform: scale(1.08) rotate(15deg);
-  box-shadow: var(--glass-shadow);
-}
-.profile-theme-toggle:active {
-  transform: scale(0.95);
-}
-.profile-theme-toggle i {
-  transition: transform 0.5s ease;
-}
-
 /* Light Theme specific adjustments for high quality aesthetics */
 :root[data-theme=light] .profile-page-header {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%);

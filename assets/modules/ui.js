@@ -269,3 +269,27 @@ function getSkeletonHtml(type, count = 1) {
     }
     return html;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Находим наш новый чекбокс-переключатель в сайдбаре
+    const themeCheckbox = document.getElementById('theme-toggle-checkbox');
+    
+    if (themeCheckbox) {
+        // 1. При загрузке проверяем сохраненную тему
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        
+        // Ставим правильное положение ползунка
+        themeCheckbox.checked = (savedTheme === 'light');
+        
+        // Применяем тему к сайту
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // 2. Слушаем переключение чекбокса
+        themeCheckbox.addEventListener('change', function() {
+            const newTheme = this.checked ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    }
+});
