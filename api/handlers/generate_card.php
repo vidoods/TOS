@@ -112,11 +112,11 @@ $x = ($width - $textWidth) / 2;
 imagettftext($image, 100, 0, $x, 380, $accent_color, $fontRegular, $pnlText);
 
 // RR и дата
-imagettftext($image, 30, 0, 80, 520, $gray_color, $fontRegular, $rrText);
-imagettftext($image, 30, 0, 80, 570, $gray_color, $fontRegular, $dateText);
+imagettftext($image, 30, 0, 80, 480, $gray_color, $fontRegular, $rrText);
+imagettftext($image, 30, 0, 80, 530, $gray_color, $fontRegular, $dateText);
 
 // Брендинг
-imagettftext($image, 24, 0, 480, 570, $white_color, $fontRegular, "Verified via wrkspace.pro");
+imagettftext($image, 24, 0, 80, 590, $white_color, $fontRegular, "Verified via wrkspace.pro");
 
 // Генерируем QR-код (подавляем ошибки через @)
 $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=png&margin=0&data=" . urlencode($publicUrl);

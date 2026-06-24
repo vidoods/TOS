@@ -152,7 +152,7 @@
         <p class="text-muted text-center" style="font-size: 14px; margin-bottom: 25px;">Публичная ссылка на вашу статистику готова</p>
         
         <div style="text-align: center; margin: 20px 0; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <img id="share-generated-card" src="" alt="Trade Card" style="width: 100%; max-width: 350px; border-radius: 8px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid var(--glass-border);">
+            <img id="share-generated-card" src="" alt="Trade Card" style="width: 100%; max-width: 350px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
             <div id="share-loading" class="text-muted">
                 <i class="fas fa-circle-notch fa-spin fa-2x mb-2" style="color: var(--accent-blue);"></i><br>
                 <span>Генерация ссылки...</span>
