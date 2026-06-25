@@ -395,7 +395,7 @@
 /* Сетка для блоков анализа */
 .analysis-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Адаптивные колонки */
+    grid-template-columns: repeat(auto-fit, minmax(3000px, 1fr)); /* Адаптивные колонки */
     gap: 20px;
 }
 

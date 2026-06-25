@@ -515,7 +515,7 @@ a.user-profile-widget {
 
 /* Сдвиг бегунка при переключении */
 input:checked + .slider:before {
-  transform: translateX(24px);
+  transform: translateX(25px);
 }
 
 /* =========================================
@@ -1919,7 +1919,7 @@ input:checked + .slider:before {
 /* Сетка для блоков анализа */
 .analysis-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Адаптивные колонки */
+  grid-template-columns: repeat(auto-fit, minmax(3000px, 1fr)); /* Адаптивные колонки */
   gap: 20px;
 }
 
@@ -3081,7 +3081,7 @@ a.info-badge:hover {
 .strategy-grid {
   display: grid;
   /* Используем тот же грид, что и в заметках */
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
 

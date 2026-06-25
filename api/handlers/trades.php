@@ -142,6 +142,13 @@ function saveTrade($pdo) {
             $user_id
         ];
 
+        // Проходим по всем параметрам и заменяем пустые строки на настоящий NULL
+        foreach ($params as $key => $value) {
+            if ($value === '') {
+                $params[$key] = null;
+            }
+        }
+
         if ($is_update) {
             $check = $pdo->prepare("SELECT id FROM trades WHERE id = ? AND user_id = ?");
             $check->execute([$trade_id, $user_id]);
