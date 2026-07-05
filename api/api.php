@@ -143,6 +143,7 @@ try {
         case 'get_asset_insights': getAssetInsights($conn); break;
         case 'save_insight': saveInsight($conn); break;
         case 'delete_insight': deleteInsight($conn); break;
+        case 'get_insight_details': getInsightDetails($conn); break;
 
         // --- АККАУНТЫ ---
         case 'get_accounts_data':  getAccountsData($conn); break;

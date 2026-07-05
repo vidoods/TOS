@@ -8,7 +8,14 @@ function getInsightDetails($pdo) {
 
         if (!$id) throw new Exception("No ID provided");
 
-        $stmt = $pdo->prepare("SELECT * FROM asset_profiles WHERE id = ? AND user_id = ?");
+        // Добавлен JOIN с таблицей users для получения имени автора (creator_name)
+        $stmt = $pdo->prepare("
+            SELECT a.*, up.symbol as asset_symbol, u.username as creator_name 
+            FROM asset_profiles a
+            LEFT JOIN user_pairs up ON a.asset_id = up.id
+            LEFT JOIN users u ON a.created_by = u.id
+            WHERE a.id = ? AND a.user_id = ?
+        ");
         $stmt->execute([$id, $uid]);
         $insight = $stmt->fetch();
 

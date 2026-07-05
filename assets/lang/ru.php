@@ -443,4 +443,6 @@ return [
     'created_by' => 'Автор',
     'updated_at' => 'Обновлено',
     'created_at' => 'Создано',
+    'information' => 'Информация',
+    'asset_label' => 'Актив',
 ];

@@ -71,18 +71,20 @@ async function loadAssetInsights() {
                 const creator = insight.creator_name || 'N/A';
 
                 html += `
-                    <div class="note-card">
+                    <a href="index.php?view=insight_details&id=${insight.id}" class="note-card">
                         <div class="note-header">
                             <i class="fas fa-chart-line note-icon"></i>
                             <div class="note-title">${escapeHTML(insight.asset_symbol_text)}</div>
                         </div>
                         <div class="note-meta">
-                            <div class="note-meta-row">${window.lang['created_at']} : ${date}</div>
+                            <div class="note-meta-row">
+                                ${date}
+                            </div>
                             <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
-                                ${window.lang['created_by']} : ${creator}
+                                ${window.lang['created_by']}: ${creator}
                             </div>
                         </div>
-                </div>`;
+                    </a>`;
             });
             container.innerHTML = html;
         }
@@ -177,6 +179,40 @@ async function loadNoteDetails() {
     }
 }
 
+async function loadInsightDetails() {
+    const id = document.getElementById('current-insight-id')?.value;
+    if (!id) return;
+
+    try {
+        const res = await fetch(`api/api.php?action=get_insight_details&id=${id}`);
+        const json = await res.json();
+
+        if (json.success) {
+            const i = json.data;
+
+            // Заполняем заголовок и контент
+            document.getElementById('insight-details-title').textContent = i.asset_symbol || 'Insight';
+            document.getElementById('insight-content-display').innerHTML = i.content || '';
+            
+            // Метаданные
+            const date = new Date(i.created_at).toLocaleDateString();
+            document.getElementById('insight-date-info').textContent = date;
+            document.getElementById('insight-created-at').textContent = date;
+            
+            document.getElementById('insight-asset-symbol').textContent = i.asset_symbol || 'N/A';
+            document.getElementById('insight-creator').textContent = i.creator_name || 'System';
+
+            // Кнопки действий
+            document.getElementById('btn-edit-insight').onclick = () => window.location.href = `index.php?view=insight_create&id=${i.id}`;
+            document.getElementById('btn-delete-insight').onclick = () => deleteInsight(i.id);
+        } else {
+            showToast(json.message, 'error');
+        }
+    } catch (e) {
+        console.error('Error loading insight details:', e);
+    }
+}
+
 async function deleteNote(id) {
     if (!await showConfirm(window.lang['confirm_delete_note'])) return;
     const fd = new FormData(); fd.append('id', id);
@@ -186,6 +222,8 @@ async function deleteNote(id) {
 
 async function initInsightForm() {
     const idEl = document.getElementById('edit-insight-id');
+    
+    // Инициализация редактора Quill
     if (document.getElementById('insight-editor-container')) {
         document.getElementById('insight-editor-container').innerHTML = '';
         quillEditorInsight = new Quill('#insight-editor-container', {
@@ -223,13 +261,28 @@ async function initInsightForm() {
         });
     }
 
+    // Если мы в режиме редактирования (есть ID), подгружаем данные из API
     if (idEl && idEl.value) {
-        const r = await fetch(`api/api.php?action=get_insight_details&id=${idEl.value}`);
-        const j = await r.json();
-        if (j.success) {
-            const i = j.data;
-            document.getElementById('insight-title').value = i.title;
-            if (quillEditorInsight) quillEditorInsight.clipboard.dangerouslyPasteHTML(i.content || '');
+        try {
+            const r = await fetch(`api/api.php?action=get_insight_details&id=${idEl.value}`);
+            const j = await r.json();
+            
+            if (j.success) {
+                const i = j.data;
+                
+                // Исправлено: устанавливаем значение asset_id в селект с id="insight-asset-id"
+                const assetSelect = document.getElementById('insight-asset-id');
+                if (assetSelect) {
+                    assetSelect.value = i.asset_id;
+                }
+
+                // Заполняем контент редактора
+                if (quillEditorInsight) {
+                    quillEditorInsight.clipboard.dangerouslyPasteHTML(i.content || '');
+                }
+            }
+        } catch (e) {
+            console.error('Error loading insight data for edit:', e);
         }
     }
 }
@@ -336,4 +389,7 @@ async function initNotesTabs() {
 // Вызов инициализации функции при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     initNotesTabs();
+    if (document.getElementById('current-insight-id')?.value) {
+        loadInsightDetails();
+    }
 });

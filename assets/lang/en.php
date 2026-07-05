@@ -443,4 +443,6 @@ return [
     'created_by' => 'Created by',
     'updated_at' => 'Updated at',
     'created_at' => 'Created at',
+    'information' => 'Information',
+    'asset_label' => 'Asset',
 ];
