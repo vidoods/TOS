@@ -196,7 +196,6 @@ async function loadInsightDetails() {
             
             // Метаданные
             const date = new Date(i.created_at).toLocaleDateString();
-            document.getElementById('insight-date-info').textContent = date;
             document.getElementById('insight-created-at').textContent = date;
             
             document.getElementById('insight-asset-symbol').textContent = i.asset_symbol || 'N/A';
