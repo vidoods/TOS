@@ -163,4 +163,31 @@ function getNoteDetails($pdo) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+
+function getAssetInsights($pdo) {
+    try {
+        $uid = $_SESSION['user_id'];
+
+        // We join BOTH 'users' (for creator name) AND 'user_pairs' (for the asset symbol)
+        $sql = "SELECT 
+                    a.*, 
+                    u.username as creator_name, 
+                    up.symbol as asset_symbol_text
+                FROM asset_profiles a
+                LEFT JOIN users u ON a.created_by = u.id
+                LEFT JOIN user_pairs up ON a.asset_id = up.id
+                WHERE a.user_id = ? 
+                ORDER BY a.created_at DESC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$uid]);
+        $insights = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'data' => $insights]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
 ?>

@@ -41,7 +41,8 @@ require __DIR__ . '/handlers/data_analysis.php';
 require __DIR__ . '/handlers/strategy.php';
 require __DIR__ . '/handlers/mpa.php';
 require __DIR__ . '/handlers/qpa.php';
-require __DIR__ . '/handlers/settings.php'; 
+require __DIR__ . '/handlers/settings.php';
+require __DIR__ . '/handlers/insights.php';
 
 try {
     switch ($action) {
@@ -139,6 +140,9 @@ try {
         case 'get_note_details': getNoteDetails($conn); break;
         case 'save_note':       saveNote($conn); break;
         case 'delete_note':     deleteNote($conn); break;
+        case 'get_asset_insights': getAssetInsights($conn); break;
+        case 'save_insight': saveInsight($conn); break;
+        case 'delete_insight': deleteInsight($conn); break;
 
         // --- АККАУНТЫ ---
         case 'get_accounts_data':  getAccountsData($conn); break;

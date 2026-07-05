@@ -1,7 +1,4 @@
 // assets/modules/notes.js
-// ==================================================
-// ФУНКЦИИ ДЛЯ ЗАМЕТОК (NOTES)
-// ==================================================
 
 async function loadNotes() {
     const container = document.getElementById('notes-grid-container');
@@ -25,27 +22,67 @@ async function loadNotes() {
                 const usageStyle = isUsed ? 'color: var(--accent-blue); font-weight: 500;' : 'color: var(--text-secondary); opacity: 0.5;';
 
                 html += `
-                <a href="index.php?view=note_details&id=${note.id}" class="note-card">
-                    <div class="note-header">
-                        <i class="fas fa-bookmark note-icon"></i>
-                        <div class="note-title">${note.title}</div>
-                    </div>
-                    <div class="note-meta">
-                        <div class="note-meta-row">
-                            <span>${note.date_formatted}</span>
-                            <span class="meta-divider">/</span>
-                            <span>${note.day}</span>
-                            <span class="meta-divider">/</span>
-                            <span>${note.week}</span>
+                    <a href="index.php?view=note_details&id=${note.id}" class="note-card">
+                        <div class="note-header">
+                            <i class="fas fa-bookmark note-icon"></i>
+                            <div class="note-title">${note.title}</div>
                         </div>
-                        <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
-                            ${note.relations}
+                        <div class="note-meta">
+                            <div class="note-meta-row">
+                                <span>${note.date_formatted}</span>
+                                <span class="meta-divider">/</span>
+                                <span>${note.day}</span>
+                                <span class="meta-divider">/</span>
+                                <span>${note.week}</span>
+                            </div>
+                            <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
+                                ${note.relations}
+                            </div>
+                            <div class="note-meta-row" style="${usageStyle}">
+                                ${window.lang['latest_usage']}: ${note.latest_usage}
+                            </div>
                         </div>
-                         <div class="note-meta-row" style="${usageStyle}">
-                            ${window.lang['latest_usage']}: ${note.latest_usage}
-                        </div>
-                    </div>
                 </a>`;
+            });
+            container.innerHTML = html;
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function loadAssetInsights() {
+    const container = document.getElementById('assets-insights-grid-container');
+    if (!container) return;
+
+    container.innerHTML = `<div class="row">${getSkeletonHtml('card', 4)}</div>`;
+
+    try {
+        const res = await fetch('api/api.php?action=get_asset_insights');
+        const json = await res.json();
+
+        if (json.success) {
+            if (json.data.length === 0) {
+                container.innerHTML = `<div class="empty-state">${window.lang['no_asset_insights']}</div>`;
+                return;
+            }
+
+            let html = '';
+            json.data.forEach(insight => {
+                const date = new Date(insight.created_at).toLocaleDateString();
+                const creator = insight.creator_name || 'N/A';
+
+                html += `
+                    <div class="note-card">
+                        <div class="note-header">
+                            <i class="fas fa-chart-line note-icon"></i>
+                            <div class="note-title">${escapeHTML(insight.asset_symbol_text)}</div>
+                        </div>
+                        <div class="note-meta">
+                            <div class="note-meta-row">${window.lang['created_at']} : ${date}</div>
+                            <div class="note-meta-row" style="color: var(--text-secondary); opacity: 0.7;">
+                                ${window.lang['created_by']} : ${creator}
+                            </div>
+                        </div>
+                </div>`;
             });
             container.innerHTML = html;
         }
@@ -146,3 +183,157 @@ async function deleteNote(id) {
     await fetch('api/api.php?action=delete_note', { method: 'POST', body: fd });
     window.location.href = 'index.php?view=notes';
 }
+
+async function initInsightForm() {
+    const idEl = document.getElementById('edit-insight-id');
+    if (document.getElementById('insight-editor-container')) {
+        document.getElementById('insight-editor-container').innerHTML = '';
+        quillEditorInsight = new Quill('#insight-editor-container', {
+            theme: 'snow',
+            placeholder: window.lang['type_here'],
+            modules: {
+                toolbar: {
+                    container: fullToolbarOptions,
+                    handlers: {
+                        'image': function () {
+                            const input = document.createElement('input');
+                            input.setAttribute('type', 'file');
+                            input.setAttribute('accept', 'image/*');
+                            input.click();
+
+                            input.onchange = async () => {
+                                const file = input.files[0];
+                                if (file && /^image\//.test(file.type)) {
+                                    try {
+                                        const url = await uploadFile(file, 'insights');
+                                        const range = quillEditorInsight.getSelection();
+                                        quillEditorInsight.insertEmbed(range.index, 'image', url);
+                                    } catch (e) {
+                                        console.error('Upload failed:', e);
+                                        showToast(window.lang['failed_load_image'], 'error');
+                                    }
+                                } else {
+                                    showToast(window.lang['select_image'], 'warning');
+                                }
+                            };
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (idEl && idEl.value) {
+        const r = await fetch(`api/api.php?action=get_insight_details&id=${idEl.value}`);
+        const j = await r.json();
+        if (j.success) {
+            const i = j.data;
+            document.getElementById('insight-title').value = i.title;
+            if (quillEditorInsight) quillEditorInsight.clipboard.dangerouslyPasteHTML(i.content || '');
+        }
+    }
+}
+
+async function saveInsight(event) { // 1. Добавляем event в аргументы
+    if (event) event.preventDefault(); // 2. ОСТАНАВЛИВАЕМ стандартную перезагрузку страницы!
+
+    const form = document.getElementById('insight-form');
+    const data = new FormData(form);
+    
+    // Проверяем, есть ли редактор, чтобы не упасть с ошибкой
+    if (typeof quillEditorInsight !== 'undefined' && quillEditorInsight) {
+        const contentEditor = quillEditorInsight.root.innerHTML;
+        data.set('content', contentEditor);
+    }
+
+    // Убедитесь, что URL правильный! 
+    // Если вы используете action=save_insight в api.php, то и здесь должно быть так же.
+    const url = 'api/api.php?action=save_insight'; 
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST', // Используем POST
+            body: data
+        });
+
+        const json = await response.json();
+        if (json.success) {
+            // Переходим на страницу инсайтов только при успехе
+            window.location.href = 'index.php?view=notes'; 
+        } else {
+            showToast(json.message, 'error');
+        }
+    } catch (e) {
+        console.error('Error saving insight:', e);
+        showToast('Ошибка при сохранении', 'error');
+    }
+}
+
+
+async function deleteInsight(id) {
+    if (!await showConfirm(window.lang['confirm_delete_insight'])) return;
+    const fd = new FormData(); fd.append('id', id);
+    await fetch('api/api.php?action=delete_insight', { method: 'POST', body: fd });
+    window.location.href = 'index.php?view=insights';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initInsightForm();
+});
+
+async function initNotesTabs() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    // Функция для изменения текста кнопки
+    function updateAddButton(tabId) {
+    const addButton = document.getElementById('add-note-btn');
+    if (!addButton) return;
+
+    // Находим текст внутри кнопки (теперь это span)
+    const textSpan = addButton.querySelector('.btn-text');
+    
+    if (tabId === 'assets-insights') {
+        // Меняем ссылку
+        addButton.href = "index.php?view=insight_create";
+        // Меняем текст
+        if (textSpan) textSpan.textContent = window.lang['add_new_insight'] || 'Add Insight';
+    } else {
+        // Возвращаем старую ссылку
+        addButton.href = "index.php?view=note_create";
+        // Возвращаем старый текст
+        if (textSpan) textSpan.textContent = window.lang['new_note'] || 'New Note';
+    }
+    }
+
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetId = tab.getAttribute('data-tab');
+
+            // Скрываем все вкладки и контенты
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            // Активируем выбранную вкладку и контент
+            tab.classList.add('active');
+            document.getElementById(`tab-${targetId}`).classList.add('active');
+
+            // Загрузка данных для вкладки Assets Insights при первом открытии
+            if (targetId === 'assets-insights' && !document.getElementById('tab-assets-insights').classList.contains('loaded')) {
+                loadAssetInsights();
+                document.getElementById('tab-assets-insights').classList.add('loaded');
+            }
+            // Обновляем текст кнопки
+            updateAddButton(targetId);
+        });
+    });
+
+    // Загрузка данных для вкладки Notes при загрузке страницы
+    loadNotes();
+}
+
+// Вызов инициализации функции при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    initNotesTabs();
+});

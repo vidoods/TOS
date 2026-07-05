@@ -434,4 +434,13 @@ return [
     'change_currency_rub' => 'Змінити валюту на RUB (₽)',
     'change_currency_uah' => 'Змінити валюту на UAH (₴)',
     'change_currency' => 'Змінити валюту',
+    'assets_insights' => 'Спостереження за активом',
+    'add_new_insight' => 'Нове спостереження',
+    'edit_insight' => 'Редагувати спостереження',
+    'insight_title_placeholder' => 'Назва спостереження',
+    'insight_description_placeholder' => 'Опис спостереження',
+    'no_asset_insights' => 'Немає спостережень за активами',
+    'created_by' => 'Автор',
+    'updated_at' => 'Оновлено',
+    'created_at' => 'Створено',
 ];

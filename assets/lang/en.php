@@ -434,4 +434,13 @@ return [
     'change_currency_rub' => 'Change currency to RUB (₽)',
     'change_currency_uah' => 'Change currency to UAH (₴)',
     'change_currency' => 'Change currency',
+    'assets_insights'=> 'Assets Insights',
+    'add_new_insight'=> 'New insight',
+    'edit_insight'=> 'Edit insight',
+    'insight_title_placeholder' => 'Insight title',
+    'insight_description_placeholder' => 'Insight description',
+    'no_asset_insights' => 'No asset insights found',
+    'created_by' => 'Created by',
+    'updated_at' => 'Updated at',
+    'created_at' => 'Created at',
 ];
