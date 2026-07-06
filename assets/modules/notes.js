@@ -286,38 +286,56 @@ async function initInsightForm() {
     }
 }
 
-async function saveInsight(event) { // 1. Добавляем event в аргументы
-    if (event) event.preventDefault(); // 2. ОСТАНАВЛИВАЕМ стандартную перезагрузку страницы!
+async function saveInsight(event) {
+    if (event) event.preventDefault();
 
     const form = document.getElementById('insight-form');
-    const data = new FormData(form);
-    
-    // Проверяем, есть ли редактор, чтобы не упасть с ошибкой
-    if (typeof quillEditorInsight !== 'undefined' && quillEditorInsight) {
-        const contentEditor = quillEditorInsight.root.innerHTML;
-        data.set('content', contentEditor);
+    if (!form) {
+        console.error('Insight form not found');
+        showToast('Ошибка: форма инсайта не найдена', 'error');
+        return;
     }
 
-    // Убедитесь, что URL правильный! 
-    // Если вы используете action=save_insight в api.php, то и здесь должно быть так же.
-    const url = 'api/api.php?action=save_insight'; 
+    const data = new FormData(form);
 
+    // Получаем ID из скрытого поля
+    const id = document.getElementById('edit-insight-id')?.value;
+    
+    // Добавляем ID в данные, если он существует
+    if (id) {
+        data.set('id', id);
+    }
+    
+    // Проверяем содержимое редактора Quill
+    const content = document.getElementById('insight-editor-container');
+    if (content && typeof quillEditorInsight !== 'undefined' && quillEditorInsight) {
+        try {
+            const contentHTML = quillEditorInsight.root.innerHTML;
+            data.set('content', contentHTML);
+        } catch (e) {
+            console.error('Error getting content from Quill editor:', e);
+        }
+    } else if (content && typeof quillEditorInsight === 'undefined') {
+        console.warn('Quill editor not initialized yet');
+    }
+
+    // Отправляем данные
     try {
-        const response = await fetch(url, {
-            method: 'POST', // Используем POST
+        const response = await fetch('api/api.php?action=save_insight', {
+            method: 'POST',
             body: data
         });
 
         const json = await response.json();
         if (json.success) {
-            // Переходим на страницу инсайтов только при успехе
+            // Переходим на страницу заметок при успехе
             window.location.href = 'index.php?view=notes'; 
         } else {
             showToast(json.message, 'error');
         }
     } catch (e) {
         console.error('Error saving insight:', e);
-        showToast('Ошибка при сохранении', 'error');
+        showToast('Ошибка при сохранении инсайта', 'error');
     }
 }
 

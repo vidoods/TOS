@@ -54,13 +54,13 @@ function saveInsight($pdo) {
                 throw new Exception("Access denied or record not found");
             }
 
-            $stmt = $pdo->prepare("UPDATE asset_profiles SET asset_id = ?, content =					?, created_by = ? WHERE id = ?");
-            $stmt->execute([$asset_id, $content, $uid, $id]);
+            $stmt = $pdo->prepare("UPDATE asset_profiles SET asset_id = ?, content = ? WHERE id = ?");
+            $stmt->execute([$asset_id, $content, $id]);
             $action_taken = "UPDATE";
         } else {
             // INSERT logic
-            $stmt = $pdo->prepare("INSERT INTO asset_profiles (user_id, asset_id, content, created_by) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$uid, $asset_id, $content, $uid]);
+            $stmt = $pdo->prepare("INSERT INTO asset_profiles (user_id, asset_id, content) VALUES (?, ?, ?)");
+            $stmt->execute([$uid, $asset_id, $content]);
             $id = $pdo->lastInsertId();
             $action_taken = "INSERT";
         }

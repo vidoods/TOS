@@ -18,7 +18,7 @@ $page_title = $is_edit ? $lang['edit_insight'] : $lang['add_new_insight'];
 
     <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px;">
         <div class="card-body p-4">
-            <input type="hidden" id="edit-insight-id" value="<?= htmlspecialchars($insight_id ?? '') ?>">
+            <input type="hidden" name="id" id="edit-insight-id" value="<?= htmlspecialchars($insight_id ?? '') ?>">
 
             <form id="insight-form" onsubmit="saveInsight(event)">
                 <div class="mb-4">
