@@ -157,7 +157,7 @@ function showConfirm(message, confirmText = null, cancelText = null) {
                 .custom-confirm-footer {
                     display: flex;
                     gap: 12px;
-                    justify-content: flex-end;
+                    justify-content: center;
                 }
                 .custom-confirm-footer button {
                     padding: 10px 18px;
