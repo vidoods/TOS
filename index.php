@@ -229,11 +229,6 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
         <div id="modal-caption"></div>
     </div>
 
-    <button class="mobile-fab border-0" data-bs-toggle="modal" data-bs-target="#quickAddModal"
-        onclick="initQuickTrade()" title="Quick Add Trade">
-        <i class="fas fa-plus"></i>
-    </button>
-
     <link href="assets/quill.snow.css" rel="stylesheet">
     <script src="assets/bootstrap.bundle.min.js"></script>
     <script src="assets/quill.js"></script>
@@ -264,6 +259,12 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/modules/qpa.js"></script>
     <script src="assets/modules/quick_trade.js"></script>
     <script src="assets/modules/init.js?v=<?php echo time(); ?>"></script>
+
+    <?php if (isset($_SESSION['user_id'])): ?>
+    <button class="mobile-fab border-0" data-bs-toggle="modal" data-bs-target="#quickAddModal"
+        onclick="initQuickTrade()" title="Quick Add Trade">
+        <i class="fas fa-plus"></i>
+    </button>
 
     <div class="modal fade" id="quickAddModal" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(5px);">
         <div class="modal-dialog modal-dialog-centered">
@@ -337,6 +338,7 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
 </body>
 
