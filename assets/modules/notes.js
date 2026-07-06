@@ -342,9 +342,27 @@ async function saveInsight(event) {
 
 async function deleteInsight(id) {
     if (!await showConfirm(window.lang['confirm_delete_insight'])) return;
-    const fd = new FormData(); fd.append('id', id);
-    await fetch('api/api.php?action=delete_insight', { method: 'POST', body: fd });
-    window.location.href = 'index.php?view=insights';
+    const fd = new FormData(); 
+    fd.append('id', id);
+    
+    try {
+        const response = await fetch('api/api.php?action=delete_insight', { 
+            method: 'POST',
+            body: fd
+        });
+
+        const json = await response.json();
+        
+        if (json.success) {
+            // Перенаправляем на страницу notes
+            window.location.href = 'index.php?view=notes';
+        } else {
+            showToast(json.message, 'error');
+        }
+    } catch (e) {
+        console.error('Error deleting insight:', e);
+        showToast('Ошибка при удалении инсайта', 'error');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

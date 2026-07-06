@@ -95,10 +95,11 @@ function deleteInsight($pdo) {
 
         if (!$id) throw new Exception("No ID provided");
 
-        $check = $pdo->prepare("SELECT id FROM asset_profiles WHERE id = ? AND user_id = ?");
-        $check->execute([$id, $uid]);
-        if ($check->fetch()) {
-            $pdo->prepare("DELETE FROM asset_profiles WHERE id = ?")->execute([$id]);
+        $stmt = $pdo->prepare("SELECT id FROM asset_profiles WHERE id = ? AND user_id = ?");
+        $stmt->execute([$id, $uid]);
+        if ($stmt->fetch()) {
+            $deleteStmt = $pdo->prepare("DELETE FROM asset_profiles WHERE id = ?");
+            $deleteStmt->execute([$id]);
         }
 
         echo json_encode(['success' => true]);

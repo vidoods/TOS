@@ -445,4 +445,5 @@ return [
     'created_at' => 'Created at',
     'information' => 'Information',
     'asset_label' => 'Asset',
+    'confirm_delete_insight' => 'Are you sure you want to delete this insight?',
 ];
