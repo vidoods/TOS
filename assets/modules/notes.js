@@ -329,7 +329,7 @@ async function saveInsight(event) {
         const json = await response.json();
         if (json.success) {
             // Переходим на страницу заметок при успехе
-            window.location.href = 'index.php?view=notes'; 
+            window.location.href = 'index.php?view=notes';
         } else {
             showToast(json.message, 'error');
         }

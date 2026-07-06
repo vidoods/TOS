@@ -41,6 +41,7 @@ function saveInsight($pdo) {
         $id  = $d['id'] ?? null;
         $asset_id = $d['asset_id'] ?? null;
         $content = $d['content'] ?? '';
+        $created_by = $d['created_by'] ?? $uid;
 
         if (!$asset_id) {
             throw new Exception("Asset ID is missing in request");
@@ -59,8 +60,8 @@ function saveInsight($pdo) {
             $action_taken = "UPDATE";
         } else {
             // INSERT logic
-            $stmt = $pdo->prepare("INSERT INTO asset_profiles (user_id, asset_id, content) VALUES (?, ?, ?)");
-            $stmt->execute([$uid, $asset_id, $content]);
+            $stmt = $pdo->prepare("INSERT INTO asset_profiles (user_id, asset_id, content, created_by) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$uid, $asset_id, $content, $created_by]);
             $id = $pdo->lastInsertId();
             $action_taken = "INSERT";
         }
