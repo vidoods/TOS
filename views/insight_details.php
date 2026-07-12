@@ -51,12 +51,14 @@
         </div>
 
         <!-- Основной контент инсайта -->
+        <div class="row g-4">
         <div class="col-lg-8">
              <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; min-height: 400px;">
                 <div class="card-body p-4">
                     <div id="insight-content-display" class="ql-editor" style="padding: 0; color: var(--text-main); font-size: 1.05rem;"></div>
                 </div>
              </div>
+        </div>
         </div>
     </div>
 </div>

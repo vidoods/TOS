@@ -40,31 +40,6 @@ function setupFiltersModal(loadFunction) {
     if (resetBtn) resetBtn.addEventListener('click', () => { form.reset(); loadFunction({}); close(); });
 }
 
-function setupLightbox() {
-    const modal = document.getElementById('image-modal');
-    if (!modal) return;
-    const modalImg = document.getElementById('modal-image');
-    const closeBtn = modal.querySelector('.modal-close');
-
-    document.addEventListener('click', e => {
-        const isNoteImage = e.target.tagName === 'IMG' && e.target.closest('#note-content-display');
-
-        if (e.target.classList.contains('lightbox-trigger') || isNoteImage) {
-            modal.style.display = "flex";
-            modalImg.src = e.target.src;
-            document.body.style.overflow = 'hidden';
-        }
-    });
-
-    const close = () => {
-        modal.style.display = "none";
-        document.body.style.overflow = '';
-    };
-
-    if (closeBtn) closeBtn.addEventListener('click', close);
-    modal.onclick = e => { if (e.target === modal) close(); };
-}
-
 async function loadDashboardMetrics(overrideAccountId = null, isDetailedView = false) {
     try {
         let accountId, year, month;

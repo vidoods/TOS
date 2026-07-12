@@ -425,6 +425,7 @@ async function initNotesTabs() {
 document.addEventListener('DOMContentLoaded', () => {
     initNotesTabs();
     if (document.getElementById('current-insight-id')?.value) {
-        loadInsightDetails();
+        loadInsightDetails(); 
+        setTimeout(setupLightbox, 100); 
     }
 });

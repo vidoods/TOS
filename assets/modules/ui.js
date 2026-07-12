@@ -2,6 +2,31 @@
 // ==================================================
 // УВЕДОМЛЕНИЯ И UI-УТИЛИТЫ
 // ==================================================
+function setupLightbox() {
+    const modal = document.getElementById('image-modal');
+    if (!modal) return;
+    const modalImg = document.getElementById('modal-image');
+    const closeBtn = modal.querySelector('.modal-close');
+
+    document.addEventListener('click', e => {
+        const isNoteImage = e.target.tagName === 'IMG' && e.target.closest('#note-content-display');
+        const isInsightImage = e.target.tagName === 'IMG' && e.target.closest('#insight-content-display');
+
+        if (e.target.classList.contains('lightbox-trigger') || isNoteImage || isInsightImage) {
+            modal.style.display = "flex";
+            modalImg.src = e.target.src;
+            document.body.style.overflow = 'hidden';
+        }
+    });
+
+    const close = () => {
+        modal.style.display = "none";
+        document.body.style.overflow = '';
+    };
+
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    modal.onclick = e => { if (e.target === modal) close(); };
+}
 
 function showToast(message, type = 'info') {
     let background = "linear-gradient(135deg, #2193b0, #6dd5ed)";
