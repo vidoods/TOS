@@ -84,7 +84,7 @@
 </div>
 
 <div class="charts-area mt-4">
-    <div class="card glass-panel border-0 shadow-sm" style="border-radius: 12px; padding: 20px;">
+    <div class="mpa-card">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="m-0" style="font-size: 1.2rem; font-weight: 600; color: var(--text-main);"><?= $lang['equity_curve'] ?></h3>
         </div>
@@ -95,7 +95,7 @@
     </div>
 </div>
 
-<div class="glass-panel p-4 mt-4 text-white">
+<div class="mpa-card p-4 mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="m-0"><i class="far fa-calendar-check me-2" style="color: var(--accent-blue);"></i><?= $lang['trading_activity'] ?></h5>
         <div class="heatmap-legend d-flex align-items-center gap-1 small text-muted">

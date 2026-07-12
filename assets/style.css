@@ -1262,7 +1262,6 @@ input:checked + .slider:before {
   transition: all 0.2s ease;
   min-height: 90px;
   height: 100%;
-  cursor: pointer;
 }
 
 .metric-card:hover {
