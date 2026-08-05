@@ -192,6 +192,7 @@ async function loadTrades(filters = {}) {
                 const pnlClass = group.total_pnl >= 0 ? 'text-profit' : 'text-loss';
                 const pctVal = group.total_percent || 0;
                 const pctSign = pctVal >= 0 ? '+' : '';
+                let pctColorClass = group.total_percent >= 0 ? 'text-profit' : 'text-loss';
 
                 // ИСПРАВЛЕНИЕ: Интегрирован CurrencyManager.format для вывода суммарных PnL по месяцам
                 html += `
@@ -206,7 +207,7 @@ async function loadTrades(filters = {}) {
                                 <div class="sum-item ${pnlClass}">
                                     PnL: ${CurrencyManager.format(group.total_pnl)}
                                 </div>
-                                <div class="sum-item ${pnlClass}">
+                                <div class="sum-item ${pctColorClass}">
                                     ${pctSign}${pctVal.toFixed(2)}%
                                 </div>
                                 <div class="sum-item text-main">

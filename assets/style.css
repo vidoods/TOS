@@ -955,6 +955,16 @@ input:checked + .slider:before {
   color: var(--accent-red);
 }
 
+.text-long {
+  color: var(--accent-green);
+  background: rgba(0, 214, 111, 0.1);
+}
+
+.text-short {
+  color: var(--accent-red);
+  background: rgba(255, 69, 58, 0.1);
+}
+
 .text-profit {
   color: var(--accent-green);
   font-weight: 600;

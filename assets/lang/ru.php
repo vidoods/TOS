@@ -446,4 +446,5 @@ return [
     'information' => 'Информация',
     'asset_label' => 'Актив',
     'confirm_delete_insight' => 'Вы уверены, что хотите удалить это наблюдение?',
+    'share_trade' => 'Поделиться сделкой',
 ];

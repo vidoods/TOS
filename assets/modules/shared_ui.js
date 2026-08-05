@@ -14,6 +14,7 @@ function getTradeRowHtml(trade) {
     const pnlVal = parseFloat(trade.pnl);
     const formattedPnl = CurrencyManager.format(pnlVal);
     const pnlColor = pnlVal >= 0 ? 'text-profit' : 'text-loss';
+    let dirColorClass = trade.direction === 'Long' ? 'text-long' : 'text-short';
     
     const rrVal = Number(trade.rr_achieved).toFixed(2);
     const accName = trade.account_name || '-';
@@ -31,7 +32,7 @@ function getTradeRowHtml(trade) {
         </div>
         <div class="t-col t-dir">
             <span class="mobile-label">${window.lang['dir']}:</span>
-            <span class="dir-tag dir-${trade.direction} status-tag ${statusClass}">${trade.direction.toUpperCase()}</span>
+            <span class="dir-tag dir-${trade.direction} status-tag ${dirColorClass}">${trade.direction.toUpperCase()}</span>
         </div>
         <div class="t-col t-status">
             <span class="mobile-label">${window.lang['status']}:</span>
