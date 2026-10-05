@@ -240,10 +240,9 @@
                 </div>
                 <div class="profile-card-body">
                     <div class="setting-input-group pair-inputs">
-                        <input type="text" id="new-pair-symbol" class="profile-input" placeholder="BTCUSDT">
+                        <input type="text" id="new-pair-symbol" class="profile-input" placeholder="Ticker: BTCUSDT, EURUSD">
+                        <input type="text" id="new-pair-provider" class="profile-input" placeholder="Provider: BINANCE, OANDA">
                         <select id="new-pair-type" class="profile-input">
-                            <option value="Crypto">Crypto</option>
-                            <option value="Forex">Forex</option>
                         </select>
                         <button class="btn-add" onclick="addPair()">+</button>
                     </div>

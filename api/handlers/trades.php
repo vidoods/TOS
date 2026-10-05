@@ -57,7 +57,7 @@ function getTradeDetails($pdo) {
 
         // 1. Основной запрос (уже был безопасным, оставляем как есть)
         $query = "SELECT t.*,
-                         rp.symbol AS pair_symbol, rp.type AS pair_type,
+                         rp.symbol AS pair_symbol, rp.type AS pair_type, rp.provider AS pair_provider,
                          a.name AS account_name, a.type AS account_type,
                          p.title AS plan_title, p.date AS plan_date,
                          rs.name AS style_name,

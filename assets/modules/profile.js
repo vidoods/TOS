@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
             li.className = 'settings-item';
             // ИСПРАВЛЕНИЕ УЯЗВИМОСТИ XSS: Безопасное экранирование тикера и типа пары
             li.innerHTML = `
-                <span>${escapeHTML(p.symbol)} <small class='text-muted'>(${escapeHTML(p.type)})</small></span>
+                <span>${escapeHTML(p.symbol)}:${escapeHTML(p.provider)} <small class='text-muted'>(${escapeHTML(p.type)})</small></span>
                 <i class="fas fa-trash btn-del" onclick="deleteSetting('pair', ${p.id}, '${escapeHTML(p.symbol)}')"></i>
             `;
             container.appendChild(li);
@@ -119,17 +119,20 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addPair = function() {
         const symbolEl = document.getElementById('new-pair-symbol');
         const typeEl = document.getElementById('new-pair-type');
-        if (!symbolEl || !typeEl) return;
+        const providerEl = document.getElementById('new-pair-provider');
+        if (!symbolEl || !typeEl || !providerEl) return;
 
         const symbol = symbolEl.value.trim();
         const type = typeEl.value;
-        if (!symbol) return;
+        const provider = providerEl.value.trim().toUpperCase();
+        if (!symbol || !provider) return;
 
         const formData = new FormData();
         formData.append('action', 'add_user_setting');
         formData.append('type', 'pair');
         formData.append('symbol', symbol);
         formData.append('pair_type', type);
+        formData.append('provider', provider);
 
         fetch('api/api.php', { method: 'POST', body: formData })
             .then(r => r.json())

@@ -24,7 +24,7 @@ function getUserSettings($conn) {
         $styles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // 3. Получаем пары
-        $stmt = $conn->prepare("SELECT id, symbol, type FROM user_pairs WHERE user_id = ?");
+        $stmt = $conn->prepare("SELECT id, symbol, type, provider FROM user_pairs WHERE user_id = ?");
         $stmt->execute([$userId]);
         $pairs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -55,29 +55,30 @@ function addUserSettings($conn) {
     $type = $_POST['type'] ?? ''; // 'timeframe', 'style', 'pair', 'model' или 'currency'
 
     try {
-        if (!$userId) throw new Exception("Ошибка авторизации");
+        if (!$userId) throw new Exception("Authorisation required");
 
         if ($type === 'timeframe') {
             $name = trim($_POST['name'] ?? '');
-            if (empty($name)) throw new Exception("Название не может быть пустым");
+            if (empty($name)) throw new Exception("Timeframe can not be empty");
             
             $stmt = $conn->prepare("INSERT INTO user_timeframes (user_id, name) VALUES (?, ?)");
             $stmt->execute([$userId, $name]);
         } 
         elseif ($type === 'style') {
             $name = trim($_POST['name'] ?? '');
-            if (empty($name)) throw new Exception("Название не может быть пустым");
+            if (empty($name)) throw new Exception("Style can not be empty");
 
             $stmt = $conn->prepare("INSERT INTO user_styles (user_id, name) VALUES (?, ?)");
             $stmt->execute([$userId, $name]);
         } 
         elseif ($type === 'pair') {
             $symbol = trim($_POST['symbol'] ?? '');
-            if (empty($symbol)) throw new Exception("Символ пары не может быть пустым");
+            if (empty($symbol)) throw new Exception("Pair can not be empty");
 
             $pairType = $_POST['pair_type'] ?? 'Crypto';
-            $stmt = $conn->prepare("INSERT INTO user_pairs (user_id, symbol, type) VALUES (?, ?, ?)");
-            $stmt->execute([$userId, $symbol, $pairType]);
+            $provider = trim($_POST['provider'] ?? '');
+            $stmt = $conn->prepare("INSERT INTO user_pairs (user_id, symbol, type, provider) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$userId, $symbol, $pairType, $provider]);
         }
         elseif ($type === 'model') {
             $name = trim($_POST['name'] ?? '');

@@ -357,6 +357,33 @@ async function loadTradeDetails() {
                 }
             }
 
+            // --- ЛОГИКА ДЛЯ ГРАФИКА ---
+            const chartPlaceholder = document.getElementById('dynamic-chart-container');
+
+            // Рисуем график ТОЛЬКО если сделка закрыта (есть и вход, и выход)
+            if (chartPlaceholder && trade.exit_date && trade.entry_date) {
+
+                // 1. Вставляем структуру секции в контейнер
+                chartPlaceholder.innerHTML = `
+                    <section style="margin-bottom: 40px;">
+                        <h3 class="section-title">Chart Analysis</h3>
+                        <div class="glass-panel" style="padding: 20px; border: 1px solid var(--glass-border);">
+                            <div id="tv-chart-canvas" style="width: 100%; height: 400px;"></div>
+                        </div>
+                    </section>
+                `;
+
+                // 2. Запускаем инициализацию (если функция доступна)
+                if (typeof initTradingViewChart === 'function') {
+                    try {
+                        initTradingViewChart(trade);
+                    } catch (error) {
+                        console.error('Error initializing TradingView chart:', error);
+                    }
+                }
+            }
+            // ----------------------------------------------
+
             const tradeImgList = document.getElementById('trade-images-list');
             if (tradeImgList) {
                 tradeImgList.innerHTML = '';
@@ -393,6 +420,97 @@ async function deleteEntity(id, action, redirectView) {
         if (result.success) window.location.href = `index.php?view=${redirectView}`;
         else showMessage(window.lang['delete_error'] + ': ' + result.message, 'error');
     } catch (e) { console.error(e); showMessage(window.lang['network_error'], 'error'); }
+}
+
+/**
+ * Инициализация графика TradingView (Lightweight Charts)
+ * @param {Object} trade - Объект сделки с данными
+ */
+async function initTradingViewChart(trade) {
+    const container = document.getElementById('tv-chart-canvas');
+    if (!container) return;
+
+    // Очищаем контейнер перед отрисовкой
+    container.innerHTML = '';
+
+    // Получаем символ и таймфрейм (используем данные из сделки)
+    const symbol = trade.pair_symbol || 'BTCUSD'; 
+    const interval = trade.entry_tf || '4h';
+
+    try {
+        // 1. Загружаем данные свечей через наш API
+        const response = await fetch(`api/api.php?action=get_candles&symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}`);
+        const result = await response.json();
+
+        if (!result.success) throw new Error(result.message);
+
+        // 2. Проверяем наличие библиотеки Lightweight Charts
+        if (typeof LightweightCharts === 'undefined') {
+            container.innerHTML = `
+                <div class="alert alert-warning mb-0" style="background: rgba(255, 193, 71, 0.2); border: 1px solid #ffc147; color: #ffc147;">
+                    <i class="fas fa-exclamation-triangle me-2"></i> 
+                    ${window.lang?.library_not_loaded || 'TradingView Library not loaded. Please check CDN.'}
+                </div>`;
+            return;
+        }
+
+        // 3. Подготавливаем данные (преобразование формата)
+        const chartData = result.data.map(d => ({
+            time: d.time, // Lightweight Charts принимает UNIX timestamp
+            open: d.open,
+            high: d.high,
+            low: d.low,
+            close: d.close
+        }));
+
+        // 4. Создаем сам график
+        const chart = LightweightCharts.createChart(container, {
+            layout: {
+                background: { color: 'transparent' },
+                textColor: '#9ca3af', // Цвет текста из Tailwind gray-400
+            },
+            grid: {
+                vertLines: { color: 'rgba(42, 46, 57, 0.3)' },
+                horzLines: { color: 'rgba(42, 46, 57, 0.3)' },
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(148, 163, 184, 0.2)',
+            },
+            timeScale: {
+                borderColor: 'rgba(148, 163, 184, 0.2)',
+            },
+            width: container.clientWidth,
+            height: 400,
+        });
+
+        // 5. Добавляем серию свечей (Candlestick Series)
+        const candlestickSeries = chart.addCandlestickSeries({
+            upColor: '#22c55e',      // Зеленый (profit)
+            downColor: '#ef4445',    // Красный (loss)
+            borderUpColor: '#22c55e',
+            borderDownColor: '#ef4445',
+            wickUpColor: '#22c55e',
+            wickDownColor: '#ef4445',
+        });
+
+        candlestickSeries.setData(chartData);
+        chart.timeScale().fitContent();
+
+        // 6. Обработка изменения размера окна (Resize Observer)
+        const resizeObserver = new ResizeObserver(entries => {
+            if (entries.length === 0 || !entries[0].target) return;
+            const { width, height } = entries[0].contentRect;
+            chart.applyOptions({ width, height });
+        });
+        resizeObserver.observe(container);
+
+    } catch (error) {
+        console.error('Error initializing TradingView chart:', error);
+        container.innerHTML = `
+            <div class="alert alert-danger mb-0" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4445; color: #ef4445;">
+                <i class="fas fa-times-circle me-2"></i> Ошибка загрузки графика: ${error.message}
+            </div>`;
+    }
 }
 
 // ==========================================

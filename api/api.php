@@ -43,6 +43,7 @@ require __DIR__ . '/handlers/mpa.php';
 require __DIR__ . '/handlers/qpa.php';
 require __DIR__ . '/handlers/settings.php';
 require __DIR__ . '/handlers/insights.php';
+require __DIR__ . '/handlers/candles.php';
 
 try {
     switch ($action) {
@@ -127,6 +128,7 @@ try {
             require_once 'handlers/trades.php';
             generateShareToken($pdo);
         break;
+        case 'get_candles':       getCandles($conn); break;
 
         // --- ДАШБОРД ---
         case 'get_dashboard_metrics': getDashboardMetrics($conn); break;

@@ -259,6 +259,7 @@ $currentTitle = $pageTitles[$view] ?? 'TradeOS - Trading Operating System';
     <script src="assets/modules/qpa.js"></script>
     <script src="assets/modules/quick_trade.js"></script>
     <script src="assets/modules/init.js?v=<?php echo time(); ?>"></script>
+    <script src="assets/lightweight-charts.js"></script>
 
     <?php if (isset($_SESSION['user_id'])): ?>
     <button class="mobile-fab border-0" data-bs-toggle="modal" data-bs-target="#quickAddModal"

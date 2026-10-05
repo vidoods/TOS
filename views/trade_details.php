@@ -84,7 +84,7 @@
                     <span class="detail-label"><?= $lang['entry_model'] ?></span>
                     <span id="trade-model_name" class="info-badge badge-blue">-</span>
                 </div>
-                 <div class="detail-item">
+                <div class="detail-item">
                     <span class="detail-label"><?= $lang['entry'] ?></span>
                     <span id="trade-entry_date" class="info-badge badge-neutral">-</span>
                 </div>
@@ -93,11 +93,22 @@
                     <span id="trade-exit_date" class="info-badge badge-neutral">-</span>
                 </div>
                 <div class="detail-item">
+                    <span class="detail-label"><?= $lang['entry_price'] ?></span>
+                    <span id="trade-entry_price" class="info-badge badge-neutral">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label"><?= $lang['exit_price'] ?></span>
+                    <span id="trade-exit_price" class="info-badge badge-neutral">-</span>
+                </div>
+                <div class="detail-item">
                     <span class="detail-label"><?= $lang['linked_plan'] ?></span>
                     <a href="#" id="trade-plan-link" class="info-badge badge-neutral">-</a> 
                 </div>
             </div>
         </section>
+
+        <!-- Контейнер для динамической вставки графика -->
+        <div id="dynamic-chart-container"></div>
 
         <section style="margin-bottom: 40px; padding-top: 30px; border-top: 1px solid var(--glass-border);">
             <h3 class="section-title"><?= $lang['mental_tech_analysis'] ?></h3>
