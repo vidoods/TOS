@@ -362,13 +362,23 @@ async function loadTradeDetails() {
 
             // Рисуем график ТОЛЬКО если сделка закрыта (есть и вход, и выход)
             if (chartPlaceholder && trade.exit_date && trade.entry_date) {
+                window.currentTradeForChart = trade;
+                const tf = trade.entry_tf || '4h';
 
                 // 1. Вставляем структуру секции в контейнер
                 chartPlaceholder.innerHTML = `
                     <section style="margin-bottom: 40px;">
-                        <h3 class="section-title">Chart Analysis</h3>
-                        <div class="glass-panel" style="padding: 20px; border: 1px solid var(--glass-border);">
-                            <div id="tv-chart-canvas" style="width: 100%; height: 400px;"></div>
+                        <h3 class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                            Chart Analysis
+                            <div class="chart-tfs" id="chart-timeframe-buttons" style="display: flex; gap: 5px;">
+                                ${['15m', '1h', '4h', '1d'].map(t => 
+                                    `<button class="btn btn-sm btn-outline ${tf === t ? 'active' : ''}" style="${tf === t ? 'background: var(--accent-blue); color: white;' : ''}" onclick="window.currentTradeForChart.entry_tf='${t}'; initTradingViewChart(window.currentTradeForChart); Array.from(this.parentElement.children).forEach(b => {b.style.background=''; b.style.color=''; b.classList.remove('active')}); this.style.background='var(--accent-blue)'; this.style.color='white'; this.classList.add('active');">${t}</button>`
+                                ).join('')}
+                            </div>
+                        </h3>
+                        <div class="glass-panel" style="padding: 20px; border: 1px solid var(--glass-border); position: relative;">
+                            <div id="chart-watermark-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; color: rgba(148, 163, 184, 0.1); font-weight: bold; pointer-events: none; z-index: 10;"></div>
+                            <div id="tv-chart-canvas" style="width: 100%; height: 400px; position: relative; z-index: 1;"></div>
                         </div>
                     </section>
                 `;
@@ -437,9 +447,17 @@ async function initTradingViewChart(trade) {
     const symbol = trade.pair_symbol || 'BTCUSD'; 
     const interval = trade.entry_tf || '4h';
 
+    const watermarkOverlay = document.getElementById('chart-watermark-overlay');
+    if (watermarkOverlay) {
+        watermarkOverlay.textContent = `${symbol} - ${interval}`;
+    }
+
     try {
+        const entryTs = new Date(trade.entry_date).getTime() / 1000;
+        const exitTs = new Date(trade.exit_date).getTime() / 1000;
+
         // 1. Загружаем данные свечей через наш API
-        const response = await fetch(`api/api.php?action=get_candles&symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}`);
+        const response = await fetch(`api/api.php?action=get_candles&symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&start=${entryTs}&end=${exitTs}`);
         const result = await response.json();
 
         if (!result.success) throw new Error(result.message);
@@ -484,7 +502,7 @@ async function initTradingViewChart(trade) {
         });
 
         // 5. Добавляем серию свечей (Candlestick Series)
-        const candlestickSeries = chart.addCandlestickSeries({
+        const candlestickSeries = chart.addSeries(LightweightCharts.CandlestickSeries, {
             upColor: '#22c55e',      // Зеленый (profit)
             downColor: '#ef4445',    // Красный (loss)
             borderUpColor: '#22c55e',
