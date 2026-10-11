@@ -10,7 +10,6 @@
     </div>
 
     <h1 class="auth-title"><?= $lang['sign_in_tos'] ?></h1>
-    <p class="auth-subtitle"><?= $lang['welcome_back'] ?></p>
 
     <form id="loginForm" onsubmit="handleLoginSubmit(event)" novalidate>
 
