@@ -1,49 +1,59 @@
 <?php
-// api/mailer.php — Конфигурация отправки Email
-// Настройте SMTP переменными окружения или замените значения ниже.
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+// api/mailer.php — Отправка email через современный API Resend (без SMTP)
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-define('MAIL_HOST',       getenv('MAIL_HOST')       ?: '');
-define('MAIL_PORT',       (int)(getenv('MAIL_PORT') ?: 587));
-define('MAIL_USERNAME',   getenv('MAIL_USERNAME')   ?: '');
-define('MAIL_PASSWORD',   getenv('MAIL_PASSWORD')   ?: '');
-define('MAIL_FROM',       getenv('MAIL_FROM')       ?: '');
-define('MAIL_FROM_NAME',  getenv('MAIL_FROM_NAME')  ?: 'TradeOS');
-define('APP_URL',         getenv('APP_URL')         ?: '');
+// ============================================================================
+// НАСТРОЙКИ RESEND API
+// ============================================================================
+define('RESEND_API_KEY', getenv('RESEND_API_KEY') ?: 're_Xar3DthV_kBdeUHZcYF63xEaFvaQGZBFG'); // Вставь сюда свой API ключ от Resend
+define('MAIL_FROM',      getenv('MAIL_FROM')      ?: 'noreply@wrkspace.pro'); // Или твой верифицированный домен, например 'noreply@wrkspace.pro'
+define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'TradeOS');
+define('APP_URL',        getenv('APP_URL')        ?: 'https://wrkspace.pro');
 
 function sendMail(string $toEmail, string $toName, string $subject, string $htmlBody): array
 {
-    if (empty(MAIL_HOST) || empty(MAIL_USERNAME)) {
-        error_log("[TradeOS Mailer] SIMULATION — To: {$toEmail} | Subject: {$subject}");
-        return ['sent' => false, 'simulated' => true, 'error' => null];
+    // Защита от незаполненного ключа
+    if (empty(RESEND_API_KEY) || RESEND_API_KEY === 're_ваш_ключ_здесь') {
+        error_log("[TradeOS Resend] Ошибка: Не указан API ключ Resend в mailer.php");
+        return ['sent' => false, 'simulated' => true, 'error' => 'API ключ Resend не настроен.'];
     }
 
-    $mail = new PHPMailer(true);
-    try {
-        $mail->isSMTP();
-        $mail->Host       = MAIL_HOST;
-        $mail->SMTPAuth   = true;
-        $mail->Username   = MAIL_USERNAME;
-        $mail->Password   = MAIL_PASSWORD;
-        $mail->SMTPSecure = MAIL_PORT === 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = MAIL_PORT;
-        $mail->CharSet    = 'UTF-8';
-        $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
-        $mail->addAddress($toEmail, $toName);
-        $mail->addReplyTo(MAIL_FROM, MAIL_FROM_NAME);
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body    = $htmlBody;
-        $mail->AltBody = strip_tags($htmlBody);
-        $mail->send();
+    // Формируем тело запроса для Resend API
+    $payload = [
+        'from'    => MAIL_FROM_NAME . ' <' . MAIL_FROM . '>',
+        'to'      => [$toEmail],
+        'subject' => $subject,
+        'html'    => $htmlBody
+    ];
+
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . RESEND_API_KEY,
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    // Проверяем результат выполнения запроса
+    if ($curlError) {
+        error_log("[TradeOS Resend] cURL Error: " . $curlError);
+        return ['sent' => false, 'simulated' => false, 'error' => 'Ошибка соединения с почтовым сервисом.'];
+    }
+
+    if ($httpCode >= 200 && $httpCode < 300) {
         return ['sent' => true, 'simulated' => false, 'error' => null];
-    } catch (Exception $e) {
-        error_log("[TradeOS Mailer] Error: " . $mail->ErrorInfo);
-        return ['sent' => false, 'simulated' => false, 'error' => $mail->ErrorInfo];
+    } else {
+        error_log("[TradeOS Resend] API Error (HTTP {$httpCode}): " . $response);
+        $responseData = json_decode($response, true);
+        $errorMessage = $responseData['message'] ?? 'Не удалось отправить письмо через Resend.';
+        return ['sent' => false, 'simulated' => false, 'error' => $errorMessage];
     }
 }
 

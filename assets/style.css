@@ -5164,6 +5164,13 @@ a.info-badge:hover {
   cursor: not-allowed;
 }
 
+.auth-google-btn:hover {
+  background: rgba(41, 151, 255, 0.08);
+  border-color: var(--accent-blue, #3b82f6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(41, 151, 255, 0.2);
+}
+
 /* Спиннер загрузки */
 .btn-spinner {
   width: 18px;

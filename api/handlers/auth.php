@@ -1,14 +1,9 @@
 <?php
 // api/handlers/auth.php — Авторизация, регистрация, сброс пароля
-// Оптимизирован: rate limiting, валидация пароля, email via PHPMailer, no debug_link
 
 require_once __DIR__ . '/../mailer.php';
 
-// -------------------------------------------------------
-// Rate Limiting — защита от брутфорса
-// Хранит количество попыток в сессии, сбрасывает через 15 мин
-// -------------------------------------------------------
-function checkRateLimit(string $key, int $maxAttempts = 5, int $windowSec = 900): bool
+function checkRateLimit(string $key, int $maxAttempts = 5, int $windowSec = 10): bool
 {
     $sessionKey  = "rl_{$key}";
     $tsKey       = "rl_ts_{$key}";
@@ -26,7 +21,7 @@ function checkRateLimit(string $key, int $maxAttempts = 5, int $windowSec = 900)
         http_response_code(429);
         echo json_encode([
             'success' => false,
-            'message' => 'Too many attempts. Please wait ' . ceil($remaining / 60) . ' min.',
+            'message' => 'Слишком много попыток. Подождите ' . ceil($remaining / 60) . ' мин.',
         ]);
         return false;
     }
@@ -39,26 +34,14 @@ function resetRateLimit(string $key): void
     unset($_SESSION["rl_{$key}"], $_SESSION["rl_ts_{$key}"]);
 }
 
-// -------------------------------------------------------
-// Валидация надёжности пароля
-// -------------------------------------------------------
 function validatePasswordStrength(string $password): ?string
 {
-    if (strlen($password) < 8) {
-        return 'Password must be at least 8 characters.';
-    }
-    if (!preg_match('/[A-Z]/', $password)) {
-        return 'Password must contain at least one uppercase letter.';
-    }
-    if (!preg_match('/[0-9]/', $password)) {
-        return 'Password must contain at least one number.';
-    }
+    if (strlen($password) < 8) return 'Password must be at least 8 characters.';
+    if (!preg_match('/[A-Z]/', $password)) return 'Password must contain at least one uppercase letter.';
+    if (!preg_match('/[0-9]/', $password)) return 'Password must contain at least one number.';
     return null;
 }
 
-// -------------------------------------------------------
-// CSRF — генерация и проверка токена
-// -------------------------------------------------------
 function generateCsrfToken(): string
 {
     if (empty($_SESSION['csrf_token'])) {
@@ -73,10 +56,6 @@ function verifyCsrfToken(array $data): bool
     return !empty($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
-// -------------------------------------------------------
-// HANDLERS
-// -------------------------------------------------------
-
 function handleRegister($pdo)
 {
     $data     = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -84,7 +63,6 @@ function handleRegister($pdo)
     $email    = trim($data['email']    ?? '');
     $password = $data['password']      ?? '';
 
-    // Базовые проверки
     if (empty($username) || empty($email) || empty($password)) {
         echo json_encode(['success' => false, 'message' => 'All fields are required.']);
         return;
@@ -100,17 +78,14 @@ function handleRegister($pdo)
         return;
     }
 
-    // Валидация пароля
     $pwError = validatePasswordStrength($password);
     if ($pwError) {
         echo json_encode(['success' => false, 'message' => $pwError]);
         return;
     }
 
-    // Rate limiting
     if (!checkRateLimit('register', 5, 900)) return;
 
-    // Проверка дублей
     $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
     $stmt->execute([$email, $username]);
     if ($stmt->fetch()) {
@@ -131,11 +106,7 @@ function handleRegister($pdo)
 
 function handleLogin($pdo)
 {
-    if (!empty($_POST)) {
-        $data = $_POST;
-    } else {
-        $data = json_decode(file_get_contents('php://input'), true) ?? [];
-    }
+    $data = !empty($_POST) ? $_POST : (json_decode(file_get_contents('php://input'), true) ?? []);
 
     $login    = trim($data['email'] ?? $data['username'] ?? '');
     $password = $data['password'] ?? '';
@@ -145,7 +116,6 @@ function handleLogin($pdo)
         return;
     }
 
-    // Rate limiting (по логину)
     $rlKey = 'login_' . preg_replace('/[^a-z0-9@._-]/', '', strtolower($login));
     if (!checkRateLimit($rlKey, 5, 900)) return;
 
@@ -153,7 +123,6 @@ function handleLogin($pdo)
     $stmt->execute([$login, $login]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Timing-safe: всегда проверяем хэш, даже если пользователь не найден
     $dummyHash   = '$2y$12$invaliddummyhashtopreventtimingattacks.aaaaaaaaaa';
     $dbPassword  = $user ? (!empty($user['password_hash']) ? $user['password_hash'] : ($user['password'] ?? $dummyHash)) : $dummyHash;
 
@@ -197,14 +166,12 @@ function handleForgotPassword($pdo)
         return;
     }
 
-    // Rate limiting
-    if (!checkRateLimit('forgot_' . md5($email), 3, 900)) return;
+    if (!checkRateLimit('forgot_' . md5($email), 1, 60)) return;
 
     $stmt = $pdo->prepare("SELECT id, username FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    // Не раскрываем, существует ли email (anti-enumeration)
     if (!$user) {
         echo json_encode(['success' => true, 'message' => 'If this email exists, a reset link has been sent.']);
         return;
@@ -233,7 +200,6 @@ function handleForgotPassword($pdo)
     );
 
     if ($mailResult['simulated']) {
-        // Только в dev-режиме (SMTP не настроен) — вернём ссылку для отладки
         echo json_encode([
             'success'    => true,
             'simulated'  => true,
@@ -241,9 +207,11 @@ function handleForgotPassword($pdo)
             'message'    => 'SMTP not configured. Debug link generated.',
         ]);
     } elseif ($mailResult['sent']) {
-        echo json_encode(['success' => true, 'message' => 'Reset link sent to ' . $email]);
+        // ИСПРАВЛЕНО: Явно указываем, что симуляция отключена
+        echo json_encode(['success' => true, 'simulated' => false, 'message' => 'Reset link sent to ' . $email]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to send email. Try again later.']);
+        resetRateLimit('forgot_' . md5($email));
+        echo json_encode(['success' => false, 'message' => $mailResult['error'] ?? 'Failed to send email.']);
     }
 }
 
@@ -278,7 +246,6 @@ function handleResetPassword($pdo)
 
     if ($update->execute([$hash, $resetRequest['email']])) {
         $pdo->prepare("DELETE FROM password_resets WHERE email = ?")->execute([$resetRequest['email']]);
-        // Инвалидируем сессию если пользователь был залогинен
         unset($_SESSION['user_id']);
         echo json_encode(['success' => true]);
     } else {
