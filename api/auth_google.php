@@ -20,7 +20,7 @@ require_once __DIR__ . '/db.php';
 // ============================================================================
 define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '');
 define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
-define('GOOGLE_REDIRECT_URI',  getenv('GOOGLE_REDIRECT_URI')  ?: '');
+define('GOOGLE_REDIRECT_URI',  getenv('GOOGLE_REDIRECT_URI')  ?: 'https://wrkspace.pro/api/auth_google.php');
 
 // Шаг 1: Если Google еще не прислал код авторизации — перенаправляем пользователя на страницу входа Google с CSRF state
 if (!isset($_GET['code'])) {
