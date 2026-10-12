@@ -1,3 +1,14 @@
-php_value display_errors On
+php_value display_errors Off
 php_value mbstring.http_input auto
 php_value date.timezone Europe/Bucharest
+
+# Защита: запрет прямого доступа к скрытым файлам (.env, .git, .htaccess)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

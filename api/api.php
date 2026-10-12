@@ -2,11 +2,20 @@
 // api/api.php — Единая точка входа (ТОЛЬКО РОУТИНГ)
 // Вся логика — в handlers/*.php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
 header('Content-Type: application/json');
 require 'db.php';
 date_default_timezone_set('Europe/Kyiv');

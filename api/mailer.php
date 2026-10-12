@@ -1,13 +1,14 @@
 <?php
 // api/mailer.php — Отправка email через современный API Resend (без SMTP)
 
+require_once __DIR__ . '/env.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 // ============================================================================
-// НАСТРОЙКИ RESEND API
+// НАСТРОЙКИ RESEND API (Загружаются из .env)
 // ============================================================================
-define('RESEND_API_KEY', getenv('RESEND_API_KEY') ?: 're_Xar3DthV_kBdeUHZcYF63xEaFvaQGZBFG'); // Вставь сюда свой API ключ от Resend
-define('MAIL_FROM',      getenv('MAIL_FROM')      ?: 'noreply@wrkspace.pro'); // Или твой верифицированный домен, например 'noreply@wrkspace.pro'
+define('RESEND_API_KEY', getenv('RESEND_API_KEY') ?: '');
+define('MAIL_FROM',      getenv('MAIL_FROM')      ?: 'noreply@wrkspace.pro');
 define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'TradeOS');
 define('APP_URL',        getenv('APP_URL')        ?: 'https://wrkspace.pro');
 

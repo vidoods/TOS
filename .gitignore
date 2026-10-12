@@ -1,1 +1,7 @@
 .aider*
+.DS_Store
+
+# Переменные окружения и секреты
+.env
+.env.*
+!.env.example

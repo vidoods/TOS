@@ -280,12 +280,7 @@ async function handleForgotPasswordSubmit(event) {
         const result = await response.json();
 
         if (result.success) {
-            // Строгая проверка: показываем дебаг-ссылку только если симуляция явно активна
-            if (result.simulated === true && result.debug_link) {
-                showDevResetLink(result.debug_link, emailEl.value.trim());
-            } else {
-                showForgotSuccess(emailEl.value.trim(), form);
-            }
+            showForgotSuccess(emailEl.value.trim(), form);
         } else {
             showFormMessage(msgEl, result.message || 'Ошибка. Попробуйте позже.', 'error');
         }

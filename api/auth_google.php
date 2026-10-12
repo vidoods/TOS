@@ -1,28 +1,52 @@
 <?php
 // api/auth_google.php — Обработка авторизации через Google OAuth 2.0
-session_start();
-require_once __DIR__ . '/db.php'; // Подключение к базе данных (твое текущее)
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
+
+require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/db.php';
 
 // ============================================================================
-// НАСТРОЙКИ GOOGLE OAUTH
-// Вставь сюда данные, полученные в Google Cloud Console
+// НАСТРОЙКИ GOOGLE OAUTH (Загружаются из .env)
 // ============================================================================
-define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '474932136687-nk0u3553biqdl3h4lq8v0d5005dhjeue.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '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');
-define('GOOGLE_REDIRECT_URI',  getenv('GOOGLE_REDIRECT_URI')  ?: 'https://wrkspace.pro/api/auth_google.php');
+define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
+define('GOOGLE_REDIRECT_URI',  getenv('GOOGLE_REDIRECT_URI')  ?: '');
 
-// Шаг 1: Если Google еще не прислал код авторизации — перенаправляем пользователя на страницу входа Google
+// Шаг 1: Если Google еще не прислал код авторизации — перенаправляем пользователя на страницу входа Google с CSRF state
 if (!isset($_GET['code'])) {
+    $state = bin2hex(random_bytes(32));
+    $_SESSION['oauth_state'] = $state;
+
     $authParams = [
         'client_id'     => GOOGLE_CLIENT_ID,
         'redirect_uri'  => GOOGLE_REDIRECT_URI,
         'response_type' => 'code',
         'scope'         => 'email profile',
-        'access_type'   => 'online'
+        'access_type'   => 'online',
+        'state'         => $state,
     ];
     header('Location: https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($authParams));
     exit;
 }
+
+// Защита от OAuth Login CSRF (проверка state)
+$state = $_GET['state'] ?? '';
+if (empty($state) || empty($_SESSION['oauth_state']) || !hash_equals($_SESSION['oauth_state'], $state)) {
+    unset($_SESSION['oauth_state']);
+    http_response_code(403);
+    die('Ошибка валидации OAuth: неверный или просроченный токен безопасности (CSRF). Попробуйте снова.');
+}
+unset($_SESSION['oauth_state']);
 
 // Шаг 2: Пользователь разрешил доступ, получаем временный 'code' и меняем его на Access Token
 $code = $_GET['code'];
@@ -59,12 +83,16 @@ curl_close($ch);
 
 $googleUser = json_decode($userResponse, true);
 
-if (!isset($googleUser['email'])) {
+if (empty($googleUser['email'])) {
     die('Ошибка авторизации через Google: не удалось получить email пользователя.');
 }
 
+if (isset($googleUser['email_verified']) && $googleUser['email_verified'] === false) {
+    die('Ошибка авторизации: email пользователя не подтвержден сервисом Google.');
+}
+
 $email     = trim($googleUser['email']);
-$name      = trim($googleUser['name'] ?? explode('@', $email)[0]);
+$rawName   = trim($googleUser['name'] ?? explode('@', $email)[0]);
 $avatarUrl = $googleUser['picture'] ?? null;
 
 // Шаг 4: Интеграция с базой данных TradeOS (Авторизация или Регистрация)
@@ -75,25 +103,41 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        // Если пользователя нет — автоматически регистрируем его
-        // Генерируем случайный надежный хэш пароля, так как вход идет через Google
-        $randomPasswordHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
+        // Формируем безопасный уникальный username
+        $cleanUsername = preg_replace('/[^a-zA-Z0-9_]/', '', $rawName);
+        if (strlen($cleanUsername) < 3) {
+            $cleanUsername = 'user_' . substr(md5($email), 0, 6);
+        }
+        $candidate = substr($cleanUsername, 0, 30);
+
+        // Проверяем уникальность username
+        $checkUser = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+        $checkUser->execute([$candidate]);
+        if ($checkUser->fetch()) {
+            $candidate = substr($cleanUsername, 0, 24) . '_' . mt_rand(1000, 9999);
+        }
+
+        // Генерируем случайный надежный хэш пароля
+        $randomPasswordHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT, ['cost' => 12]);
         
         $insert = $pdo->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
-        $insert->execute([$name, $email, $randomPasswordHash]);
+        $insert->execute([$candidate, $email, $randomPasswordHash]);
         
-        $userId = $pdo->lastInsertId();
-        $username = $name;
+        $userId   = $pdo->lastInsertId();
+        $username = $candidate;
+        $userLang = 'en';
     } else {
-        // Пользователь найден
-        $userId = $user['id'];
+        $userId   = $user['id'];
         $username = $user['username'];
+        $userLang = $user['language'] ?? 'en';
     }
 
-    // Шаг 5: Инициализация сессии TradeOS (точно так же, как в обычном логине)
+    // Шаг 5: Инициализация сессии с защитой от Session Fixation
+    session_regenerate_id(true);
+
     $_SESSION['user_id']   = $userId;
     $_SESSION['username']  = $username;
-    $_SESSION['user_lang'] = $user['language'] ?? 'en';
+    $_SESSION['user_lang'] = $userLang;
 
     // Перенаправляем в защищенную зону платформы (Дашборд)
     header('Location: ../index.php?view=dashboard');
