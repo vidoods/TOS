@@ -8,59 +8,58 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // НАСТРОЙКИ RESEND API (Загружаются из .env)
 // ============================================================================
 define('RESEND_API_KEY', getenv('RESEND_API_KEY') ?: '');
-define('MAIL_FROM',      getenv('MAIL_FROM')      ?: 'noreply@wrkspace.pro');
+define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@wrkspace.pro');
 define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'TradeOS');
-define('APP_URL',        getenv('APP_URL')        ?: 'https://wrkspace.pro');
+define('APP_URL', getenv('APP_URL') ?: 'https://wrkspace.pro');
 
 function sendMail(string $toEmail, string $toName, string $subject, string $htmlBody): array
 {
-    // Защита от незаполненного ключа
-    if (empty(RESEND_API_KEY) || RESEND_API_KEY === 're_ваш_ключ_здесь') {
-        error_log("[TradeOS Resend] Ошибка: Не указан API ключ Resend в mailer.php");
-        return ['sent' => false, 'simulated' => true, 'error' => 'API ключ Resend не настроен.'];
-    }
+  // Защита от незаполненного ключа
+  if (empty(RESEND_API_KEY) || RESEND_API_KEY === 're_ваш_ключ_здесь') {
+    error_log("[TradeOS Resend] Ошибка: Не указан API ключ Resend в mailer.php");
+    return ['sent' => false, 'simulated' => true, 'error' => 'API ключ Resend не настроен.'];
+  }
 
-    // Формируем тело запроса для Resend API
-    $payload = [
-        'from'    => MAIL_FROM_NAME . ' <' . MAIL_FROM . '>',
-        'to'      => [$toEmail],
-        'subject' => $subject,
-        'html'    => $htmlBody
-    ];
+  // Формируем тело запроса для Resend API
+  $payload = [
+    'from' => MAIL_FROM_NAME . ' <' . MAIL_FROM . '>',
+    'to' => [$toEmail],
+    'subject' => $subject,
+    'html' => $htmlBody
+  ];
 
-    $ch = curl_init('https://api.resend.com/emails');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . RESEND_API_KEY,
-        'Content-Type: application/json'
-    ]);
+  $ch = curl_init('https://api.resend.com/emails');
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_POST, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer ' . RESEND_API_KEY,
+    'Content-Type: application/json'
+  ]);
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
+  $response = curl_exec($ch);
+  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  $curlError = curl_error($ch);
 
-    // Проверяем результат выполнения запроса
-    if ($curlError) {
-        error_log("[TradeOS Resend] cURL Error: " . $curlError);
-        return ['sent' => false, 'simulated' => false, 'error' => 'Ошибка соединения с почтовым сервисом.'];
-    }
+  // Проверяем результат выполнения запроса
+  if ($curlError) {
+    error_log("[TradeOS Resend] cURL Error: " . $curlError);
+    return ['sent' => false, 'simulated' => false, 'error' => 'Ошибка соединения с почтовым сервисом.'];
+  }
 
-    if ($httpCode >= 200 && $httpCode < 300) {
-        return ['sent' => true, 'simulated' => false, 'error' => null];
-    } else {
-        error_log("[TradeOS Resend] API Error (HTTP {$httpCode}): " . $response);
-        $responseData = json_decode($response, true);
-        $errorMessage = $responseData['message'] ?? 'Не удалось отправить письмо через Resend.';
-        return ['sent' => false, 'simulated' => false, 'error' => $errorMessage];
-    }
+  if ($httpCode >= 200 && $httpCode < 300) {
+    return ['sent' => true, 'simulated' => false, 'error' => null];
+  } else {
+    error_log("[TradeOS Resend] API Error (HTTP {$httpCode}): " . $response);
+    $responseData = json_decode($response, true);
+    $errorMessage = $responseData['message'] ?? 'Не удалось отправить письмо через Resend.';
+    return ['sent' => false, 'simulated' => false, 'error' => $errorMessage];
+  }
 }
 
 function buildResetPasswordEmail(string $resetLink, string $username): string
 {
-    return <<<HTML
+  return <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><title>Reset Your Password</title></head>
