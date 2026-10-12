@@ -6,7 +6,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // ============================================================================
 // НАСТРОЙКИ RESEND API
 // ============================================================================
-define('RESEND_API_KEY', getenv('RESEND_API_KEY') ?: 're_Xar3DthV_kBdeUHZcYF63xEaFvaQGZBFG'); // Вставь сюда свой API ключ от Resend
+define('RESEND_API_KEY', getenv('RESEND_API_KEY') ?: ''); // Вставь сюда свой API ключ от Resend
 define('MAIL_FROM',      getenv('MAIL_FROM')      ?: 'noreply@wrkspace.pro'); // Или твой верифицированный домен, например 'noreply@wrkspace.pro'
 define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'TradeOS');
 define('APP_URL',        getenv('APP_URL')        ?: 'https://wrkspace.pro');

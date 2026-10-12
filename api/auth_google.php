@@ -7,8 +7,8 @@ require_once __DIR__ . '/db.php'; // Подключение к базе данн
 // НАСТРОЙКИ GOOGLE OAUTH
 // Вставь сюда данные, полученные в Google Cloud Console
 // ============================================================================
-define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '474932136687-nk0u3553biqdl3h4lq8v0d5005dhjeue.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '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');
+define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
 define('GOOGLE_REDIRECT_URI',  getenv('GOOGLE_REDIRECT_URI')  ?: 'https://wrkspace.pro/api/auth_google.php');
 
 // Шаг 1: Если Google еще не прислал код авторизации — перенаправляем пользователя на страницу входа Google
