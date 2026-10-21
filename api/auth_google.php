@@ -118,7 +118,7 @@ try {
         // Генерируем случайный надежный хэш пароля
         $randomPasswordHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT, ['cost' => 12]);
 
-        $insert = $pdo->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
+        $insert = $pdo->prepare("INSERT INTO users (username, email, password_hash, is_verified) VALUES (?, ?, ?, 1)");
         $insert->execute([$candidate, $email, $randomPasswordHash]);
 
         $userId = $pdo->lastInsertId();
@@ -128,6 +128,9 @@ try {
         $userId = $user['id'];
         $username = $user['username'];
         $userLang = $user['language'] ?? 'en';
+        if (empty($user['is_verified'])) {
+            $pdo->prepare("UPDATE users SET is_verified = 1 WHERE id = ?")->execute([$userId]);
+        }
     }
 
     // Шаг 5: Инициализация сессии с защитой от Session Fixation

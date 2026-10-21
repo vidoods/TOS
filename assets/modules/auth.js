@@ -207,6 +207,11 @@ async function handleLoginSubmit(event) {
 
         if (result.success) {
             window.location.href = 'index.php?view=dashboard';
+        } else if (result.unverified) {
+            const email = result.email || '';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> Почта не подтверждена. <a href="javascript:void(0)" onclick="resendVerificationEmail('${email}')" style="color: var(--accent-blue, #2997ff); text-decoration: underline; margin-left: 6px;">Отправить ссылку снова</a>`;
+            errorDiv.className = 'auth-message auth-message--error';
+            errorDiv.style.display = 'flex';
         } else {
             showFormMessage(errorDiv, result.message || window.lang?.['login_error'] || 'Ошибка входа');
         }
@@ -247,8 +252,12 @@ async function handleRegisterSubmit(event) {
         const result = await response.json();
 
         if (result.success) {
-            showFormMessage(errorDiv, window.lang?.['registration_successful'] || 'Успешно! Перенаправление...', 'success');
-            setTimeout(() => { window.location.href = 'index.php?view=login'; }, 1800);
+            if (result.requires_verification) {
+                showRegisterSuccess(data.email, form);
+            } else {
+                showFormMessage(errorDiv, window.lang?.['registration_successful'] || 'Успешно! Перенаправление...', 'success');
+                setTimeout(() => { window.location.href = 'index.php?view=login'; }, 1800);
+            }
         } else {
             showFormMessage(errorDiv, result.message || window.lang?.['registration_error'] || 'Ошибка регистрации');
         }
@@ -288,6 +297,62 @@ async function handleForgotPasswordSubmit(event) {
         showFormMessage(msgEl, 'Ошибка сети.', 'error');
     } finally {
         resetButton(submitBtn);
+    }
+}
+
+function showRegisterSuccess(email, form) {
+    const wrap = form.closest('.login-box') || form.parentElement;
+    const successHtml = `
+        <div class="auth-success-state fade-in" style="text-align: center; padding: 20px 0;">
+            <div style="font-size: 3.5rem; color: #10b981; margin-bottom: 20px;"><i class="fas fa-envelope-circle-check"></i></div>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #f8fafc; margin: 0 0 12px;">Проверьте почту</h2>
+            <p style="font-size: 0.95rem; color: #94a3b8; line-height: 1.6; margin: 0 0 16px;">
+                Мы отправили ссылку для активации аккаунта на<br><strong style="color: #f8fafc;">${email}</strong>
+            </p>
+            <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5; margin-bottom: 24px;">
+                Перейдите по ссылке в письме, чтобы подтвердить ваш email и начать работу в TradeOS.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <a href="index.php?view=login" class="auth-submit-btn" style="text-decoration: none; padding: 12px; font-size: 0.95rem; text-align: center; display: block;">
+                    Перейти ко входу
+                </a>
+                <button type="button" onclick="resendVerificationEmail('${email}')" style="background: none; border: none; cursor: pointer; color: var(--accent-blue, #2997ff); font-size: 0.85rem; padding: 8px;">
+                    Не пришло письмо? Отправить повторно
+                </button>
+            </div>
+            <div id="resend-message-inline" class="auth-message" style="display:none; margin-top: 14px;"></div>
+        </div>`;
+    if (wrap) wrap.innerHTML = successHtml;
+}
+
+async function resendVerificationEmail(email) {
+    if (!email) {
+        const input = document.getElementById('resend-email-input');
+        if (input) email = input.value.trim();
+    }
+    const msgEl = document.getElementById('resend-message') || document.getElementById('resend-message-inline') || document.getElementById('login-error');
+    if (!email) {
+        if (msgEl) showFormMessage(msgEl, 'Укажите email адрес.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('resend-verify-btn');
+    if (btn) setButtonLoading(btn, 'Отправка...');
+
+    try {
+        const res = await fetch(`${API_URL}?action=resend_verification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const json = await res.json();
+        if (msgEl) {
+            showFormMessage(msgEl, json.message || 'Ссылка отправлена.', json.success ? 'success' : 'error');
+        }
+    } catch (e) {
+        if (msgEl) showFormMessage(msgEl, 'Ошибка сети. Попробуйте позже.', 'error');
+    } finally {
+        if (btn) resetButton(btn);
     }
 }
 

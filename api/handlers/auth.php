@@ -135,19 +135,51 @@ function handleRegister($pdo)
 
     if (!checkRateLimit($pdo, 'register', 5, 900)) return;
 
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
+    // Проверяем существующего пользователя
+    $stmt = $pdo->prepare("SELECT id, email, username, is_verified FROM users WHERE email = ? OR username = ?");
     $stmt->execute([$email, $username]);
-    if ($stmt->fetch()) {
-        echo json_encode(['success' => false, 'message' => 'Email or username already taken.']);
-        return;
+    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($existing) {
+        if (strcasecmp($existing['username'], $username) === 0) {
+            echo json_encode(['success' => false, 'message' => 'Username already taken.']);
+            return;
+        }
+        if (strcasecmp($existing['email'], $email) === 0) {
+            if (!empty($existing['is_verified'])) {
+                echo json_encode(['success' => false, 'message' => 'Email already registered. Please sign in.']);
+                return;
+            } else {
+                // Если аккаунт уже создан, но не подтвержден — обновляем пароль и высылаем ссылку повторно
+                $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+                $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?")->execute([$hash, $existing['id']]);
+                sendVerificationLink($pdo, (int)$existing['id'], $email, $username);
+                echo json_encode([
+                    'success'               => true,
+                    'requires_verification' => true,
+                    'email'                 => $email,
+                    'message'               => 'Account pending verification. A new activation email has been sent.'
+                ]);
+                return;
+            }
+        }
     }
 
     $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-    $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO users (username, email, password_hash, is_verified) VALUES (?, ?, ?, 0)");
 
     if ($stmt->execute([$username, $email, $hash])) {
+        $userId = (int)$pdo->lastInsertId();
         resetRateLimit($pdo, 'register');
-        echo json_encode(['success' => true]);
+
+        sendVerificationLink($pdo, $userId, $email, $username);
+
+        echo json_encode([
+            'success'               => true,
+            'requires_verification' => true,
+            'email'                 => $email,
+            'message'               => 'Registration successful! Please check your email to activate your account.'
+        ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Registration failed. Try again.']);
     }
@@ -180,6 +212,17 @@ function handleLogin($pdo)
     $isCorrect = password_verify($password, $dbPassword);
 
     if ($isCorrect && $user) {
+        // Проверка верификации email
+        if (isset($user['is_verified']) && (int)$user['is_verified'] === 0) {
+            echo json_encode([
+                'success'    => false,
+                'unverified' => true,
+                'email'      => $user['email'],
+                'message'    => 'Please verify your email address before logging in.',
+            ]);
+            return;
+        }
+
         // Защита от Session Fixation
         session_regenerate_id(true);
 
@@ -333,5 +376,97 @@ function handleLogout()
     }
     session_destroy();
     echo json_encode(['success' => true]);
+}
+
+function sendVerificationLink(PDO $pdo, int $userId, string $email, string $username): bool
+{
+    $rawToken    = bin2hex(random_bytes(32));
+    $hashedToken = hash('sha256', $rawToken);
+    $expires     = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+    $pdo->prepare("DELETE FROM email_verifications WHERE user_id = ? OR email = ?")->execute([$userId, $email]);
+    $stmt = $pdo->prepare("INSERT INTO email_verifications (user_id, email, token, expires_at) VALUES (?, ?, ?, ?)");
+
+    if (!$stmt->execute([$userId, $email, $hashedToken, $expires])) {
+        return false;
+    }
+
+    $baseUrl    = rtrim(defined('APP_URL') && APP_URL ? APP_URL : ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost'), '/');
+    $verifyLink = $baseUrl . '/index.php?view=verify_email&token=' . $rawToken;
+
+    $mailResult = sendMail(
+        $email,
+        $username,
+        'Verify your TradeOS account',
+        buildVerificationEmail($verifyLink, $username)
+    );
+
+    if (!empty($mailResult['simulated'])) {
+        error_log("[TradeOS Security] Dev simulation verification link for {$email}: {$verifyLink}");
+    }
+    if (empty($mailResult['sent'])) {
+        error_log("[TradeOS Auth] Verification email was not sent for {$email}: " . ($mailResult['error'] ?? 'unknown error'));
+    }
+
+    return (bool)($mailResult['sent'] ?? false);
+}
+
+function handleVerifyEmail($pdo)
+{
+    $token = trim($_GET['token'] ?? $_POST['token'] ?? '');
+    if (empty($token)) {
+        $data  = json_decode(file_get_contents('php://input'), true) ?? [];
+        $token = trim($data['token'] ?? '');
+    }
+
+    if (empty($token)) {
+        echo json_encode(['success' => false, 'message' => 'Verification token is required.']);
+        return;
+    }
+
+    $hashedToken = hash('sha256', $token);
+    $stmt = $pdo->prepare("SELECT user_id, email FROM email_verifications WHERE token = ? AND expires_at > NOW()");
+    $stmt->execute([$hashedToken]);
+    $request = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$request) {
+        echo json_encode(['success' => false, 'message' => 'Invalid or expired verification link.']);
+        return;
+    }
+
+    $userId = (int)$request['user_id'];
+    $stmt = $pdo->prepare("UPDATE users SET is_verified = 1 WHERE id = ?");
+    if ($stmt->execute([$userId])) {
+        $pdo->prepare("DELETE FROM email_verifications WHERE user_id = ?")->execute([$userId]);
+        echo json_encode(['success' => true, 'message' => 'Email successfully verified! You can now log in.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Database error while verifying email.']);
+    }
+}
+
+function handleResendVerification($pdo)
+{
+    $data  = json_decode(file_get_contents('php://input'), true) ?? [];
+    $email = trim($data['email'] ?? $_POST['email'] ?? '');
+
+    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
+        return;
+    }
+
+    if (!checkRateLimit($pdo, 'resend_v_' . md5($email), 3, 300)) return;
+
+    $stmt = $pdo->prepare("SELECT id, username, is_verified FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && empty($user['is_verified'])) {
+        sendVerificationLink($pdo, (int)$user['id'], $email, $user['username']);
+    }
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'If an unverified account with this email exists, a new activation link has been sent.'
+    ]);
 }
 ?>

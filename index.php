@@ -19,7 +19,7 @@ require_once __DIR__ . '/api/db.php';
 $view = $_GET['view'] ?? 'dashboard';
 
 // Список страниц, доступных БЕЗ авторизации (Guest Pages)
-$guestPages = ['login', 'register', 'forgot_password', 'reset_password', 'shared_trade'];
+$guestPages = ['login', 'register', 'forgot_password', 'reset_password', 'shared_trade', 'verify_email'];
 
 // 3. ПРОВЕРКА АВТОРИЗАЦИИ
 // Если пользователь НЕ авторизован И пытается зайти на защищенную страницу
@@ -29,7 +29,7 @@ if (!isset($_SESSION['user_id']) && !in_array($view, $guestPages)) {
 }
 
 // Если пользователь уже авторизован, но пытается зайти на страницы входа/регистрации
-if (isset($_SESSION['user_id']) && in_array($view, $guestPages) && $view !== 'shared_trade') {
+if (isset($_SESSION['user_id']) && in_array($view, $guestPages) && $view !== 'shared_trade' && $view !== 'verify_email') {
     header('Location: index.php?view=dashboard');
     exit;
 }
@@ -73,6 +73,7 @@ $pageTitles = [
     'note_details' => 'Note Details',
     'login' => 'Login',
     'register' => 'Register',
+    'verify_email' => 'Verify Email',
     'forgot_password' => 'Reset Password',
     'reset_password' => 'New Password',
     'mpa' => 'Monthly Analysis (MPA)',

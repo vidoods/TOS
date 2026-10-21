@@ -27,7 +27,7 @@ if (!extension_loaded('fileinfo')) {
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 // ГЛОБАЛЬНАЯ ЗАЩИТА: список публичных действий
-$publicActions = ['login', 'logout', 'register', 'forgot_password', 'reset_password'];
+$publicActions = ['login', 'logout', 'register', 'forgot_password', 'reset_password', 'verify_email', 'resend_verification'];
 if (!isset($_SESSION['user_id']) && !in_array($action, $publicActions)) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Authorization required.']);
@@ -57,11 +57,13 @@ require __DIR__ . '/handlers/candles.php';
 try {
     switch ($action) {
         // --- АВТОРИЗАЦИЯ ---
-        case 'login':          handleLogin($conn); break;
-        case 'logout':         handleLogout(); break;
-        case 'register':       handleRegister($conn); break;
-        case 'forgot_password': handleForgotPassword($conn); break;
-        case 'reset_password': handleResetPassword($conn); break;
+        case 'login':               handleLogin($conn); break;
+        case 'logout':              handleLogout(); break;
+        case 'register':            handleRegister($conn); break;
+        case 'forgot_password':      handleForgotPassword($conn); break;
+        case 'reset_password':       handleResetPassword($conn); break;
+        case 'verify_email':         handleVerifyEmail($conn); break;
+        case 'resend_verification':  handleResendVerification($conn); break;
         case 'get_user_info':
             $userId = $_SESSION['user_id'];
             $stmt = $pdo->prepare("SELECT username, email, role, created_at, language, avatar_url FROM users WHERE id = ?");
@@ -106,7 +108,8 @@ try {
 
         // --- СПРАВОЧНИКИ ---
         case 'get_lookups':         getLookups($conn); break;
-        case 'get_ref_pairs':       getRefPairs($conn); break;
+        case 'get_ref_pairs':
+        case 'get_pairs_lookup':    getPairsLookup($conn); break;
         case 'get_accounts_lookup': getAccountsLookup($conn); break;
         case 'get_ref_styles':      getRefStyles($conn); break;
         case 'get_plans_for_lookup': getPlansForLookup($conn); break;

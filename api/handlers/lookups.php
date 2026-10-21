@@ -76,6 +76,10 @@ function getPairsLookup($pdo) {
     }
 }
 
+function getRefPairs($pdo) {
+    getPairsLookup($pdo);
+}
+
 function getAccountsLookup($pdo) {
     try {
         $stmt = $pdo->prepare("SELECT id, name, type, currency FROM accounts WHERE user_id = ? ORDER BY name");
