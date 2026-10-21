@@ -64,6 +64,8 @@ try {
         case 'reset_password':       handleResetPassword($conn); break;
         case 'verify_email':         handleVerifyEmail($conn); break;
         case 'resend_verification':  handleResendVerification($conn); break;
+        case 'change_password':      handleChangePassword($conn); break;
+        case 'change_email':         handleChangeEmail($conn); break;
         case 'get_user_info':
             $userId = $_SESSION['user_id'];
             $stmt = $pdo->prepare("SELECT username, email, role, created_at, language, avatar_url FROM users WHERE id = ?");

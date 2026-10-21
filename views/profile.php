@@ -168,7 +168,24 @@
                 <div class="profile-info-row">
                     <span class="profile-info-label"><i
                             class="fas fa-envelope me-2 text-muted"></i><?= $lang['email'] ?? 'Email' ?></span>
-                    <span class="profile-info-value" id="profile-info-email">—</span>
+                    <div class="profile-info-actions-wrap">
+                        <span class="profile-info-value" id="profile-info-email">—</span>
+                        <button type="button" class="profile-row-action-btn" onclick="openChangeEmailModal()" title="<?= $lang['change_email'] ?? 'Change Email' ?>">
+                            <i class="fas fa-pen"></i>
+                            <span><?= $lang['change'] ?? 'Change' ?></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="profile-info-row">
+                    <span class="profile-info-label"><i
+                            class="fas fa-key me-2 text-muted"></i><?= $lang['password'] ?? 'Password' ?></span>
+                    <div class="profile-info-actions-wrap">
+                        <span class="profile-info-value">••••••••</span>
+                        <button type="button" class="profile-row-action-btn" onclick="openChangePasswordModal()" title="<?= $lang['change_password'] ?? 'Change Password' ?>">
+                            <i class="fas fa-pen"></i>
+                            <span><?= $lang['change'] ?? 'Change' ?></span>
+                        </button>
+                    </div>
                 </div>
                 <div class="profile-info-row">
                     <span class="profile-info-label"><i
@@ -251,5 +268,165 @@
             </div>
 
         </div>
+    </div>
+</div>
+
+<!-- Modal: Change Email -->
+<div id="modal-change-email" class="modal profile-modal" style="display: none;">
+    <div class="modal-content glass-panel" style="max-width: 480px; width: 92%; position: relative; border-radius: 20px; padding: 28px 26px;">
+        <span class="modal-close" onclick="closeChangeEmailModal()" style="top: 14px; right: 18px; font-size: 28px; line-height: 1;">&times;</span>
+        
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 22px;">
+            <div class="profile-card-icon icon-email" style="flex-shrink: 0;">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff;"><?= $lang['change_email'] ?? 'Change Email' ?></h3>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;"><?= $lang['change_email_subtitle'] ?? 'Update your login email address' ?></div>
+            </div>
+        </div>
+
+        <form id="profile-change-email-form" novalidate>
+            <div class="profile-field">
+                <label for="profile-new-email" class="profile-field-label"><?= $lang['new_email'] ?? 'New Email' ?></label>
+                <div class="profile-input-wrap">
+                    <i class="fas fa-envelope profile-input-icon"></i>
+                    <input
+                        type="email"
+                        id="profile-new-email"
+                        name="new_email"
+                        class="profile-form-input"
+                        placeholder="<?= $lang['enter_new_email'] ?? 'Enter new email address' ?>"
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <label for="profile-email-confirm-password" class="profile-field-label"><?= $lang['current_password'] ?? 'Current Password' ?></label>
+                <div class="profile-input-wrap">
+                    <i class="fas fa-lock profile-input-icon"></i>
+                    <input
+                        type="password"
+                        id="profile-email-confirm-password"
+                        name="password"
+                        class="profile-form-input"
+                        placeholder="<?= $lang['enter_current_password'] ?? 'Enter current password' ?>"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-email-confirm-password" onclick="togglePassword('profile-email-confirm-password', this)" aria-label="Toggle password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="profile-email-msg" class="profile-form-msg" style="display: none;"></div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeChangeEmailModal()" style="flex: 1; border-radius: 10px; padding: 10px; font-weight: 600;">
+                    <?= $lang['cancel'] ?? 'Cancel' ?>
+                </button>
+                <button type="submit" id="profile-email-submit-btn" class="profile-btn-submit" style="flex: 1.5; margin-top: 0;">
+                    <i class="fas fa-save me-1"></i>
+                    <span><?= $lang['update_email_btn'] ?? 'Update Email' ?></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Change Password -->
+<div id="modal-change-password" class="modal profile-modal" style="display: none;">
+    <div class="modal-content glass-panel" style="max-width: 480px; width: 92%; position: relative; border-radius: 20px; padding: 28px 26px;">
+        <span class="modal-close" onclick="closeChangePasswordModal()" style="top: 14px; right: 18px; font-size: 28px; line-height: 1;">&times;</span>
+        
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 22px;">
+            <div class="profile-card-icon icon-password" style="flex-shrink: 0;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff;"><?= $lang['change_password'] ?? 'Change Password' ?></h3>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 2px;"><?= $lang['change_password_subtitle'] ?? 'Update your account password' ?></div>
+            </div>
+        </div>
+
+        <form id="profile-change-password-form" novalidate>
+            <div class="profile-field">
+                <label for="profile-current-password" class="profile-field-label"><?= $lang['current_password'] ?? 'Current Password' ?></label>
+                <div class="profile-input-wrap">
+                    <i class="fas fa-lock profile-input-icon"></i>
+                    <input
+                        type="password"
+                        id="profile-current-password"
+                        name="current_password"
+                        class="profile-form-input"
+                        placeholder="<?= $lang['enter_current_password'] ?? 'Enter current password' ?>"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-current-password" onclick="togglePassword('profile-current-password', this)" aria-label="Toggle password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <label for="profile-new-password" class="profile-field-label"><?= $lang['new_password'] ?? 'New Password' ?></label>
+                <div class="profile-input-wrap">
+                    <i class="fas fa-key profile-input-icon"></i>
+                    <input
+                        type="password"
+                        id="profile-new-password"
+                        name="new_password"
+                        class="profile-form-input"
+                        placeholder="<?= $lang['enter_new_password'] ?? 'Enter new password' ?>"
+                        required
+                        autocomplete="new-password"
+                    >
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-new-password" onclick="togglePassword('profile-new-password', this)" aria-label="Toggle password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-strength-wrap" style="margin-top: 8px;">
+                    <div class="strength-bar-track" style="height: 4px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+                        <div id="profile-password-strength-bar" class="strength-bar-fill" style="height: 100%; width: 0%; transition: all 0.3s ease;"></div>
+                    </div>
+                    <span class="strength-label" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; display: block;"></span>
+                </div>
+            </div>
+
+            <div class="profile-field">
+                <label for="profile-confirm-password" class="profile-field-label"><?= $lang['confirm_new_password'] ?? 'Confirm New Password' ?></label>
+                <div class="profile-input-wrap">
+                    <i class="fas fa-check-double profile-input-icon"></i>
+                    <input
+                        type="password"
+                        id="profile-confirm-password"
+                        name="confirm_password"
+                        class="profile-form-input"
+                        placeholder="<?= $lang['repeat_new_password'] ?? 'Repeat new password' ?>"
+                        required
+                        autocomplete="new-password"
+                    >
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-confirm-password" onclick="togglePassword('profile-confirm-password', this)" aria-label="Toggle password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="profile-password-msg" class="profile-form-msg" style="display: none;"></div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()" style="flex: 1; border-radius: 10px; padding: 10px; font-weight: 600;">
+                    <?= $lang['cancel'] ?? 'Cancel' ?>
+                </button>
+                <button type="submit" id="profile-password-submit-btn" class="profile-btn-submit" style="flex: 1.5; margin-top: 0;">
+                    <i class="fas fa-save me-1"></i>
+                    <span><?= $lang['update_password_btn'] ?? 'Update Password' ?></span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>

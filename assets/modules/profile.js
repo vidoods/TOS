@@ -291,4 +291,253 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initial load
     loadProfileStats(null);
+
+    // --- PROFILE SECURITY MODALS (EMAIL & PASSWORD) ---
+
+    window.openChangeEmailModal = function () {
+        const modal = document.getElementById('modal-change-email');
+        if (!modal) return;
+        const form = document.getElementById('profile-change-email-form');
+        if (form) form.reset();
+        showProfileFormMessage(document.getElementById('profile-email-msg'), '');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            document.getElementById('profile-new-email')?.focus();
+        }, 120);
+    };
+
+    window.closeChangeEmailModal = function () {
+        const modal = document.getElementById('modal-change-email');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.openChangePasswordModal = function () {
+        const modal = document.getElementById('modal-change-password');
+        if (!modal) return;
+        const form = document.getElementById('profile-change-password-form');
+        if (form) form.reset();
+        const bar = document.getElementById('profile-password-strength-bar');
+        if (bar) bar.style.width = '0%';
+        const label = bar?.closest('.password-strength-wrap')?.querySelector('.strength-label');
+        if (label) label.textContent = '';
+        showProfileFormMessage(document.getElementById('profile-password-msg'), '');
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            document.getElementById('profile-current-password')?.focus();
+        }, 120);
+    };
+
+    window.closeChangePasswordModal = function () {
+        const modal = document.getElementById('modal-change-password');
+        if (modal) modal.style.display = 'none';
+    };
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeChangeEmailModal();
+            closeChangePasswordModal();
+        }
+    });
+
+    // Close modals on backdrop click
+    document.getElementById('modal-change-email')?.addEventListener('click', function (e) {
+        if (e.target === this) closeChangeEmailModal();
+    });
+    document.getElementById('modal-change-password')?.addEventListener('click', function (e) {
+        if (e.target === this) closeChangePasswordModal();
+    });
+
+    // Ensure password toggle buttons on profile page are initialized
+    if (typeof initPasswordToggles === 'function') {
+        initPasswordToggles();
+    }
+
+    // Password strength indicator for profile
+    if (typeof initStrengthIndicator === 'function') {
+        initStrengthIndicator('profile-new-password', 'profile-password-strength-bar');
+    }
+
+    function showProfileFormMessage(el, message, type = 'error') {
+        if (!el) return;
+        if (!message) {
+            el.style.display = 'none';
+            el.innerHTML = '';
+            return;
+        }
+        el.className = `profile-form-msg profile-form-msg--${type}`;
+        el.innerHTML = type === 'error'
+            ? `<i class="fas fa-exclamation-circle"></i> <span>${escapeHTML(message)}</span>`
+            : `<i class="fas fa-check-circle"></i> <span>${escapeHTML(message)}</span>`;
+        el.style.display = 'flex';
+    }
+
+    // Email change handler
+    const emailForm = document.getElementById('profile-change-email-form');
+    if (emailForm) {
+        emailForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const msgEl = document.getElementById('profile-email-msg');
+            const submitBtn = document.getElementById('profile-email-submit-btn');
+            showProfileFormMessage(msgEl, '');
+
+            const newEmail = (document.getElementById('profile-new-email')?.value || '').trim();
+            const password = document.getElementById('profile-email-confirm-password')?.value || '';
+
+            if (!newEmail) {
+                showProfileFormMessage(msgEl, window.lang?.enter_new_email || 'Please enter a new email address.');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(newEmail)) {
+                showProfileFormMessage(msgEl, window.lang?.invalid_email || 'Please enter a valid email address.');
+                return;
+            }
+
+            if (!password) {
+                showProfileFormMessage(msgEl, window.lang?.enter_current_password || 'Please enter your current password.');
+                return;
+            }
+
+            if (typeof setButtonLoading === 'function') {
+                setButtonLoading(submitBtn, window.lang?.updating || 'Updating...');
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'change_email');
+            formData.append('new_email', newEmail);
+            formData.append('password', password);
+
+            fetch('api/api.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        const updatedEmail = res.new_email || newEmail;
+                        // Update UI
+                        const pageEmail = document.getElementById('profile-page-email');
+                        if (pageEmail) pageEmail.textContent = updatedEmail;
+                        const infoEmail = document.getElementById('profile-info-email');
+                        if (infoEmail) infoEmail.textContent = updatedEmail;
+
+                        emailForm.reset();
+                        const successText = res.message || window.lang?.email_updated_success || 'Email updated successfully!';
+                        showProfileFormMessage(msgEl, successText, 'success');
+                        if (typeof showToast === 'function') {
+                            showToast(successText, 'success');
+                        }
+                        setTimeout(() => {
+                            closeChangeEmailModal();
+                        }, 1200);
+                    } else {
+                        const errorText = res.message || window.lang?.error_changing_email || 'Error updating email';
+                        showProfileFormMessage(msgEl, errorText, 'error');
+                        if (typeof showToast === 'function') {
+                            showToast(errorText, 'error');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Change email error:", err);
+                    showProfileFormMessage(msgEl, window.lang?.network_error_try_later || 'Network error. Please try again later.', 'error');
+                })
+                .finally(() => {
+                    if (typeof resetButton === 'function') {
+                        resetButton(submitBtn);
+                    }
+                });
+        });
+    }
+
+    // Password change handler
+    const passwordForm = document.getElementById('profile-change-password-form');
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const msgEl = document.getElementById('profile-password-msg');
+            const submitBtn = document.getElementById('profile-password-submit-btn');
+            showProfileFormMessage(msgEl, '');
+
+            const currentPassword = document.getElementById('profile-current-password')?.value || '';
+            const newPassword = document.getElementById('profile-new-password')?.value || '';
+            const confirmPassword = document.getElementById('profile-confirm-password')?.value || '';
+
+            if (!currentPassword) {
+                showProfileFormMessage(msgEl, window.lang?.enter_current_password || 'Please enter current password.');
+                return;
+            }
+
+            if (!newPassword) {
+                showProfileFormMessage(msgEl, window.lang?.enter_new_password || 'Please enter new password.');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                showProfileFormMessage(msgEl, window.lang?.password_min_length || 'Password must be at least 8 characters.');
+                return;
+            }
+
+            if (!/[A-Z]/.test(newPassword)) {
+                showProfileFormMessage(msgEl, 'Пароль должен содержать хотя бы одну заглавную букву (A-Z).');
+                return;
+            }
+
+            if (!/[0-9]/.test(newPassword)) {
+                showProfileFormMessage(msgEl, 'Пароль должен содержать хотя бы одну цифру (0-9).');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showProfileFormMessage(msgEl, window.lang?.passwords_dont_match || 'New passwords do not match.');
+                return;
+            }
+
+            if (typeof setButtonLoading === 'function') {
+                setButtonLoading(submitBtn, window.lang?.updating || 'Updating...');
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'change_password');
+            formData.append('current_password', currentPassword);
+            formData.append('new_password', newPassword);
+            formData.append('confirm_password', confirmPassword);
+
+            fetch('api/api.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        passwordForm.reset();
+                        // Reset strength bar
+                        const bar = document.getElementById('profile-password-strength-bar');
+                        if (bar) bar.style.width = '0%';
+                        const label = bar?.closest('.password-strength-wrap')?.querySelector('.strength-label');
+                        if (label) label.textContent = '';
+
+                        const successText = res.message || window.lang?.password_updated_success || 'Password updated successfully!';
+                        showProfileFormMessage(msgEl, successText, 'success');
+                        if (typeof showToast === 'function') {
+                            showToast(successText, 'success');
+                        }
+                        setTimeout(() => {
+                            closeChangePasswordModal();
+                        }, 1200);
+                    } else {
+                        const errorText = res.message || window.lang?.error_changing_password || 'Error updating password';
+                        showProfileFormMessage(msgEl, errorText, 'error');
+                        if (typeof showToast === 'function') {
+                            showToast(errorText, 'error');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Change password error:", err);
+                    showProfileFormMessage(msgEl, window.lang?.network_error_try_later || 'Network error. Please try again later.', 'error');
+                })
+                .finally(() => {
+                    if (typeof resetButton === 'function') {
+                        resetButton(submitBtn);
+                    }
+                });
+        });
+    }
 });

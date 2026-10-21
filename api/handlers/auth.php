@@ -469,4 +469,119 @@ function handleResendVerification($pdo)
         'message' => 'If an unverified account with this email exists, a new activation link has been sent.'
     ]);
 }
+
+function handleChangePassword($pdo)
+{
+    $userId = $_SESSION['user_id'] ?? null;
+    if (!$userId) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Authorization required.']);
+        return;
+    }
+
+    $data = !empty($_POST) ? $_POST : (json_decode(file_get_contents('php://input'), true) ?? []);
+    $currentPassword = $data['current_password'] ?? '';
+    $newPassword     = $data['new_password'] ?? '';
+    $confirmPassword = $data['confirm_password'] ?? '';
+
+    if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+        echo json_encode(['success' => false, 'message' => 'All password fields are required.']);
+        return;
+    }
+
+    if ($newPassword !== $confirmPassword) {
+        echo json_encode(['success' => false, 'message' => 'New passwords do not match.']);
+        return;
+    }
+
+    $pwError = validatePasswordStrength($newPassword);
+    if ($pwError) {
+        echo json_encode(['success' => false, 'message' => $pwError]);
+        return;
+    }
+
+    if (!checkRateLimit($pdo, 'change_pw_' . $userId, 5, 300)) return;
+
+    $stmt = $pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
+        echo json_encode(['success' => false, 'message' => 'Incorrect current password.']);
+        return;
+    }
+
+    if (password_verify($newPassword, $user['password_hash'])) {
+        echo json_encode(['success' => false, 'message' => 'New password must be different from current password.']);
+        return;
+    }
+
+    $newHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+    $update = $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+    if ($update->execute([$newHash, $userId])) {
+        resetRateLimit($pdo, 'change_pw_' . $userId);
+        echo json_encode(['success' => true, 'message' => 'Password changed successfully!']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Database error updating password.']);
+    }
+}
+
+function handleChangeEmail($pdo)
+{
+    $userId = $_SESSION['user_id'] ?? null;
+    if (!$userId) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Authorization required.']);
+        return;
+    }
+
+    $data = !empty($_POST) ? $_POST : (json_decode(file_get_contents('php://input'), true) ?? []);
+    $newEmail = trim($data['new_email'] ?? '');
+    $password = $data['password'] ?? '';
+
+    if (empty($newEmail) || empty($password)) {
+        echo json_encode(['success' => false, 'message' => 'New email and current password are required.']);
+        return;
+    }
+
+    if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid email address.']);
+        return;
+    }
+
+    if (!checkRateLimit($pdo, 'change_email_' . $userId, 5, 300)) return;
+
+    $stmt = $pdo->prepare("SELECT email, password_hash FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user || !password_verify($password, $user['password_hash'])) {
+        echo json_encode(['success' => false, 'message' => 'Incorrect current password.']);
+        return;
+    }
+
+    if (strcasecmp($user['email'], $newEmail) === 0) {
+        echo json_encode(['success' => false, 'message' => 'New email must be different from current email.']);
+        return;
+    }
+
+    $checkStmt = $pdo->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
+    $checkStmt->execute([$newEmail, $userId]);
+    if ($checkStmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'This email is already in use by another account.']);
+        return;
+    }
+
+    $update = $pdo->prepare("UPDATE users SET email = ? WHERE id = ?");
+    if ($update->execute([$newEmail, $userId])) {
+        resetRateLimit($pdo, 'change_email_' . $userId);
+        echo json_encode([
+            'success'   => true,
+            'message'   => 'Email changed successfully!',
+            'new_email' => $newEmail
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Database error updating email.']);
+    }
+}
 ?>

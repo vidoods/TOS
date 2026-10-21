@@ -14,20 +14,26 @@ function togglePassword(inputId, btn) {
     if (!input) return;
     const isHidden = input.type === 'password';
     input.type = isHidden ? 'text' : 'password';
-    const icon = btn.querySelector('i');
+    const icon = btn ? btn.querySelector('i') : null;
     if (icon) {
         icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
     }
 }
+window.togglePassword = togglePassword;
 
 function initPasswordToggles() {
     document.querySelectorAll('[data-toggle-password]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetId = btn.getAttribute('data-toggle-password');
-            togglePassword(targetId, btn);
-        });
+        btn.onclick = function (e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const targetId = this.getAttribute('data-toggle-password');
+            togglePassword(targetId, this);
+        };
     });
 }
+window.initPasswordToggles = initPasswordToggles;
 
 function calcPasswordStrength(password) {
     let score = 0;
