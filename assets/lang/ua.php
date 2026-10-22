@@ -448,6 +448,8 @@ return [
     'confirm_delete_insight' => 'Ви впевнені, щохочете видалити це спостереження?',
     'share_trade' => 'Подiлитися угодою',
     'change_email' => 'Змінити ел. пошту',
+    'select_asset_label' => 'Виберіть актив',
+    'select_asset_option' => '-- Виберіть актив --',
     'change_email_subtitle' => 'Оновіть адресу ел. пошти для входу',
     'new_email' => 'Новий email',
     'enter_new_email' => 'Введіть нову адресу ел. пошти',

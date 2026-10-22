@@ -22,9 +22,9 @@ $page_title = $is_edit ? $lang['edit_insight'] : $lang['add_new_insight'];
 
             <form id="insight-form" onsubmit="saveInsight(event)">
                 <div class="mb-4">
-                    <label class="form-lanel">Select Asset</label>
+                    <label class="form-lanel"><?= $lang['select_asset_label'] ?></label>
                         <select class="input-field" name="asset_id" id="insight-asset-id" required>
-                            <option value="">-- Select Asset --</option>
+                            <option value=""><?= $lang['select_asset_option'] ?></option>
                             <?php
                                 // Здесь вы должны получить список пар пользователя из БД
                                 // Пример (упрощенно):

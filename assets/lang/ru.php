@@ -448,6 +448,8 @@ return [
     'confirm_delete_insight' => 'Вы уверены, что хотите удалить это наблюдение?',
     'share_trade' => 'Поделиться сделкой',
     'change_email' => 'Сменить эл. почту',
+    'select_asset_label' => 'Выберите актив',
+    'select_asset_option' => '-- Выберите актив --',
     'change_email_subtitle' => 'Обновите адрес эл. почты для входа',
     'new_email' => 'Новый email',
     'enter_new_email' => 'Введите новый адрес эл. почты',

@@ -448,6 +448,8 @@ return [
     'confirm_delete_insight' => 'Are you sure you want to delete this insight?',
     'share_trade' => 'Share trade',
     'change_email' => 'Change Email',
+    'select_asset_label' => 'Select Asset',
+    'select_asset_option' => '-- Select Asset --',
     'change_email_subtitle' => 'Update your login email address',
     'new_email' => 'New Email',
     'enter_new_email' => 'Enter new email address',
