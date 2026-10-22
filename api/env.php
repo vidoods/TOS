@@ -46,5 +46,9 @@ if (!function_exists('loadEnv')) {
         }
     }
 
-    loadEnv(__DIR__ . '/../.env');
+    // Пробуем .env, если не читается — пробуем config.ini (для хостингов блокирующих dot-файлы)
+    $envPath = file_exists(__DIR__ . '/../.env') && is_readable(__DIR__ . '/../.env')
+        ? __DIR__ . '/../.env'
+        : __DIR__ . '/../config.ini';
+    loadEnv($envPath);
 }
