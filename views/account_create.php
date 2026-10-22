@@ -22,7 +22,7 @@ $btn_text = $is_edit ? $lang['update_account'] : $lang['new_account'];
                     
                                     <div class="form-group mb-4">
                                         <label for="acc-name" class="form-label fw-bold"><?= $lang['account_name'] ?></label>
-                                        <input type="text" id="acc-name" name="name" class="input-field" style="font-size: 1.1rem; padding: 14px;" placeholder="Example: FTMO 100k Swing" required>
+                                        <input type="text" id="acc-name" name="name" class="input-field" style="font-size: 1.1rem; padding: 14px;" placeholder="<?= $lang['example_account_name'] ?>" required>
                                     </div>
 
                                     <div class="row g-4"> <div class="col-md-4">
@@ -60,14 +60,14 @@ $btn_text = $is_edit ? $lang['update_account'] : $lang['new_account'];
                                             <label for="acc-target" class="form-label" style="color: var(--accent-green); font-weight: 600;">
                                                 <i class="fas fa-bullseye me-1"></i> <?= $lang['win_target'] ?>
                                             </label>
-                                            <input type="number" id="acc-target" name="target_percent" class="input-field" step="0.1" placeholder="Example: 10">
+                                            <input type="number" id="acc-target" name="target_percent" class="input-field" step="0.1" placeholder="<?= $lang['example_target_percent'] ?>">
                                             <div class="form-text"><?= $lang['leave_zero_for_no_target'] ?></div>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="acc-dd" class="form-label" style="color: var(--accent-red); font-weight: 600;">
                                                 <i class="fas fa-arrow-down me-1"></i> <?= $lang['max_drawdown'] ?>
                                             </label>
-                                            <input type="number" id="acc-dd" name="max_drawdown_percent" class="input-field" step="0.1" placeholder="Example: 10">
+                                            <input type="number" id="acc-dd" name="max_drawdown_percent" class="input-field" step="0.1" placeholder="<?= $lang['example_max_drawdown_percent'] ?>">
                                             <div class="form-text"><?= $lang['max_drawdown_description'] ?></div>
                                         </div>
                                     </div>
