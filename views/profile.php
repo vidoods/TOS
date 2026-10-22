@@ -316,7 +316,7 @@
                         required
                         autocomplete="current-password"
                     >
-                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-email-confirm-password" onclick="togglePassword('profile-email-confirm-password', this)" aria-label="Toggle password">
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-email-confirm-password" onclick="togglePassword('profile-email-confirm-password', this)" aria-label="<?= $lang["toggle_password"] ?>">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -366,7 +366,7 @@
                         required
                         autocomplete="current-password"
                     >
-                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-current-password" onclick="togglePassword('profile-current-password', this)" aria-label="Toggle password">
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-current-password" onclick="togglePassword('profile-current-password', this)" aria-label="<?= $lang["toggle_password"] ?>">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -385,7 +385,7 @@
                         required
                         autocomplete="new-password"
                     >
-                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-new-password" onclick="togglePassword('profile-new-password', this)" aria-label="Toggle password">
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-new-password" onclick="togglePassword('profile-new-password', this)" aria-label="<?= $lang["toggle_password"] ?>">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
@@ -410,7 +410,7 @@
                         required
                         autocomplete="new-password"
                     >
-                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-confirm-password" onclick="togglePassword('profile-confirm-password', this)" aria-label="Toggle password">
+                    <button type="button" class="profile-eye-btn" data-toggle-password="profile-confirm-password" onclick="togglePassword('profile-confirm-password', this)" aria-label="<?= $lang["toggle_password"] ?>">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>

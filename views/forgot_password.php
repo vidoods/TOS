@@ -6,7 +6,7 @@
 
     <div class="auth-brand">
         <img src="assets/logo.png" alt="TradeOS" class="auth-logo">
-        <span class="auth-brand-name">TradeOS</span>
+        <span class="auth-brand-name"><?= $lang['brand_name'] ?></span>
     </div>
 
     <div class="auth-icon-wrap">

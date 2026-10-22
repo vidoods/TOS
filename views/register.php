@@ -7,7 +7,7 @@
 
     <div class="auth-brand">
         <img src="assets/logo.png" alt="TradeOS" class="auth-logo">
-        <span class="auth-brand-name">TradeOS</span>
+        <span class="auth-brand-name"><?= $lang['brand_name'] ?></span>
     </div>
 
     <h1 class="auth-title"><?= $lang['sign_up'] ?></h1>
@@ -39,7 +39,7 @@
                 <i class="fas fa-lock auth-input-icon"></i>
                 <input type="password" id="reg-password" name="password" class="auth-input" required
                     placeholder="<?= $lang['password'] ?>" autocomplete="new-password" minlength="8">
-                <button type="button" class="auth-eye-btn" data-toggle-password="reg-password" aria-label="Toggle password">
+                <button type="button" class="auth-eye-btn" data-toggle-password="reg-password" aria-label="<?= $lang["toggle_password"] ?>">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -57,7 +57,7 @@
                 <i class="fas fa-shield-alt auth-input-icon"></i>
                 <input type="password" id="reg-password-confirm" name="password_confirm" class="auth-input" required
                     placeholder="<?= $lang['password'] ?>" autocomplete="new-password">
-                <button type="button" class="auth-eye-btn" data-toggle-password="reg-password-confirm" aria-label="Toggle password">
+                <button type="button" class="auth-eye-btn" data-toggle-password="reg-password-confirm" aria-label="<?= $lang["toggle_password"] ?>">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>

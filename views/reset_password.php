@@ -10,7 +10,7 @@ if (!$token) {
 
     <div class="auth-brand">
         <img src="assets/logo.png" alt="TradeOS" class="auth-logo">
-        <span class="auth-brand-name">TradeOS</span>
+        <span class="auth-brand-name"><?= $lang['brand_name'] ?></span>
     </div>
 
     <div class="auth-icon-wrap">
@@ -29,7 +29,7 @@ if (!$token) {
                 <i class="fas fa-lock auth-input-icon"></i>
                 <input type="password" class="auth-input" id="reset-password" required minlength="8"
                     placeholder="<?= $lang['password'] ?>" autocomplete="new-password">
-                <button type="button" class="auth-eye-btn" data-toggle-password="reset-password" aria-label="Toggle password">
+                <button type="button" class="auth-eye-btn" data-toggle-password="reset-password" aria-label="<?= $lang["toggle_password"] ?>">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
@@ -47,7 +47,7 @@ if (!$token) {
                 <i class="fas fa-shield-alt auth-input-icon"></i>
                 <input type="password" class="auth-input" id="reset-password-confirm" required minlength="8"
                     placeholder="<?= $lang['password'] ?>" autocomplete="new-password">
-                <button type="button" class="auth-eye-btn" data-toggle-password="reset-password-confirm" aria-label="Toggle password">
+                <button type="button" class="auth-eye-btn" data-toggle-password="reset-password-confirm" aria-label="<?= $lang["toggle_password"] ?>">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
