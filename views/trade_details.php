@@ -158,23 +158,23 @@
         </button>
         
         <h4 style="margin-top: 0; text-align: center; margin-bottom: 5px;">
-            <i class="fas fa-share-alt" style="color: var(--accent-blue); margin-right: 8px;"></i> Поделиться сделкой
+            <i class="fas fa-share-alt" style="color: var(--accent-blue); margin-right: 8px;"></i> <?= $lang['share_trade_title'] ?? 'Share Trade' ?>
         </h4>
-        <p class="text-muted text-center" style="font-size: 14px; margin-bottom: 25px;">Публичная ссылка на вашу статистику готова</p>
+        <p class="text-muted text-center" style="font-size: 14px; margin-bottom: 25px;"><?= $lang['share_trade_subtitle'] ?? 'Your public statistics link is ready' ?></p>
         
         <div style="text-align: center; margin: 20px 0; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <img id="share-generated-card" src="" alt="Trade Card" style="width: 100%; max-width: 350px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
             <div id="share-loading" class="text-muted">
                 <i class="fas fa-circle-notch fa-spin fa-2x mb-2" style="color: var(--accent-blue);"></i><br>
-                <span>Генерация ссылки...</span>
+                <span><?= $lang['share_trade_loading'] ?? 'Generating link...' ?></span>
             </div>
         </div>
         
         <div class="form-group" style="margin-bottom: 20px;">
-            <label class="detail-label" style="font-size: 12px; margin-bottom: 5px; display: block;">Публичная ссылка:</label>
+            <label class="detail-label" style="font-size: 12px; margin-bottom: 5px; display: block;"><?= $lang['share_trade_input_label'] ?? 'Public Link:' ?></label>
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="share-link-input" class="form-control" readonly style="flex: 1; background: rgba(0,0,0,0.2); color: white; border: 1px solid var(--glass-border); font-size: 13px;">
-                <button id="copy-share-link" class="btn btn-primary" title="Скопировать">
+                <button id="copy-share-link" class="btn btn-primary" title="<?= $lang['copy_link_title'] ?? 'Copy to clipboard' ?>">
                     <i class="fas fa-copy"></i>
                 </button>
             </div>
@@ -182,7 +182,7 @@
         
         <div style="text-align: center; margin-top: 10px;">
             <a id="download-card-btn" href="#" download="TradeOS_Card.png" class="btn btn-outline w-100" style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-                <i class="fas fa-image"></i> Скачать карточку (PNG)
+                <i class="fas fa-image"></i> <?= $lang['download_card_btn_text'] ?? 'Download Card (PNG)' ?>
             </a>
         </div>
     </div>
