@@ -475,7 +475,7 @@ return [
     'example_max_drawdown_percent' => 'Example: 10',
     'toggle_password' => 'Toggle password',
     'or' => 'or',
-    'example_timeframe' => 'e.g. M15',
+    'profile_example_timeframe' => 'e.g. M15',
     'example_strategy' => 'e.g. Scalping',
     'example_model' => 'e.g. FVG',
     'example_pair_symbol' => 'Ticker: BTCUSDT, EURUSD',

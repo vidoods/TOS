@@ -209,7 +209,7 @@
                 </div>
                 <div class="profile-card-body">
                     <div class="setting-input-group">
-                        <input type="text" id="new-tf-name" class="profile-input" placeholder="e.g. M15">
+                        <input type="text" id="new-tf-name" class="profile-input" placeholder="<?php echo $lang['profile_example_timeframe'] ?? 'e.g. M15'; ?>">
                         <button class="btn-add" onclick="addSetting('timeframe', 'new-tf-name')">+</button>
                     </div>
                     <ul id="list-timeframes" class="settings-list"></ul>
@@ -225,7 +225,7 @@
                 </div>
                 <div class="profile-card-body">
                     <div class="setting-input-group">
-                        <input type="text" id="new-style-name" class="profile-input" placeholder="e.g. Scalping">
+                        <input type="text" id="new-style-name" class="profile-input" placeholder="<?= $lang['example_strategy'] ?? 'e.g. Scalping' ?>">
                         <button class="btn-add" onclick="addSetting('style', 'new-style-name')">+</button>
                     </div>
                     <ul id="list-styles" class="settings-list"></ul>
@@ -240,7 +240,7 @@
                 </div>
                 <div class="profile-card-body">
                     <div class="setting-input-group">
-                        <input type="text" id="new-model-name" class="profile-input" placeholder="e.g. FVG">
+                        <input type="text" id="new-model-name" class="profile-input" placeholder="<?= $lang['example_model'] ?? 'e.g. FVG' ?>">
                         <button class="btn-add" onclick="addSetting('model', 'new-model-name')">+</button>
                     </div>
                     <ul id="list-models" class="settings-list"></ul>
@@ -257,8 +257,8 @@
                 </div>
                 <div class="profile-card-body">
                     <div class="setting-input-group pair-inputs">
-                        <input type="text" id="new-pair-symbol" class="profile-input" placeholder="Ticker: BTCUSDT, EURUSD">
-                        <input type="text" id="new-pair-provider" class="profile-input" placeholder="Provider: BINANCE, OANDA">
+                        <input type="text" id="new-pair-symbol" class="profile-input" placeholder="<?= $lang['example_pair_symbol'] ?? 'Ticker: BTCUSDT, EURUSD' ?>">
+                        <input type="text" id="new-pair-provider" class="profile-input" placeholder="<?= $lang['example_pair_provider'] ?? 'Provider: BINANCE, OANDA' ?>">
                         <select id="new-pair-type" class="profile-input">
                         </select>
                         <button class="btn-add" onclick="addPair()">+</button>

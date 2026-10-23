@@ -475,7 +475,7 @@ return [
     'example_max_drawdown_percent' => 'Приклад: 10',
     'toggle_password' => 'Показати/приховати пароль',
     'or' => 'або',
-    'example_timeframe' => 'напр. M15',
+    'profile_example_timeframe' => 'напр. M15',
     'example_strategy' => 'напр. Скальпінг',
     'example_model' => 'напр. FVG',
     'example_pair_symbol' => 'Тикер: BTCUSDT, EURUSD',
