@@ -9,7 +9,7 @@ if (!$token) {
 <div class="login-box fade-in">
 
     <div class="auth-brand">
-        <img src="assets/logo.png" alt="TradeOS" class="auth-logo">
+        <img src="assets/logo.png" alt="<?= $lang['brand_name'] ?>" class="auth-logo">
         <span class="auth-brand-name"><?= $lang['brand_name'] ?></span>
     </div>
 
