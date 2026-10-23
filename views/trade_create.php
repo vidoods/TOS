@@ -78,7 +78,7 @@
                             <option value="M15">M15</option>
                             <option value="H1">H1</option>
                             <option value="H4">H4</option>
-                             <option value="1D">1D</option>
+                            <option value="1D">1D</option>
                         </select>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                             <option value="win">✅ <?= $lang['win'] ?></option>
                             <option value="loss">❌ <?= $lang['loss'] ?></option>
                             <option value="breakeven">➖ <?= $lang['breakeven'] ?></option>
-                             <option value="partial">🔄 <?= $lang['partial'] ?></option>
+                            <option value="partial">🔄 <?= $lang['partial'] ?></option>
                             <option value="cancelled">🚫 <?= $lang['cancelled'] ?></option>
                         </select>
                     </div>
