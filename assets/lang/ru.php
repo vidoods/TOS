@@ -501,4 +501,5 @@ return [
     'share_trade_loading' => 'Генерация ссылки...',
     'share_trade_input_label' => 'Публичная ссылка:',
     'download_card_btn_text' => 'Скачать карточку (PNG)',
+    'error_js_loading' => 'Ошибка загрузки JavaScript. Пожалуйста, перезагрузите страницу и проверьте консоль.',
 ];

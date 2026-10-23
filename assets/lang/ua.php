@@ -501,4 +501,5 @@ return [
     'share_trade_loading' => 'Генерування посилання...',
     'share_trade_input_label' => 'Публічне посилання:',
     'download_card_btn_text' => 'Завантажити картку (PNG)',
+    'error_js_loading' => 'Помилка завантаження JavaScript. Будь ласка, перезавантажте сторінку або перевірте консоль.',
 ];

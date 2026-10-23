@@ -501,4 +501,5 @@ return [
     'share_trade_loading' => 'Generating link...',
     'share_trade_input_label' => 'Public Link:',
     'download_card_btn_text' => 'Download Card (PNG)',
+    'error_js_loading' => 'Error: Could not initialize data loading. Please refresh the page or check console.'
 ];

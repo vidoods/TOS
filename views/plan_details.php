@@ -85,7 +85,7 @@ if (!$plan_id) {
             console.error('Function loadPlanDetails not found. Possible that assets/app.js not loaded or damaged.');
             document.getElementById('plan-details-container').innerHTML = 
                 '<div class="error-state" style="padding: 30px; text-align: center; color: var(--accent-red);">' +
-                'Error: Could not initialyse data loading. Please refresh the page or check console.' +
+                '<?= $lang['error_js_loading'] ?? 'Error: Could not initialize data loading. Please refresh the page or check console.' ?>' +
                 '</div>';
         }
     });
