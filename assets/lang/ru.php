@@ -371,6 +371,8 @@ return [
     'image_preview' => 'Предпросмотр',
     'could_not_load_image' => 'Не удалось загрузить изображение',
     'trades_not_found' => 'Сделки не найдены.',
+    'trade_not_found' => 'Сделка не найдена',
+    'trade_not_found_or_access_denied' => 'Сделка не найдена или доступ запрещен',
     'dir' => 'Напр',
     'rr_table' => 'RR',
     'pnl_table' => 'PnL',

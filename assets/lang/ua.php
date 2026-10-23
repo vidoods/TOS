@@ -371,6 +371,8 @@ return [
     'image_preview' => 'Попередній перегляд',
     'could_not_load_image' => 'Не вдалося завантажити зображення',
     'trades_not_found' => 'Угод не знайдено.',
+    'trade_not_found' => 'Угода не знайдена',
+    'trade_not_found_or_access_denied' => 'Угода не знайдена або доступ заборонено',
     'dir' => 'Напр',
     'rr_table' => 'RR',
     'pnl_table' => 'PnL',

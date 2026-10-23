@@ -371,6 +371,8 @@ return [
     'image_preview' => 'Image preview',
     'could_not_load_image' => 'Could not load an image',
     'trades_not_found' => 'Trades not found.',
+    'trade_not_found' => 'Trade not found',
+    'trade_not_found_or_access_denied' => 'Trade not found or access denied',
     'dir' => 'Dir',
     'rr_table' => 'RR',
     'pnl_table' => 'PnL',
