@@ -98,32 +98,6 @@
     border-right-color: var(--bs-tooltip-bg) !important;
 }
 
-/* Стиль карточки при наведении */
-.qpa-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.qpa-card:hover {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Специфичная сетка для QPA: строго 2 колонки на ПК */
-.qpa-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Две равные части */
-    gap: 24px;
-    width: 100%;
-}
-
-/* На мобильных телефонах (меньше 768px) - одна колонка */
-@media (max-width: 768px) {
-    .qpa-grid {
-        grid-template-columns: 1fr;
-    }
-}
 
 /* --- MOBILE PWA STYLES --- */
 

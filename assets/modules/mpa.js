@@ -78,18 +78,30 @@ function renderMPAGrid(quartersData, container, year) {
         const pnlClass = qPnl >= 0 ? 'text-profit' : 'text-loss';
 
         const section = document.createElement('div');
-        section.className = 'quarter-section';
+        section.className = 'quarter-section month-group';
 
-        // ИСПРАВЛЕНИЕ: Применили CurrencyManager для вывода абсолютной прибыли за квартал
+        const pctSign = qPercent >= 0 ? '+' : '';
+
+        // ИСПРАВЛЕНИЕ: Блоки кварталов в стиле month-group из торгового журнала
         section.innerHTML = `
-            <div class="quarter-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                <i class="fas fa-chevron-down quarter-toggle-icon"></i>
-                <h4 class="m-0 me-3">Q${q}</h4>
-                <span class="${pnlClass}" style="font-weight: 500;">
-                    ${qPercent.toFixed(1)}% <span class="text-muted ms-2" style="font-size: 0.9em">(${CurrencyManager.format(qPnl)})</span>
-                </span>
+            <div class="quarter-header month-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                <div class="quarter-label month-label">
+                    <i class="fas fa-chevron-right quarter-toggle-icon month-toggle-icon"></i>
+                    <i class="fas fa-layer-group text-muted"></i>
+                    <span>Q${q} ${year}</span>
+                </div>
+                <div class="quarter-summary month-summary">
+                    <div class="sum-item ${pnlClass}">
+                        PnL: ${CurrencyManager.format(qPnl)}
+                    </div>
+                    <div class="sum-item ${pnlClass}">
+                        ${pctSign}${qPercent.toFixed(1)}%
+                    </div>
+                </div>
             </div>
-            <div class="quarter-grid"></div>
+            <div class="quarter-grid-wrapper">
+                <div class="quarter-grid"></div>
+            </div>
         `;
 
         container.appendChild(section);
@@ -102,16 +114,17 @@ function renderMPAGrid(quartersData, container, year) {
             const winRate = m.winrate || 0;
             const profitColorClass = m.pnl_total >= 0 ? 'text-profit' : 'text-loss';
             
-            let progressColor = m.pnl_total < 0 ? '#f44336' : '#4caf50';
+            let progressColor = m.pnl_total < 0 ? 'var(--text-loss)' : 'var(--text-profit)';
             if (!hasTrades) progressColor = 'rgba(255,255,255,0.1)';
 
-            // ИСПРАВЛЕНИЕ: Форматируем PnL месяца через мультивалютный менеджер
+            // ИСПРАВЛЕНИЕ: Форматируем PnL месяца через мультивалютный менеджер в едином стиле
             const cardHTML = `
-                <div class="mpa-card" onclick="window.location.href='index.php?view=mpa_details&year=${year}&month=${m.month_num}'">
+                <div class="glass-panel mpa-card" onclick="window.location.href='index.php?view=mpa_details&year=${year}&month=${m.month_num}'">
                     <div class="mpa-card-title">
                         <span>${monthNames[m.month_num]} ${year}</span>
+                        <div class="mpa-card-arrow"><i class="fas fa-arrow-right"></i></div>
                     </div>
-                    <div class="mpa-stat-row text-muted" style="font-size: 0.9rem; letter-spacing: 0.5px; font-weight: 500;">
+                    <div class="mpa-stat-row text-muted" style="font-size: 0.85rem; letter-spacing: 0.5px; font-weight: 500;">
                         <span class="text-white">Q: ${m.count_total}</span> /
                         <span class="text-profit">W: ${m.count_win}</span> /
                         <span class="text-loss">L: ${m.count_loss}</span> /
@@ -121,12 +134,12 @@ function renderMPAGrid(quartersData, container, year) {
                     <div class="mpa-stat-row mt-2">
                         <span>
                             ${window.lang['profit_label']}: <span class="${profitColorClass}" style="font-weight: 600;">${m.pnl_percent.toFixed(1)}%</span>
-                            <span class="${profitColorClass}" style="font-size: 0.9em; opacity: 0.8;"> / ${CurrencyManager.format(parseFloat(m.pnl_total))}</span>
+                            <span class="${profitColorClass}" style="font-size: 0.9em; opacity: 0.85;"> / ${CurrencyManager.format(parseFloat(m.pnl_total))}</span>
                         </span>
-                        <span class="text-muted" style="font-size: 0.85em;">${window.lang['avg_label']}: <span class="text-white">${avgRR} RR</span></span>
+                        <span class="text-secondary" style="font-size: 0.85em;">${window.lang['avg_label']}: <span class="text-white">${avgRR} RR</span></span>
                     </div>
-                    <div class="mpa-stat-row mt-1 text-muted" style="font-size: 0.85em;">
-                        ${winRate}% ${window.lang['winrate']}
+                    <div class="mpa-stat-row mt-1 text-secondary" style="font-size: 0.85em;">
+                        <span>${winRate}% ${window.lang['winrate']}</span>
                     </div>
                     <div class="mpa-progress-bg mt-3">
                         <div class="mpa-progress-fill" style="width: ${hasTrades ? winRate : 0}%; background: ${progressColor};"></div>

@@ -250,44 +250,44 @@ function renderQpaListGrid(quarters, container) {
 
     quarters.forEach(q => {
         const pnlVal = parseFloat(q.pnl);
-        const pnlClass = pnlVal >= 0 ? 'text-success' : 'text-danger';
+        const pnlClass = pnlVal >= 0 ? 'text-profit' : 'text-loss';
+        const winrateVal = parseFloat(q.winrate || 0);
 
-        const cardBg = pnlVal >= 0
-            ? 'background: linear-gradient(160deg, rgba(25, 135, 84, 0.08) 0%, rgba(0,0,0,0) 100%);'
-            : 'background: linear-gradient(160deg, rgba(220, 53, 69, 0.08) 0%, rgba(0,0,0,0) 100%);';
-
-        // ИСПРАВЛЕНИЕ: Использовали CurrencyManager.format для отображения чистого результата квартала в общем списке
+        // ИСПРАВЛЕНИЕ: Единый стиль glass-panel без едких фоновых градиентов
         const html = `
-        <div class="glass-panel qpa-card p-4 h-100 d-flex flex-column justify-content-between"
-             style="${cardBg}"
+        <div class="glass-panel qpa-card"
              onclick="window.location.href='index.php?view=qpa_details&year=${q.year}&quarter=${q.quarter}'">
 
-            <div class="d-flex justify-content-between align-items-start mb-4">
+            <div class="qpa-card-header">
                 <div>
-                    <h3 class="fw-bold m-0 text-white" style="font-size: 1.8rem;">Q${q.quarter}</h3>
-                    <div class="text-muted small text-uppercase" style="letter-spacing: 1px;">${q.year}</div>
+                    <h3 class="qpa-card-quarter">Q${q.quarter}</h3>
+                    <div class="qpa-card-year">${q.year}</div>
+                </div>
+                <div class="qpa-card-arrow">
+                    <i class="fas fa-arrow-right"></i>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <div class="small text-muted text-uppercase fw-bold mb-1" style="font-size: 0.75rem;">${window.lang['net_result']}</div>
-                <div class="display-6 fw-bold ${pnlClass}">
+            <div class="qpa-card-metric">
+                <div class="qpa-card-label">${window.lang['net_result']}</div>
+                <div class="qpa-card-value ${pnlClass}">
                     ${CurrencyManager.format(pnlVal)}
                 </div>
             </div>
 
-            <div class="d-flex align-items-center pt-3 border-top border-white-10 text-muted small">
-                <div class="d-flex align-items-center me-4" title="Winrate">
-                    <i class="fas fa-chart-pie me-2 opacity-50"></i>
-                    <span class="fw-bold text-white">${q.winrate}%</span>
+            <div class="qpa-card-footer">
+                <div class="qpa-stat-chip" title="${window.lang['winrate']}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>${winrateVal}%</span>
                 </div>
-                <div class="d-flex align-items-center me-auto" title="Total Trades">
-                    <i class="fas fa-list me-2 opacity-50"></i>
-                    <span class="fw-bold text-white">${q.total}</span>
+                <div class="qpa-stat-chip" title="${window.lang['total_trades']}">
+                    <i class="fas fa-list"></i>
+                    <span>${q.total}</span>
                 </div>
-                <div class="text-white opacity-50">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
+            </div>
+
+            <div class="mpa-progress-bg mt-3">
+                <div class="mpa-progress-fill" style="width: ${q.total > 0 ? winrateVal : 0}%; background: ${pnlVal < 0 ? 'var(--text-loss)' : 'var(--text-profit)'};"></div>
             </div>
 
         </div>
