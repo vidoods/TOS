@@ -50,7 +50,13 @@ function updateStrengthBar(password, barId) {
     if (!bar) return;
 
     const score  = calcPasswordStrength(password);
-    const labels = ['', 'Слабый', 'Средний', 'Хороший', 'Надежный'];
+    const labels = [
+        '',
+        window.lang?.['password_strength_weak'] || 'Weak',
+        window.lang?.['password_strength_medium'] || 'Medium',
+        window.lang?.['password_strength_good'] || 'Good',
+        window.lang?.['password_strength_strong'] || 'Strong'
+    ];
     const colors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
 
     bar.style.width     = password.length ? `${score * 25}%` : '0%';
@@ -177,14 +183,14 @@ async function loadSimpleProfile() {
 // ВОССТАНОВЛЕНО: Функция выхода
 async function logout() {
     // Если у тебя есть кастомная функция showConfirm, используем её, иначе fallback на стандартный confirm
-    const confirmMessage = window.lang?.['confirm_logout'] || 'Вы уверены, что хотите выйти?';
+    const confirmMessage = window.lang?.['confirm_logout'] || 'Are you sure you want to log out?';
     const isConfirmed = typeof showConfirm === 'function' ? await showConfirm(confirmMessage) : confirm(confirmMessage);
     
     if (isConfirmed) {
         try { 
             await fetch(`${API_URL}?action=logout`); 
         } catch (e) { 
-            console.error('Ошибка при выходе:', e); 
+            console.error('Logout error:', e); 
         }
         window.location.href = 'index.php?view=login';
     }
@@ -205,7 +211,7 @@ async function handleLoginSubmit(event) {
     if (submitBtn.disabled) return; // Защита от спам-кликов
 
     showFormMessage(errorDiv, '');
-    setButtonLoading(submitBtn, window.lang?.['checking'] || 'Проверка...');
+    setButtonLoading(submitBtn, window.lang?.['checking'] || 'Checking...');
 
     try {
         const response = await fetch(API_URL, { method: 'POST', body: formData });
@@ -215,14 +221,16 @@ async function handleLoginSubmit(event) {
             window.location.href = 'index.php?view=dashboard';
         } else if (result.unverified) {
             const email = result.email || '';
-            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> Почта не подтверждена. <a href="javascript:void(0)" onclick="resendVerificationEmail('${email}')" style="color: var(--accent-blue, #2997ff); text-decoration: underline; margin-left: 6px;">Отправить ссылку снова</a>`;
+            const unverifiedText = window.lang?.['email_not_confirmed'] || 'Email is not verified.';
+            const sendAgainText = window.lang?.['send_link_again'] || 'Send link again';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${unverifiedText} <a href="javascript:void(0)" onclick="resendVerificationEmail('${email}')" style="color: var(--accent-blue, #2997ff); text-decoration: underline; margin-left: 6px;">${sendAgainText}</a>`;
             errorDiv.className = 'auth-message auth-message--error';
             errorDiv.style.display = 'flex';
         } else {
-            showFormMessage(errorDiv, result.message || window.lang?.['login_error'] || 'Ошибка входа');
+            showFormMessage(errorDiv, result.message || window.lang?.['login_error'] || 'Login error');
         }
     } catch (error) {
-        showFormMessage(errorDiv, window.lang?.['network_error_try_later'] || 'Ошибка сети. Попробуйте позже.');
+        showFormMessage(errorDiv, window.lang?.['network_error_try_later'] || window.lang?.['network_error'] || 'Network error. Please try again later.');
     } finally {
         resetButton(submitBtn);
     }
@@ -242,11 +250,11 @@ async function handleRegisterSubmit(event) {
     showFormMessage(errorDiv, '');
 
     if (pass !== confirm) {
-        showFormMessage(errorDiv, window.lang?.['password_doesnt_match'] || "Пароли не совпадают");
+        showFormMessage(errorDiv, window.lang?.['password_doesnt_match'] || "Passwords do not match");
         return;
     }
 
-    setButtonLoading(submitBtn, window.lang?.['registration'] || 'Создание аккаунта...');
+    setButtonLoading(submitBtn, window.lang?.['creating_account'] || window.lang?.['registration'] || 'Creating account...');
 
     try {
         const data     = Object.fromEntries(formData.entries());
@@ -261,14 +269,14 @@ async function handleRegisterSubmit(event) {
             if (result.requires_verification) {
                 showRegisterSuccess(data.email, form);
             } else {
-                showFormMessage(errorDiv, window.lang?.['registration_successful'] || 'Успешно! Перенаправление...', 'success');
+                showFormMessage(errorDiv, window.lang?.['registration_successful_redirect'] || window.lang?.['registration_successful'] || 'Success! Redirecting...', 'success');
                 setTimeout(() => { window.location.href = 'index.php?view=login'; }, 1800);
             }
         } else {
-            showFormMessage(errorDiv, result.message || window.lang?.['registration_error'] || 'Ошибка регистрации');
+            showFormMessage(errorDiv, result.message || window.lang?.['registration_error'] || 'Registration error');
         }
     } catch (error) {
-        showFormMessage(errorDiv, window.lang?.['network_error'] || 'Ошибка сети');
+        showFormMessage(errorDiv, window.lang?.['network_error'] || 'Network error');
     } finally {
         resetButton(submitBtn);
     }
@@ -284,7 +292,7 @@ async function handleForgotPasswordSubmit(event) {
     if (!emailEl || submitBtn.disabled) return; 
     
     showFormMessage(msgEl, '');
-    setButtonLoading(submitBtn, window.lang?.['sending'] || 'Отправка...');
+    setButtonLoading(submitBtn, window.lang?.['sending'] || 'Sending...');
 
     try {
         const response = await fetch(`${API_URL}?action=forgot_password`, {
@@ -297,10 +305,10 @@ async function handleForgotPasswordSubmit(event) {
         if (result.success) {
             showForgotSuccess(emailEl.value.trim(), form);
         } else {
-            showFormMessage(msgEl, result.message || 'Ошибка. Попробуйте позже.', 'error');
+            showFormMessage(msgEl, result.message || window.lang?.['error_try_later'] || window.lang?.['network_error_try_later'] || 'Error. Please try again later.', 'error');
         }
     } catch (error) {
-        showFormMessage(msgEl, 'Ошибка сети.', 'error');
+        showFormMessage(msgEl, window.lang?.['network_error_try_later'] || window.lang?.['network_error'] || 'Network error.', 'error');
     } finally {
         resetButton(submitBtn);
     }
@@ -308,22 +316,28 @@ async function handleForgotPasswordSubmit(event) {
 
 function showRegisterSuccess(email, form) {
     const wrap = form.closest('.login-box') || form.parentElement;
+    const checkEmailText = window.lang?.['check_email'] || 'Check your email';
+    const sentText = window.lang?.['activation_link_sent_to'] || 'We sent an activation link to';
+    const instructionsText = window.lang?.['activation_instructions'] || 'Follow the link in the email to verify your email address and get started in TradeOS.';
+    const goToLoginText = window.lang?.['go_to_login_btn'] || window.lang?.['login'] || 'Go to Login';
+    const resendText = window.lang?.['didnt_receive_email'] || 'Didn\'t receive the email? Resend';
+
     const successHtml = `
         <div class="auth-success-state fade-in" style="text-align: center; padding: 20px 0;">
             <div style="font-size: 3.5rem; color: #10b981; margin-bottom: 20px;"><i class="fas fa-envelope-circle-check"></i></div>
-            <h2 style="font-size: 1.5rem; font-weight: 700; color: #f8fafc; margin: 0 0 12px;">Проверьте почту</h2>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #f8fafc; margin: 0 0 12px;">${checkEmailText}</h2>
             <p style="font-size: 0.95rem; color: #94a3b8; line-height: 1.6; margin: 0 0 16px;">
-                Мы отправили ссылку для активации аккаунта на<br><strong style="color: #f8fafc;">${email}</strong>
+                ${sentText}<br><strong style="color: #f8fafc;">${email}</strong>
             </p>
             <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.5; margin-bottom: 24px;">
-                Перейдите по ссылке в письме, чтобы подтвердить ваш email и начать работу в TradeOS.
+                ${instructionsText}
             </p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <a href="index.php?view=login" class="auth-submit-btn" style="text-decoration: none; padding: 12px; font-size: 0.95rem; text-align: center; display: block;">
-                    Перейти ко входу
+                    ${goToLoginText}
                 </a>
                 <button type="button" onclick="resendVerificationEmail('${email}')" style="background: none; border: none; cursor: pointer; color: var(--accent-blue, #2997ff); font-size: 0.85rem; padding: 8px;">
-                    Не пришло письмо? Отправить повторно
+                    ${resendText}
                 </button>
             </div>
             <div id="resend-message-inline" class="auth-message" style="display:none; margin-top: 14px;"></div>
@@ -338,12 +352,12 @@ async function resendVerificationEmail(email) {
     }
     const msgEl = document.getElementById('resend-message') || document.getElementById('resend-message-inline') || document.getElementById('login-error');
     if (!email) {
-        if (msgEl) showFormMessage(msgEl, 'Укажите email адрес.', 'error');
+        if (msgEl) showFormMessage(msgEl, window.lang?.['specify_email'] || 'Please provide an email address.', 'error');
         return;
     }
 
     const btn = document.getElementById('resend-verify-btn');
-    if (btn) setButtonLoading(btn, 'Отправка...');
+    if (btn) setButtonLoading(btn, window.lang?.['sending'] || 'Sending...');
 
     try {
         const res = await fetch(`${API_URL}?action=resend_verification`, {
@@ -353,10 +367,10 @@ async function resendVerificationEmail(email) {
         });
         const json = await res.json();
         if (msgEl) {
-            showFormMessage(msgEl, json.message || 'Ссылка отправлена.', json.success ? 'success' : 'error');
+            showFormMessage(msgEl, json.message || window.lang?.['link_sent'] || 'Link sent.', json.success ? 'success' : 'error');
         }
     } catch (e) {
-        if (msgEl) showFormMessage(msgEl, 'Ошибка сети. Попробуйте позже.', 'error');
+        if (msgEl) showFormMessage(msgEl, window.lang?.['network_error_try_later'] || window.lang?.['network_error'] || 'Network error.', 'error');
     } finally {
         if (btn) resetButton(btn);
     }
@@ -364,14 +378,18 @@ async function resendVerificationEmail(email) {
 
 function showForgotSuccess(email, form) {
     const wrap = form.closest('.login-box') || form.parentElement;
+    const checkEmailText = window.lang?.['check_email'] || 'Check your email';
+    const sentText = window.lang?.['recovery_link_sent_to'] || 'We sent a password recovery link to';
+    const retryText = window.lang?.['check_spam_or_retry'] || 'No email? Check spam or <a href="index.php?view=forgot_password" style="color: #3b82f6; text-decoration: none;">try again</a>.';
+
     const successHtml = `
         <div class="auth-success-state fade-in" style="text-align: center; padding: 16px 0;">
             <div style="font-size: 3rem; color: #3b82f6; margin-bottom: 16px;"><i class="fas fa-envelope-open-text"></i></div>
-            <h2 style="font-size: 1.4rem; font-weight: 700; color: #f8fafc; margin: 0 0 10px;">Проверьте почту</h2>
+            <h2 style="font-size: 1.4rem; font-weight: 700; color: #f8fafc; margin: 0 0 10px;">${checkEmailText}</h2>
             <p style="font-size: 0.9rem; color: #94a3b8; line-height: 1.6; margin: 0 0 12px;">
-                Мы отправили ссылку для восстановления на<br><strong style="color: #f8fafc;">${email}</strong>
+                ${sentText}<br><strong style="color: #f8fafc;">${email}</strong>
             </p>
-            <p style="font-size: 0.8rem; color: #94a3b8; opacity: 0.7;">Письма нет? Проверьте спам или <a href="index.php?view=forgot_password" style="color: #3b82f6; text-decoration: none;">попробуйте снова</a>.</p>
+            <p style="font-size: 0.8rem; color: #94a3b8; opacity: 0.7;">${retryText}</p>
         </div>`;
     if (wrap) wrap.innerHTML = successHtml;
 }
@@ -380,18 +398,24 @@ function showDevResetLink(link, email) {
     const overlay = document.createElement('div');
     overlay.className = 'dev-modal-overlay';
     overlay.style.cssText = "position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);";
+    const devModeText = window.lang?.['dev_mode'] || 'Dev Mode';
+    const linkGeneratedText = window.lang?.['link_generated'] || 'Link generated';
+    const forText = window.lang?.['link_for'] || 'For:';
+    const openLinkText = window.lang?.['open_link'] || 'Open link';
+    const closeText = window.lang?.['close'] || window.lang?.['cancel'] || 'Close';
+
     overlay.innerHTML = `
         <div class="dev-modal fade-in" style="background: rgba(22, 27, 34, 0.98); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; padding: 32px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.6);">
-            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; margin-bottom: 16px;"><i class="fas fa-bug"></i> Dev Mode</div>
-            <h3 style="font-size: 1.2rem; font-weight: 700; color: #f8fafc; margin: 0 0 8px;">Ссылка сгенерирована</h3>
-            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 20px;">Для: <strong style="color: #f8fafc;">${email}</strong></p>
+            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; margin-bottom: 16px;"><i class="fas fa-bug"></i> ${devModeText}</div>
+            <h3 style="font-size: 1.2rem; font-weight: 700; color: #f8fafc; margin: 0 0 8px;">${linkGeneratedText}</h3>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin: 0 0 20px;">${forText} <strong style="color: #f8fafc;">${email}</strong></p>
             <div style="display: flex; gap: 8px; margin-bottom: 16px;">
                 <input type="text" value="${link}" readonly id="dev-reset-link-input" style="flex: 1; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #3b82f6; font-size: 0.78rem; font-family: monospace; outline: none;">
                 <button onclick="document.getElementById('dev-reset-link-input').select(); document.execCommand('copy');" style="padding: 10px 14px; background: rgba(41,151,255,0.1); border: 1px solid rgba(41,151,255,0.2); border-radius: 8px; color: #3b82f6; cursor: pointer;"><i class="fas fa-copy"></i></button>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="window.location.href='${link}'" style="flex: 1; padding: 10px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; cursor: pointer;">Открыть ссылку</button>
-                <button onclick="this.closest('.dev-modal-overlay').remove()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.06); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer;">Закрыть</button>
+                <button onclick="window.location.href='${link}'" style="flex: 1; padding: 10px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; cursor: pointer;">${openLinkText}</button>
+                <button onclick="this.closest('.dev-modal-overlay').remove()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.06); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer;">${closeText}</button>
             </div>
         </div>`;
     document.body.appendChild(overlay);
@@ -413,11 +437,11 @@ async function handleResetPasswordSubmit(event) {
     if (!tokenEl || !passEl) return;
 
     if (confirmEl && passEl.value !== confirmEl.value) {
-        showFormMessage(msgEl, window.lang?.['password_doesnt_match'] || "Пароли не совпадают");
+        showFormMessage(msgEl, window.lang?.['password_doesnt_match'] || "Passwords do not match");
         return;
     }
 
-    setButtonLoading(submitBtn, window.lang?.['sending'] || 'Сохранение...');
+    setButtonLoading(submitBtn, window.lang?.['sending'] || 'Saving...');
 
     try {
         const response = await fetch(`${API_URL}?action=reset_password`, {
@@ -428,13 +452,13 @@ async function handleResetPasswordSubmit(event) {
         const result = await response.json();
 
         if (result.success) {
-            showFormMessage(msgEl, window.lang?.['password_changed'] || 'Пароль успешно изменен!', 'success');
+            showFormMessage(msgEl, window.lang?.['password_changed'] || 'Password changed successfully!', 'success');
             setTimeout(() => { window.location.href = 'index.php?view=login'; }, 2000);
         } else {
-            showFormMessage(msgEl, result.message || window.lang?.['error_changing_password'] || 'Ошибка');
+            showFormMessage(msgEl, result.message || window.lang?.['error_changing_password'] || 'Error changing password');
         }
     } catch (error) {
-        showFormMessage(msgEl, window.lang?.['network_error_try_later'] || 'Ошибка сети.', 'error');
+        showFormMessage(msgEl, window.lang?.['network_error_try_later'] || window.lang?.['network_error'] || 'Network error.', 'error');
     } finally {
         resetButton(submitBtn);
     }
@@ -464,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file) return;
 
             if (file.size > 2 * 1024 * 1024) {
-                if (typeof showToast === 'function') showToast('Файл слишком большой (макс 2MB)', 'error');
+                if (typeof showToast === 'function') showToast(window.lang?.['file_too_large_2mb'] || 'File is too large (max 2MB)', 'error');
                 return;
             }
 
@@ -486,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const sidebarImg  = document.getElementById('sidebar-avatar-img');
                     const sidebarIcon = document.getElementById('sidebar-avatar-icon');
                     updateAvatar(newSrc, { avatarImg, sidebarImg, avatarIcon, sidebarIcon });
-                    if (typeof showToast === 'function') showToast('Аватар обновлен!', 'success');
+                    if (typeof showToast === 'function') showToast(window.lang?.['avatar_updated'] || 'Avatar updated!', 'success');
                 } else {
                     if (typeof showToast === 'function') showToast(json.message, 'error');
                 }

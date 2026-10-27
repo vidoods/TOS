@@ -292,7 +292,7 @@ async function saveInsight(event) {
     const form = document.getElementById('insight-form');
     if (!form) {
         console.error('Insight form not found');
-        showToast('Ошибка: форма инсайта не найдена', 'error');
+        showToast(window.lang?.['insight_form_not_found'] || 'Error: insight form not found', 'error');
         return;
     }
 
@@ -335,7 +335,7 @@ async function saveInsight(event) {
         }
     } catch (e) {
         console.error('Error saving insight:', e);
-        showToast('Ошибка при сохранении инсайта', 'error');
+        showToast(window.lang?.['error_saving_insight'] || 'Error saving insight', 'error');
     }
 }
 
@@ -361,7 +361,7 @@ async function deleteInsight(id) {
         }
     } catch (e) {
         console.error('Error deleting insight:', e);
-        showToast('Ошибка при удалении инсайта', 'error');
+        showToast(window.lang?.['error_deleting_insight'] || 'Error deleting insight', 'error');
     }
 }
 

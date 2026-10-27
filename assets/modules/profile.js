@@ -478,12 +478,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (!/[A-Z]/.test(newPassword)) {
-                showProfileFormMessage(msgEl, 'Пароль должен содержать хотя бы одну заглавную букву (A-Z).');
+                showProfileFormMessage(msgEl, window.lang?.['password_require_uppercase'] || 'Password must contain at least one uppercase letter (A-Z).');
                 return;
             }
 
             if (!/[0-9]/.test(newPassword)) {
-                showProfileFormMessage(msgEl, 'Пароль должен содержать хотя бы одну цифру (0-9).');
+                showProfileFormMessage(msgEl, window.lang?.['password_require_number'] || 'Password must contain at least one number (0-9).');
                 return;
             }
 

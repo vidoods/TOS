@@ -79,9 +79,6 @@ function showConfirm(message, confirmText = null, cancelText = null) {
         const modal = document.createElement('div');
         modal.className = 'custom-confirm-modal';
         
-        const isRu = window.lang && window.lang['language'] === 'Язык';
-        const isUa = window.lang && window.lang['language'] === 'Мова';
-        
         let yesLabel = confirmText;
         let noLabel = cancelText || (window.lang ? window.lang['cancel'] : 'Cancel');
         
@@ -91,7 +88,7 @@ function showConfirm(message, confirmText = null, cancelText = null) {
             } else if (message.includes('delete') || message.includes('Delete') || message.includes('Удалить') || message.includes('Видалити')) {
                 yesLabel = window.lang ? window.lang['delete'] : 'Delete';
             } else {
-                yesLabel = isRu ? 'Да' : (isUa ? 'Так' : 'Yes');
+                yesLabel = window.lang?.['yes'] || 'Yes';
             }
         }
         

@@ -366,10 +366,11 @@ async function loadTradeDetails() {
                 const tf = trade.entry_tf || '4h';
 
                 // 1. Вставляем структуру секции в контейнер
+                const chartAnalysisTitle = window.lang?.['chart_analysis'] || 'Chart Analysis';
                 chartPlaceholder.innerHTML = `
                     <section style="margin-bottom: 40px;">
                         <h3 class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-                            Chart Analysis
+                            ${chartAnalysisTitle}
                             <div class="chart-tfs" id="chart-timeframe-buttons" style="display: flex; gap: 5px;">
                                 ${['15m', '1h', '4h', '1d'].map(t => 
                                     `<button class="btn btn-sm btn-outline ${tf === t ? 'active' : ''}" style="${tf === t ? 'background: var(--accent-blue); color: white;' : ''}" onclick="window.currentTradeForChart.entry_tf='${t}'; initTradingViewChart(window.currentTradeForChart); Array.from(this.parentElement.children).forEach(b => {b.style.background=''; b.style.color=''; b.classList.remove('active')}); this.style.background='var(--accent-blue)'; this.style.color='white'; this.classList.add('active');">${t}</button>`
@@ -524,9 +525,10 @@ async function initTradingViewChart(trade) {
 
     } catch (error) {
         console.error('Error initializing TradingView chart:', error);
+        const chartLoadingErrorText = window.lang?.['chart_loading_error'] || 'Error loading chart:';
         container.innerHTML = `
             <div class="alert alert-danger mb-0" style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4445; color: #ef4445;">
-                <i class="fas fa-times-circle me-2"></i> Ошибка загрузки графика: ${error.message}
+                <i class="fas fa-times-circle me-2"></i> ${chartLoadingErrorText} ${error.message}
             </div>`;
     }
 }
@@ -588,12 +590,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         downloadBtn.href = `api/handlers/generate_card.php?token=${token}`;
                     }
                 } else {
-                    Toastify({text: "Ошибка: " + result.message, duration: 3000, style: {background: "#ef4444"}}).showToast();
+                    const errorPrefix = window.lang?.['error'] || 'Error';
+                    Toastify({text: errorPrefix + ": " + result.message, duration: 3000, style: {background: "#ef4444"}}).showToast();
                     shareModal.style.display = 'none';
                 }
             } catch (e) {
                 console.error(e);
-                Toastify({text: "Ошибка сети", duration: 3000, style: {background: "#ef4444"}}).showToast();
+                const networkErrorText = window.lang?.['network_error'] || 'Network error';
+                Toastify({text: networkErrorText, duration: 3000, style: {background: "#ef4444"}}).showToast();
                 shareModal.style.display = 'none';
             }
         });
@@ -607,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
             shareInput.select();
             document.execCommand('copy');
             Toastify({
-                text: window.lang?.copied || "Ссылка скопирована!",
+                text: window.lang?.copied || "Link copied!",
                 duration: 2500, gravity: "top", position: "right",
                 style: { background: "#22c55e" }
             }).showToast();

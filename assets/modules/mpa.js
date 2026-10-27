@@ -407,7 +407,8 @@ async function initMPAReportLogic(year, month) {
                         btn.disabled = false;
                     }, 2000);
                 } else {
-                    showToast('Error: ' + data.message, 'error');
+                    const errPrefix = window.lang?.['error'] || 'Error';
+                    showToast(errPrefix + ': ' + data.message, 'error');
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 }
