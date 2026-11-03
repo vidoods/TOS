@@ -301,8 +301,13 @@ async function loadTradeDetails() {
                             el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
                         } else if (key === 'rr_achieved') {
                             const val = parseFloat(trade[key]);
-                            el.textContent = val.toFixed(2) + 'R';
-                            el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
+                            if (isNaN(val) || (trade.status && trade.status.toLowerCase() === 'pending')) {
+                                el.textContent = '-';
+                                el.className = 'detail-value info-badge badge-neutral';
+                            } else {
+                                el.textContent = val.toFixed(2) + 'R';
+                                el.className = 'detail-value info-badge ' + (val >= 0 ? 'badge-profit' : 'badge-loss');
+                            }
                         } else if (key === 'status') {
                             const val = trade[key].toLowerCase();
                             el.textContent = val.toUpperCase();

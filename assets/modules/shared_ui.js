@@ -16,7 +16,9 @@ function getTradeRowHtml(trade) {
     const pnlColor = pnlVal >= 0 ? 'text-profit' : 'text-loss';
     let dirColorClass = trade.direction === 'Long' ? 'text-long' : 'text-short';
     
-    const rrVal = Number(trade.rr_achieved).toFixed(2);
+    const isPending = trade.status && trade.status.toLowerCase() === 'pending';
+    const rrParsed = parseFloat(trade.rr_achieved);
+    const rrVal = (isPending || isNaN(rrParsed)) ? '-' : rrParsed.toFixed(2);
     const accName = trade.account_name || '-';
 
     return `

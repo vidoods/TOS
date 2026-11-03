@@ -88,7 +88,11 @@ function formatDate($dateStr) {
                 </div>
                 <div class="detail-item">
                     <span class="detail-label"><?= $lang['rr'] ?? 'R:R' ?></span>
-                    <span class="info-badge badge-neutral"><?= number_format((float)($trade['rr_achieved'] ?? 0), 2) ?>R</span>
+                    <?php 
+                        $isPending = strtolower($trade['status'] ?? '') === 'pending';
+                        $rrAchieved = isset($trade['rr_achieved']) && is_numeric($trade['rr_achieved']) ? (float)$trade['rr_achieved'] : null;
+                    ?>
+                    <span class="info-badge badge-neutral"><?= ($isPending || $rrAchieved === null) ? '-' : number_format($rrAchieved, 2) . 'R' ?></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label"><?= $lang['status'] ?? 'Status' ?></span>
