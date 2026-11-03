@@ -1,28 +1,32 @@
 <div class="fade-in">
     <input type="hidden" id="current-account-view-id" value="<?php echo $_GET['id'] ?? ''; ?>">
 
-    <div class="d-flex justify-content-between align-items-start mb-4 responsive-header">
-        <div>
-            <h2 class="m-0" id="ad-name" style="font-weight: 700; font-size: 2rem; line-height: 1.2;"><span class="skeleton" style="height: 38px; width: 180px; display: inline-block;"></span></h2>
-            <div class="mt-2">
-                <span id="ad-type" class="badge-neutral" style="padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; letter-spacing: 0.5px;">TYPE</span>
-                <span id="ad-status" class="ms-2 text-muted" style="font-size: 0.85rem;"><?= $lang['active'] ?></span>
+    <div class="d-flex justify-content-between align-items-center mb-4 responsive-header">
+        <div class="d-flex align-items-center gap-3">
+            <a href="index.php?view=accounts" class="btn-icon-back">
+                <div class="d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 10px; transition: 0.2s;">
+                    <i class="fas fa-arrow-left text-secondary"></i>
+                </div>
+            </a>
+            <div>
+                <h2 class="page-title m-0" id="ad-name"><span class="skeleton" style="height: 32px; width: 180px; display: inline-block;"></span></h2>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span id="ad-type" class="badge-neutral" style="padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; letter-spacing: 0.5px;">TYPE</span>
+                    <span id="ad-status" class="text-muted small"><?= $lang['active'] ?></span>
+                </div>
             </div>
         </div>
         
         <div class="d-flex gap-2">
-            <a href="index.php?view=accounts" class="btn btn-outline">
-                <i class="fas fa-arrow-left me-2"></i> <?= $lang['back'] ?>
-            </a>
             <button id="btn-edit-account" class="btn btn-secondary">
                 <i class="fas fa-edit me-2"></i> <?= $lang['edit'] ?>
             </button>
             <button id="btn-delete-account" class="btn btn-danger" onclick="deleteAccount(document.getElementById('current-account-view-id').value)">
                 <i class="fas fa-trash-alt me-2"></i> <?= $lang['delete'] ?>
             </button>
-            <button id="btn-add-trade-account" class="btn btn-primary">
+            <a href="index.php?view=trade_create&account_id=<?php echo htmlspecialchars($_GET['id'] ?? ''); ?>" id="btn-add-trade-account" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i> <?= $lang['trade'] ?>
-            </button>
+            </a>
         </div>
     </div>
 
@@ -34,63 +38,64 @@
 
     <div id="tab-overview" class="tab-content active">
         
-        <div class="glass-panel mb-4" style="padding: 30px;">
+        <div class="glass-panel mb-4" style="padding: 24px;">
             <div class="d-flex justify-content-between align-items-end mb-3">
                 <div>
-                    <div class="text-secondary text-uppercase" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 5px;"><?= $lang['current_balance'] ?></div>
-                    <div id="ad-balance" style="font-size: 3rem; font-weight: 700; color: var(--text-main); line-height: 1;">$0.00</div>
+                    <div class="metric-label-pro"><?= $lang['current_balance'] ?></div>
+                    <div id="ad-balance" style="font-size: 2.5rem; font-weight: 700; color: var(--text-main); line-height: 1.1;">$0.00</div>
                 </div>
                 <div class="text-end">
-                    <div id="ad-profit-abs" class="text-profit" style="font-size: 1.5rem; font-weight: 600;">+0.00$</div>
-                    <div id="ad-profit-pct" class="text-secondary" style="font-size: 1rem;">(0.00%)</div>
+                    <div id="ad-profit-abs" class="text-profit" style="font-size: 1.4rem; font-weight: 600;">+0.00$</div>
+                    <div id="ad-profit-pct" class="text-secondary" style="font-size: 0.95rem;">(0.00%)</div>
                 </div>
             </div>
             
-            <div id="ad-progress-container" style="margin-top: 20px;"></div>
+            <div id="ad-progress-container" style="margin-top: 15px;"></div>
         </div>
 
-        <div class="dashboard-grid mb-4">
-            <div class="metric-card glass-panel">
-                <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
-                <div class="metric-content">
-                    <div class="metric-label"><?= $lang['total_trades'] ?></div>
-                    <div class="metric-value" id="ad-total-trades">0</div>
-                    <div class="metric-subtext" id="ad-trades-breakdown">-</div>
+        <div class="pro-metrics-grid mb-4">
+            <div class="glass-panel metric-card-pro" style="border-bottom: 3px solid var(--text-profit, #00d66f) !important;">
+                <i class="fas fa-chart-area metric-bg-icon"></i>
+                <div>
+                    <div class="metric-label-pro"><?= $lang['total_pnl'] ?></div>
+                    <div class="metric-value-pro" id="ad-pnl-value">0.00$</div>
                 </div>
             </div>
 
-            <div class="metric-card glass-panel">
-                <div class="metric-icon"><i class="fas fa-trophy"></i></div>
-                <div class="metric-content">
-                    <div class="metric-label"><?= $lang['winrate'] ?></div>
-                    <div class="metric-value" id="ad-winrate">0%</div>
-                    <div class="metric-progress-bar">
-                        <div id="ad-winrate-bar" style="width:0%; background: var(--accent-green); height:100%;"></div>
-                    </div>
+            <div class="glass-panel metric-card-pro" style="border-bottom: 3px solid var(--accent-blue, #2997ff) !important;">
+                <i class="fas fa-trophy metric-bg-icon"></i>
+                <div>
+                    <div class="metric-label-pro"><?= $lang['winrate'] ?></div>
+                    <div class="metric-value-pro" id="ad-winrate">0%</div>
+                </div>
+                <div class="mpa-progress-bg mt-3">
+                    <div id="ad-winrate-bar" class="mpa-progress-fill" style="width:0%; background: var(--accent-blue, #2997ff);"></div>
                 </div>
             </div>
 
-            <div class="metric-card glass-panel">
-                <div class="metric-icon"><i class="fas fa-exchange-alt"></i></div>
-                <div class="metric-content">
-                    <div class="metric-label"><?= $lang['average_rr'] ?></div>
-                    <div class="metric-value" id="ad-avg-rr">0R</div>
+            <div class="glass-panel metric-card-pro" style="border-bottom: 3px solid #ffc107 !important;">
+                <i class="fas fa-balance-scale metric-bg-icon"></i>
+                <div>
+                    <div class="metric-label-pro"><?= $lang['average_rr'] ?></div>
+                    <div class="metric-value-pro" id="ad-avg-rr">0R</div>
                 </div>
+                <div class="metric-subtext-pro text-muted"><?= $lang['risk_reward_ratio'] ?? 'Risk/Reward' ?></div>
             </div>
-            
-             <div class="metric-card glass-panel">
-                <div class="metric-icon"><i class="fas fa-chart-area"></i></div>
-                <div class="metric-content">
-                    <div class="metric-label"><?= $lang['total_pnl'] ?></div>
-                    <div class="metric-value" id="ad-pnl-value">0.00$</div>
+
+            <div class="glass-panel metric-card-pro" style="border-bottom: 3px solid var(--text-secondary, #6b7280) !important;">
+                <i class="fas fa-list-ol metric-bg-icon"></i>
+                <div>
+                    <div class="metric-label-pro"><?= $lang['total_trades'] ?></div>
+                    <div class="metric-value-pro" id="ad-total-trades">0</div>
                 </div>
+                <div class="metric-subtext-pro text-muted mt-2" id="ad-trades-breakdown">-</div>
             </div>
         </div>
 
-        <div class="card glass-panel border-0 shadow-sm mb-4" style="border-radius: 12px; padding: 25px;">
-            <h3 class="m-0 mb-4" style="font-size: 1.1rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;"><?= $lang['equity_curve'] ?></h3>
+        <div class="glass-panel mb-4" style="border-radius: var(--border-radius-lg, 14px); padding: 24px;">
+            <h4 class="mb-3 fw-bold text-white"><i class="fas fa-chart-line me-2"></i><?= $lang['equity_curve'] ?></h4>
             
-            <div class="chart-wrapper" style="height: 400px; width: 100%; position: relative;">
+            <div class="chart-wrapper" style="height: 380px; width: 100%; position: relative;">
                 <canvas id="accountEquityChart"></canvas>
             </div>
         </div>

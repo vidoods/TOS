@@ -225,19 +225,31 @@ function updateMetric(id, value) {
 function updateBreakdown(id, wins, losses, breakeven, pending) {
     const el = document.getElementById(id);
     if (el) {
-        // БЕЗОПАСНОСТЬ: Изолируем вывод через escapeHTML (на случай, если значения типов прилетят строками)
-        el.innerHTML = `
-            <span class="text-profit">${escapeHTML(String(wins))} W</span> /
-            <span class="text-loss">${escapeHTML(String(losses))} L</span> /
-            <span class="text-warning">${escapeHTML(String(breakeven))} B</span> /
-            <span class="text-info">${escapeHTML(String(pending))} P</span>
-        `;
+        if (id === 'ad-trades-breakdown') {
+            el.className = "metric-subtext-pro d-flex gap-2 mt-2";
+            el.innerHTML = `
+                <span class="badge bg-dark border border-secondary text-profit">${escapeHTML(String(wins))} W</span>
+                <span class="badge bg-dark border border-secondary text-loss">${escapeHTML(String(losses))} L</span>
+                <span class="badge bg-dark border border-secondary text-warning">${escapeHTML(String(breakeven))} B</span>
+                <span class="badge bg-dark border border-secondary text-info">${escapeHTML(String(pending))} P</span>
+            `;
+        } else {
+            el.innerHTML = `
+                <span class="text-profit">${escapeHTML(String(wins))} W</span> /
+                <span class="text-loss">${escapeHTML(String(losses))} L</span> /
+                <span class="text-warning">${escapeHTML(String(breakeven))} B</span> /
+                <span class="text-info">${escapeHTML(String(pending))} P</span>
+            `;
+        }
     }
 }
 
 function updateProgressBar(id, value) {
     const el = document.getElementById(id);
-    if (el) el.style.width = `${value}%`;
+    if (el) {
+        const numVal = parseFloat(value || 0);
+        el.style.width = `${Math.min(100, Math.max(0, numVal))}%`;
+    }
 }
 
 function updatePnl(id, value) {
