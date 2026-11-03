@@ -78,7 +78,7 @@ async function loadQPADetails() {
 
         if (data.success) {
             renderQPAHeader(data.stats);
-            renderQPAMonths(data.months);
+            renderQPAMonths(data.months, year);
             renderQPATrades(data.trades);
             renderQPAPlans(data.plans);
 
@@ -100,54 +100,84 @@ function renderQPAHeader(stats) {
     const pnlElem = document.getElementById('qpa-pnl');
     if (pnlElem) {
         const pnlValue = parseFloat(stats.pnl);
-        // ИСПРАВЛЕНИЕ: Интегрировали CurrencyManager для вывода квартальной прибыли в хедере
+        // ИСПРАВЛЕНИЕ: Интегрировали CurrencyManager и единый класс metric-value-pro с text-profit/text-loss
         pnlElem.textContent = CurrencyManager.format(pnlValue);
-        pnlElem.className = `fs-4 fw-bold ${pnlValue >= 0 ? 'text-success' : 'text-danger'}`;
+        pnlElem.className = `metric-value-pro ${pnlValue >= 0 ? 'text-profit' : 'text-loss'}`;
+    }
+
+    const pnlPercentEl = document.getElementById('qpa-pnl-percent');
+    if (pnlPercentEl && stats.percent_sum !== undefined) {
+        const pct = parseFloat(stats.percent_sum || 0);
+        const sign = pct > 0 ? '+' : '';
+        pnlPercentEl.textContent = `${sign}${pct.toFixed(2)} % ${window.lang['percent_return'] || ''}`.trim();
+        pnlPercentEl.className = `metric-subtext-pro ${pct >= 0 ? 'text-profit' : 'text-loss'}`;
     }
 
     const wrElem = document.getElementById('qpa-winrate');
-    if (wrElem) wrElem.textContent = `${stats.winrate}%`;
+    const wrBar = document.getElementById('qpa-winrate-bar');
+    const wrVal = parseFloat(stats.winrate || 0);
+    if (wrElem) wrElem.textContent = `${wrVal}%`;
+    if (wrBar) {
+        wrBar.style.width = `${Math.min(100, Math.max(0, wrVal))}%`;
+        wrBar.style.background = 'var(--accent-blue, #2997ff)';
+    }
 
     const rrElem = document.getElementById('qpa-rr');
-    if (rrElem) rrElem.textContent = `${stats.avg_rr}R`;
+    if (rrElem) {
+        const rrVal = parseFloat(stats.avg_rr || 0);
+        rrElem.textContent = `${rrVal}R`;
+        
+    }
 
     const totElem = document.getElementById('qpa-total');
     if (totElem) totElem.textContent = stats.total;
+
+    const bd = document.getElementById('qpa-trades-breakdown');
+    if (bd && stats.wins !== undefined) {
+        bd.innerHTML = `
+            <span class="badge bg-dark border border-secondary text-profit">${stats.wins || 0} W</span>
+            <span class="badge bg-dark border border-secondary text-loss">${stats.losses || 0} L</span>
+            <span class="badge bg-dark border border-secondary text-warning">${stats.be || 0} B</span>
+            <span class="badge bg-dark border border-secondary text-info">${stats.pending || 0} P</span>
+        `;
+    }
 }
 
-function renderQPAMonths(months) {
+function renderQPAMonths(months, year) {
     const container = document.getElementById('qpa-months-container');
     if (!container) return;
     container.innerHTML = '';
 
     if (!months || months.length === 0) {
-        container.innerHTML = `<div class="text-muted" style="grid-column: span 3;">${window.lang['no_data_available']}</div>`;
+        container.innerHTML = `<div class="text-muted text-center py-4" style="grid-column: 1 / -1;">${window.lang['no_data_available']}</div>`;
         return;
     }
 
     months.forEach(m => {
-        const pnlValue = parseFloat(m.pnl);
+        const pnlValue = parseFloat(m.pnl || 0);
         const isPositive = pnlValue >= 0;
-        const colorClass = isPositive ? 'text-success' : 'text-danger';
-        const iconClass = isPositive ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-        const iconColor = isPositive ? 'text-success' : 'text-danger';
+        const colorClass = isPositive ? 'text-profit' : 'text-loss';
+        const winrate = parseFloat(m.winrate || 0);
+        const count = parseInt(m.count || 0, 10);
+        const y = year || new Date().getFullYear();
 
-        // ИСПРАВЛЕНИЕ: Форматируем PnL месяцев внутри квартала через валютный менеджер
         const html = `
-        <div class="metric-card glass-panel h-100">
-            <div class="metric-icon">
-                <i class="fas ${iconClass} ${iconColor}"></i>
+        <div class="glass-panel mpa-card h-100" style="cursor: pointer;" onclick="window.location.href='index.php?view=mpa_details&year=${y}&month=${m.num}'">
+            <div class="mpa-card-title">
+                <span class="text-white">${escapeHTML(m.name)}</span>
+                <div class="mpa-card-arrow"><i class="fas fa-arrow-right"></i></div>
             </div>
-            <div class="metric-content w-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="metric-label text-white opacity-75">${escapeHTML(m.name)}</div>
-                    <span class="badge bg-secondary opacity-25 small">M${m.num}</span>
-                </div>
-                <div class="metric-value ${colorClass} mb-1">${CurrencyManager.format(pnlValue)}</div>
-                <div class="d-flex gap-3 text-muted small" style="font-size: 0.8rem;">
-                    <div><i class="fas fa-chart-pie me-1"></i>${m.winrate}%</div>
-                    <div><i class="fas fa-list me-1"></i>${m.count}</div>
-                </div>
+            <div class="mpa-stat-row mt-2">
+                <span>
+                    ${window.lang['net_result']}: <span class="${colorClass}" style="font-weight: 600;">${CurrencyManager.format(pnlValue)}</span>
+                </span>
+            </div>
+            <div class="mpa-stat-row mt-2 text-secondary" style="font-size: 0.85em;">
+                <span><i class="fas fa-chart-pie me-1"></i>${winrate}% ${window.lang['winrate']}</span>
+                <span><i class="fas fa-list me-1"></i>${count} ${window.lang['trades_count'] || 'trades'}</span>
+            </div>
+            <div class="mpa-progress-bg mt-3">
+                <div class="mpa-progress-fill" style="width: ${count > 0 ? winrate : 0}%; background: ${pnlValue < 0 ? 'var(--text-loss)' : 'var(--text-profit)'};"></div>
             </div>
         </div>
         `;

@@ -168,9 +168,11 @@ async function loadMPAMonthDetails() {
 
     const plansContainer = document.getElementById('month-plans-container');
     const tradesContainer = document.getElementById('month-trades-container');
+    const tradesBadge = document.getElementById('trades-count-badge');
+    const plansBadge = document.getElementById('month-plans-count-badge');
 
-    if (plansContainer) plansContainer.innerHTML = `<div class="row">${getSkeletonHtml('card', 3)}</div>`;
-    if (tradesContainer) tradesContainer.innerHTML = `<div class="row">${getSkeletonHtml('card', 3)}</div>`;
+    if (plansContainer) plansContainer.innerHTML = getSkeletonHtml('card', 3);
+    if (tradesContainer) tradesContainer.innerHTML = `<div class="text-center py-4 text-muted"><div class="loading-spinner"></div> ${window.lang['loading_trades']}</div>`;
 
     ['month-pnl', 'month-winrate', 'month-rr', 'month-trades-count'].forEach(id => {
         const el = document.getElementById(id);
@@ -186,118 +188,72 @@ async function loadMPAMonthDetails() {
 
         if (result.success) {
             const s = result.stats;
-            const trades = result.trades;
+            const trades = result.trades || [];
             const plans = result.plans || [];
+
+            if (tradesBadge) tradesBadge.textContent = trades.length;
+            if (plansBadge) plansBadge.textContent = plans.length;
 
             const pnlEl = document.getElementById('month-pnl');
             if (pnlEl) {
-                // ИСПРАВЛЕНИЕ: Выводим суммарный профит месяца в деталях через CurrencyManager
+                // ИСПРАВЛЕНИЕ: Выводим суммарный профит месяца в деталях через CurrencyManager и единые классы text-profit/text-loss
                 pnlEl.textContent = CurrencyManager.format(parseFloat(s.pnl));
-                pnlEl.className = `metric-value-pro ${s.pnl >= 0 ? 'text-success' : 'text-danger'}`;
+                pnlEl.className = `metric-value-pro ${s.pnl >= 0 ? 'text-profit' : 'text-loss'}`;
             }
             if (document.getElementById('month-pnl-percent')) {
-                document.getElementById('month-pnl-percent').textContent = `${s.percent_sum.toFixed(2)} ${window.lang['percent_return']}`;
-                document.getElementById('month-pnl-percent').className = `metric-subtext-pro ${s.percent_sum >= 0 ? 'text-success' : 'text-danger'}`;
+                const pct = parseFloat(s.percent_sum || 0);
+                const sign = pct > 0 ? '+' : '';
+                document.getElementById('month-pnl-percent').textContent = `${sign}${pct.toFixed(2)} % ${window.lang['percent_return'] || ''}`.trim();
+                document.getElementById('month-pnl-percent').className = `metric-subtext-pro ${pct >= 0 ? 'text-profit' : 'text-loss'}`;
             }
-            if (document.getElementById('month-winrate')) document.getElementById('month-winrate').textContent = `${s.winrate} %`;
-            if (document.getElementById('month-rr')) document.getElementById('month-rr').textContent = `${s.avg_rr} R`;
+            const mWrVal = parseFloat(s.winrate || 0);
+            if (document.getElementById('month-winrate')) document.getElementById('month-winrate').textContent = `${mWrVal} %`;
+            const mWrBar = document.getElementById('month-winrate-bar');
+            if (mWrBar) {
+                mWrBar.style.width = `${Math.min(100, Math.max(0, mWrVal))}%`;
+                mWrBar.style.background = 'var(--accent-blue, #2997ff)';
+            }
+
+            if (document.getElementById('month-rr')) {
+                const rrVal = parseFloat(s.avg_rr || 0);
+                document.getElementById('month-rr').textContent = `${s.avg_rr} R`;
+                
+            }
             if (document.getElementById('month-trades-count')) document.getElementById('month-trades-count').textContent = s.total;
 
             const bd = document.getElementById('month-trades-breakdown');
             if (bd) {
                 bd.innerHTML = `
-                    <span class="badge bg-dark border border-success text-success">${s.wins} W</span>
-                    <span class="badge bg-dark border border-danger text-danger">${s.losses} L</span>
-                    <span class="badge bg-dark border border-warning text-warning">${s.be} B</span>
-                    <span class="badge bg-dark border border-info text-info">${s.pending} P</span>
+                    <span class="badge bg-dark border border-secondary text-profit">${s.wins} W</span>
+                    <span class="badge bg-dark border border-secondary text-loss">${s.losses} L</span>
+                    <span class="badge bg-dark border border-secondary text-warning">${s.be} B</span>
+                    <span class="badge bg-dark border border-secondary text-info">${s.pending} P</span>
                 `;
             }
 
             if (plansContainer) {
                 plansContainer.innerHTML = '';
                 if (plans.length === 0) {
-                    plansContainer.innerHTML = `<div class="col-12 text-center text-muted py-4">${window.lang['no_plans_month']}</div>`;
+                    plansContainer.innerHTML = `<div class="text-muted text-center py-4" style="grid-column: 1 / -1;">${window.lang['no_plans_month']}</div>`;
                 } else {
+                    let plansHtml = '';
                     plans.forEach(plan => {
-                        const dateObj = new Date(plan.date);
-                        const day = dateObj.getDate();
-                        const biasClass = `bias-${(plan.bias || '').toLowerCase()}`;
-                        const pair = plan.pair_symbol || 'Unknown';
-                        const typeChar = plan.type ? plan.type.charAt(0) : '?';
-
-                        const col = document.createElement('div');
-                        col.className = 'col-md-4 mb-3';
-                        // БЕЗОПАСНОСТЬ: Добавили экранирование escapeHTML для защиты от XSS в названии планов и пар
-                        col.innerHTML = `
-                            <a href="index.php?view=plan_details&id=${plan.id}" class="plan-card glass-panel d-block text-decoration-none" style="position: relative; padding: 20px; min-height: 140px;">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                     <div class="plan-date-box text-white">
-                                        <span style="font-size: 1.2rem; font-weight: bold;">${day}</span>
-                                        <span class="plan-date-type text-muted ms-1" style="font-size: 0.8rem; text-transform: uppercase;">${escapeHTML(typeChar)}</span>
-                                     </div>
-                                     <div class="plan-bias-tag ${biasClass}">${escapeHTML(plan.bias)}</div>
-                                </div>
-                                <div class="plan-info mt-3">
-                                    <div class="fw-bold text-white fs-5">${escapeHTML(pair)}</div>
-                                    <div class="text-white-50 small text-truncate">${escapeHTML(plan.title)}</div>
-                                </div>
-                            </a>
-                        `;
-                        plansContainer.appendChild(col);
+                        plansHtml += getPlanCardHtml(plan);
                     });
+                    plansContainer.innerHTML = plansHtml;
                 }
             }
 
             if (tradesContainer) {
                 tradesContainer.innerHTML = '';
                 if (trades.length === 0) {
-                    tradesContainer.innerHTML = `<div class="col-12 text-center text-muted py-5">${window.lang['no_trades']}</div>`;
+                    tradesContainer.innerHTML = `<div class="text-center py-4 text-muted">${window.lang['no_trades']}</div>`;
                 } else {
+                    let tradesHtml = '';
                     trades.forEach(t => {
-                        const dateObj = new Date(t.entry_date);
-                        const dateStr = dateObj.toLocaleDateString('ru-RU');
-                        const pnlVal = parseFloat(t.pnl);
-                        const rrVal = parseFloat(t.rr_achieved || 0).toFixed(2);
-                        const pair = t.pair_name || t.pair_id || 'Unknown';
-
-                        let badgeClass = 'secondary';
-                        let st = (t.status || 'open').toUpperCase();
-                        let pnlColor = 'text-white';
-                        if (pnlVal > 0) pnlColor = 'text-success';
-                        if (pnlVal < 0) pnlColor = 'text-danger';
-
-                        if (st.includes('WIN')) badgeClass = 'success';
-                        else if (st.includes('LOSS')) badgeClass = 'danger';
-                        else if (st === 'BREAKEVEN') badgeClass = 'warning';
-                        else if (st === 'OPEN' || st === 'PENDING') badgeClass = 'info';
-
-                        const dirColor = t.direction === 'Long' ? 'text-success' : 'text-danger';
-
-                        const col = document.createElement('div');
-                        col.className = 'col-md-4 mb-3';
-                        // ИСПРАВЛЕНИЕ: Форматируем PnL каждой сделки внутри детального MPA-просмотра через CurrencyManager.format
-                        col.innerHTML = `
-                            <a href="index.php?view=trade_details&id=${t.id}" class="glass-panel d-block text-decoration-none" style="padding: 20px; border-radius: 12px; transition: transform 0.2s; position: relative;">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="text-muted small">${dateStr}</span>
-                                        <span class="badge-soft ${badgeClass}">${escapeHTML(st)}</span>
-                                    </div>
-                                    <div class="fw-bold ${dirColor}" style="text-transform: uppercase; font-size: 0.85rem;">${escapeHTML(t.direction)}</div>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-end">
-                                    <div>
-                                        <div class="fw-bold text-white fs-4 mb-0">${escapeHTML(pair)}</div>
-                                        <div class="text-muted small mt-1">${window.lang['result_label']}: <span class="text-white">${rrVal} R</span></div>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fs-4 fw-bold ${pnlColor} font-mono">${CurrencyManager.format(pnlVal)}</div>
-                                    </div>
-                                </div>
-                            </a>
-                        `;
-                        tradesContainer.appendChild(col);
+                        tradesHtml += getTradeRowHtml(t);
                     });
+                    tradesContainer.innerHTML = tradesHtml;
                 }
             }
 

@@ -3893,23 +3893,24 @@ a.info-badge:hover {
    ========================================= */
 /* --- PRO Карточки Метрик --- */
 .metric-card-pro {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  padding: 25px;
+  border-radius: var(--border-radius-lg, 14px);
+  padding: 20px 22px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .metric-card-pro:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
 }
 
 /* Фоновая иконка (полупрозрачная) */
@@ -4032,6 +4033,41 @@ a.info-badge:hover {
 .font-mono {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-weight: 600;
+}
+
+/* Сетка для метрик MPA/QPA деталей: 4 в ряд, адаптивно */
+.pro-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .pro-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .pro-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Счетчик для секций (сделки / планы) */
+.section-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
 }
 
 /* =========================================

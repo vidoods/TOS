@@ -59,7 +59,8 @@ function getQPADetails($pdo) {
         $startMonth = ($quarter - 1) * 3 + 1;
         $endMonth   = $startMonth + 2;
 
-        $sqlTrades = "SELECT t.*, rp.symbol as pair_name, rp.symbol as pair_symbol, a.name as account_name
+        $sqlTrades = "SELECT t.*, rp.symbol as pair_name, rp.symbol as pair_symbol, a.name as account_name,
+                             a.starting_equity, a.balance as acc_balance
                       FROM trades t
                       LEFT JOIN user_pairs rp ON t.pair_id = rp.id
                       LEFT JOIN accounts a ON t.account_id = a.id
@@ -92,7 +93,9 @@ function getQPADetails($pdo) {
             elseif ($isWin) $stats['wins']++;
             elseif ($isLoss) $stats['losses']++;
             else $stats['be']++;
-            $depo = (float)($t['deposit_start'] ?? 0);
+            $depo = (float)($t['starting_equity'] ?? 0);
+            if ($depo <= 0) $depo = (float)($t['acc_balance'] ?? 0);
+            if ($depo <= 0) $depo = (float)($t['deposit_start'] ?? 0);
             if ($depo > 0) $stats['percent_sum'] += ($pnl / $depo) * 100;
         }
         $closed = $stats['wins'] + $stats['losses'] + $stats['be'];

@@ -6,7 +6,7 @@ function getMPAAnalysis($pdo) {
         $uid  = $_SESSION['user_id'];
         $year = isset($_GET['year']) ? (int)$_GET['year'] : date('Y');
 
-        $sql  = "SELECT t.*, a.balance as acc_balance
+        $sql  = "SELECT t.*, a.starting_equity, a.balance as acc_balance
                  FROM trades t
                  LEFT JOIN accounts a ON t.account_id = a.id
                  WHERE t.user_id = ? AND YEAR(t.entry_date) = ?
@@ -33,8 +33,9 @@ function getMPAAnalysis($pdo) {
             $pnl    = (float)$t['pnl'];
             $rr     = (float)$t['rr_achieved'];
             $status = strtolower($t['status'] ?? '');
-            $deposit = (float)($t['deposit_start'] ?? 0);
+            $deposit = (float)($t['starting_equity'] ?? 0);
             if ($deposit <= 0) $deposit = (float)($t['acc_balance'] ?? 0);
+            if ($deposit <= 0) $deposit = (float)($t['deposit_start'] ?? 0);
             if ($deposit > 0) $monthsData[$m]['pnl_percent'] += ($pnl / $deposit) * 100;
 
             $monthsData[$m]['count_total']++;
@@ -83,9 +84,10 @@ function getMPAMonthDetails($pdo) {
         $year  = $_GET['year']  ?? date('Y');
         $month = $_GET['month'] ?? date('n');
 
-        $sqlTrades = "SELECT t.*, rp.symbol as pair_name
+        $sqlTrades = "SELECT t.*, rp.symbol as pair_name, a.starting_equity, a.balance as acc_balance
                       FROM trades t
                       LEFT JOIN user_pairs rp ON t.pair_id = rp.id
+                      LEFT JOIN accounts a ON t.account_id = a.id
                       WHERE t.user_id = ? AND YEAR(t.entry_date) = ? AND MONTH(t.entry_date) = ?
                       ORDER BY t.entry_date DESC";
         $stmt = $pdo->prepare($sqlTrades);
@@ -115,7 +117,9 @@ function getMPAMonthDetails($pdo) {
             elseif ($isWin) $stats['wins']++;
             elseif ($isLoss) $stats['losses']++;
             else $stats['be']++;
-            $depo = (float)($t['deposit_start'] ?? 0);
+            $depo = (float)($t['starting_equity'] ?? 0);
+            if ($depo <= 0) $depo = (float)($t['acc_balance'] ?? 0);
+            if ($depo <= 0) $depo = (float)($t['deposit_start'] ?? 0);
             if ($depo > 0) $stats['percent_sum'] += ($pnl / $depo) * 100;
         }
         $closed = $stats['wins'] + $stats['losses'] + $stats['be'];
